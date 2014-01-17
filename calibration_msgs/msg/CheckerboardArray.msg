@@ -1,0 +1,1 @@
+calibration_msgs/CheckerboardMsg[] checkerboards
