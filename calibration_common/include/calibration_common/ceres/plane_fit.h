@@ -30,6 +30,7 @@
 #define CALIBRATION_COMMON_CERES_PLANE_FIT_H_
 
 #include <calibration_common/objects/globals.h>
+#include <ceres/ceres.h>
 
 namespace calibration
 {

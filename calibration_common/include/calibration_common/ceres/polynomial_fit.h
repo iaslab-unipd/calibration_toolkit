@@ -91,7 +91,7 @@ template <typename Polynomial_>
       bool operator()(const T * const coefficients,
                       T * residual) const
       {
-        typedef Polynomial<T, Degree, MinDegree> Polynomial_;
+        typedef ceres::Polynomial<T, Degree, MinDegree> Polynomial_;
         typedef typename Traits<Polynomial_>::Coefficients Coefficients;
         residual[0] = T(y_) - Polynomial_::evaluate(Eigen::Map<const Coefficients>(coefficients), T(x_));
         return true;

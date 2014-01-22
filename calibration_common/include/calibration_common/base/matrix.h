@@ -144,16 +144,16 @@ template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, ty
     const ConstElement at(size_t x_index,
                           size_t y_index) const
     {
-      assert(y_index >= 0 && y_index < y_size_);
-      assert(x_index >= 0 && x_index < x_size_);
+      assert(y_index >= 0 and y_index < y_size_);
+      assert(x_index >= 0 and x_index < x_size_);
       return operator ()(x_index, y_index);
     }
 
     Element at(size_t x_index,
                size_t y_index)
     {
-      assert(x_index >= 0 && x_index < x_size_);
-      assert(y_index >= 0 && y_index < y_size_);
+      assert(y_index >= 0 and y_index < y_size_);
+      assert(x_index >= 0 and x_index < x_size_);
       return operator ()(x_index, y_index);
     }
 
@@ -321,8 +321,8 @@ template <typename EigenT, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynami
     Element at(size_t x_index,
                size_t y_index)
     {
-      assert(x_index >= 0 and x_index < x_size_);
       assert(y_index >= 0 and y_index < y_size_);
+      assert(x_index >= 0 and x_index < x_size_);
       return operator ()(x_index, y_index);
     }
 

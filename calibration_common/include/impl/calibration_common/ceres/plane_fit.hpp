@@ -43,7 +43,7 @@ template <typename Scalar_, typename Roots_>
                             Roots_ & roots)
   {
     roots(0) = Scalar_(0);
-    Scalar_ d = Scalar(b * b - Scalar_(4.0) * c);
+    Scalar_ d = Scalar_(b * b - Scalar_(4.0) * c);
     if (d < Scalar_(0)) // no real roots!!!! THIS SHOULD NOT HAPPEN!
       d = Scalar_(0);
 
