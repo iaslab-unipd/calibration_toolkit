@@ -203,10 +203,10 @@ template <typename PointT>
 //    *plane_indices = cluster.indices;
 
     //Types::Plane plane;
-    plane_info.equation_.normal()[0] = coefficients[0];
-    plane_info.equation_.normal()[1] = coefficients[1];
-    plane_info.equation_.normal()[2] = coefficients[2];
-    plane_info.equation_.offset() = coefficients[3];
+    plane_info.plane_.normal()[0] = coefficients[0];
+    plane_info.plane_.normal()[1] = coefficients[1];
+    plane_info.plane_.normal()[2] = coefficients[2];
+    plane_info.plane_.offset() = coefficients[3];
 
     //planar_object = boost::make_shared<PointCloudPlanarObject<PointT> >(cloud_, plane_indices, plane);
 

@@ -25,12 +25,12 @@
 namespace calibration
 {
 
-template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, typename AllocatorT = std::allocator<T> >
+template <typename T, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic, typename AllocatorT = std::allocator<T> >
   class Matrix
   {
   public:
 
-    static const int Size = (XSize == Eigen::Dynamic || YSize == Eigen::Dynamic) ? Eigen::Dynamic : XSize * YSize;
+    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
 
     typedef std::vector<T, AllocatorT> DataMatrix;
 
@@ -41,9 +41,9 @@ template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, ty
     typedef const T & ConstElement;
 
     Matrix()
-      : matrix_(XSize * YSize),
-        x_size_(XSize),
-        y_size_(YSize)
+      : matrix_(XSize_ * YSize_),
+        x_size_(XSize_),
+        y_size_(YSize_)
     {
       EIGEN_STATIC_ASSERT(Size != Eigen::Dynamic, YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR);
     }
@@ -55,14 +55,14 @@ template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, ty
         y_size_(y_size)
     {
       EIGEN_STATIC_ASSERT(Size == Eigen::Dynamic, YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
     }
 
     Matrix(const T & value)
-      : matrix_(XSize * YSize, value),
-        x_size_(XSize),
-        y_size_(YSize)
+      : matrix_(XSize_ * YSize_, value),
+        x_size_(XSize_),
+        y_size_(YSize_)
     {
       EIGEN_STATIC_ASSERT(Size != Eigen::Dynamic, YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR);
     }
@@ -75,14 +75,14 @@ template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, ty
         y_size_(y_size)
     {
       EIGEN_STATIC_ASSERT(Size == Eigen::Dynamic, YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
     }
 
     explicit Matrix(const DataMatrix & data)
       : matrix_(data),
-        x_size_(XSize),
-        y_size_(YSize)
+        x_size_(XSize_),
+        y_size_(YSize_)
     {
       EIGEN_STATIC_ASSERT(Size != Eigen::Dynamic, YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR); // TODO also for Dynamic size?
       assert(data.size() == Size);
@@ -106,7 +106,7 @@ template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, ty
     void reshape(size_t x_size,
                  size_t y_size)
     {
-      EIGEN_STATIC_ASSERT(XSize == Eigen::Dynamic && YSize == Eigen::Dynamic,
+      EIGEN_STATIC_ASSERT(XSize_ == Eigen::Dynamic && YSize_ == Eigen::Dynamic,
                           YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
       assert(x_size * y_size == matrix_.size());
       x_size_ = x_size;
@@ -180,7 +180,7 @@ template <typename T, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic, ty
   #define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
 
-template <typename EigenT, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic>
+template <typename EigenType_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic>
   class EigenMatrix
   {
   public:
@@ -188,22 +188,22 @@ template <typename EigenT, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynami
     typedef boost::shared_ptr<EigenMatrix> Ptr;
     typedef boost::shared_ptr<const EigenMatrix> ConstPtr;
 
-    typedef typename EigenT::Scalar T;
+    typedef typename EigenType_::Scalar T;
 
-    static const int TSize = MAX(EigenT::RowsAtCompileTime, EigenT::ColsAtCompileTime);
-    static const int Size = (XSize == Eigen::Dynamic || YSize == Eigen::Dynamic) ? Eigen::Dynamic : XSize * YSize;
+    static const int TSize = MAX(EigenType_::RowsAtCompileTime, EigenType_::ColsAtCompileTime);
+    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
 
-    typedef Eigen::Array<T, TSize, Size> DataMatrix;
+    typedef Eigen::Array<T, TSize, Size, Eigen::ColMajor> DataMatrix;
 
     typedef typename DataMatrix::ColXpr Element;
     typedef const typename DataMatrix::ConstColXpr ConstElement;
 
     EigenMatrix()
-      : x_size_(XSize),
-        y_size_(YSize)
+      : x_size_(XSize_),
+        y_size_(YSize_)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenType_);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenType_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(DataMatrix);
     }
 
@@ -213,46 +213,46 @@ template <typename EigenT, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynami
         x_size_(x_size),
         y_size_(y_size)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenType_);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenType_);
       EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(DataMatrix);
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
     }
 
-    EigenMatrix(const EigenT & value)
+    EigenMatrix(const EigenType_ & value)
       : matrix_(DataMatrix::Zero()),
-        x_size_(XSize),
-        y_size_(YSize)
+        x_size_(XSize_),
+        y_size_(YSize_)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenType_);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenType_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(DataMatrix);
       matrix_.colwise() += value;
     }
 
     EigenMatrix(size_t x_size,
                 size_t y_size,
-                const EigenT & value)
+                const EigenType_ & value)
       : matrix_(DataMatrix::Zero(TSize, x_size * y_size)),
         x_size_(x_size),
         y_size_(y_size)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenType_);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenType_);
       EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(DataMatrix);
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
       matrix_.colwise() += value;
     }
 
     explicit EigenMatrix(const DataMatrix & data)
       : matrix_(data),
-        x_size_(XSize),
-        y_size_(YSize)
+        x_size_(XSize_),
+        y_size_(YSize_)
     {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT);
+      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenType_);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenType_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(DataMatrix); // TODO also for Dynamic size?
       assert(data.size() == Size);
     }
@@ -275,7 +275,7 @@ template <typename EigenT, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynami
     void reshape(size_t x_size,
                  size_t y_size)
     {
-      EIGEN_STATIC_ASSERT(XSize == Eigen::Dynamic and YSize == Eigen::Dynamic,
+      EIGEN_STATIC_ASSERT(XSize_ == Eigen::Dynamic and YSize_ == Eigen::Dynamic,
                           YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
       assert(x_size * y_size == matrix_.size());
       x_size_ = x_size;

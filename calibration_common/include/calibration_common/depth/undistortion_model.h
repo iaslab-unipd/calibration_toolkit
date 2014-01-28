@@ -38,25 +38,6 @@ namespace calibration
 {
 
 template <typename Scalar_>
-  class DepthUndistortionModelBase
-  {
-  public:
-
-    typedef boost::shared_ptr<DepthUndistortionModelBase> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModelBase> ConstPtr;
-
-    virtual ~DepthUndistortionModelBase()
-    {
-      // Do nothing
-    }
-
-    virtual Scalar_ * data() = 0;
-
-    virtual const Scalar_ * data() const = 0;
-
-  };
-
-template <typename Scalar_>
   class DepthUndistortionModel
   {
   public:
@@ -69,9 +50,30 @@ template <typename Scalar_>
       // Do nothing
     }
 
+    virtual Scalar_ * dataPtr() = 0;
+
+    virtual const Scalar_ * dataPtr() const = 0;
+
+  };
+
+template <typename Scalar_>
+  class DepthUndistortionModelEigen
+  {
+  public:
+
+    typedef boost::shared_ptr<DepthUndistortionModelEigen> Ptr;
+    typedef boost::shared_ptr<const DepthUndistortionModelEigen> ConstPtr;
+
+    virtual ~DepthUndistortionModelEigen()
+    {
+      // Do nothing
+    }
+
     virtual void undistort(typename Types_<Scalar_>::Point3 & point) const = 0;
 
     virtual void undistort(typename Types_<Scalar_>::Point3Matrix & cloud) const = 0;
+
+    virtual Ptr clone() const = 0;
 
   };
 
@@ -92,36 +94,12 @@ template <typename Scalar_, typename PCLPoint_>
 
     virtual void undistort(pcl::PointCloud<PCLPoint_> & cloud) const = 0;
 
-  };
-
-template <typename Scalar_>
-  class NoUndistortionBase : public DepthUndistortionModelBase<Scalar_>
-  {
-  public:
-
-    typedef boost::shared_ptr<NoUndistortionBase> Ptr;
-    typedef boost::shared_ptr<const NoUndistortionBase> ConstPtr;
-
-    virtual ~NoUndistortionBase()
-    {
-      // Do nothing
-    }
-
-    virtual Scalar_ * data()
-    {
-      return NULL;
-    }
-
-    virtual const Scalar_ * data() const
-    {
-      return NULL;
-    }
+    virtual Ptr clone() const = 0;
 
   };
 
 template <typename Scalar_>
-  class NoUndistortion : public NoUndistortionBase<Scalar_>,
-                         public DepthUndistortionModel<Scalar_>
+  class NoUndistortion : public DepthUndistortionModel<Scalar_>
   {
   public:
 
@@ -129,6 +107,32 @@ template <typename Scalar_>
     typedef boost::shared_ptr<const NoUndistortion> ConstPtr;
 
     virtual ~NoUndistortion()
+    {
+      // Do nothing
+    }
+
+    virtual Scalar_ * dataPtr()
+    {
+      return NULL;
+    }
+
+    virtual const Scalar_ * dataPtr() const
+    {
+      return NULL;
+    }
+
+  };
+
+template <typename Scalar_>
+  class NoUndistortionEigen : public NoUndistortion<Scalar_>,
+                              public DepthUndistortionModelEigen<Scalar_>
+  {
+  public:
+
+    typedef boost::shared_ptr<NoUndistortionEigen> Ptr;
+    typedef boost::shared_ptr<const NoUndistortionEigen> ConstPtr;
+
+    virtual ~NoUndistortionEigen()
     {
       // Do nothing
     }
@@ -143,10 +147,15 @@ template <typename Scalar_>
       // Do nothing
     }
 
+    virtual typename DepthUndistortionModelEigen<Scalar_>::Ptr clone() const
+    {
+      return boost::make_shared<NoUndistortionEigen>();
+    }
+
   };
 
 template <typename Scalar_, typename PCLPoint_>
-  class NoUndistortionPCL : public NoUndistortionBase<Scalar_>,
+  class NoUndistortionPCL : public NoUndistortion<Scalar_>,
                             public DepthUndistortionModelPCL<Scalar_, PCLPoint_>
   {
   public:
@@ -167,6 +176,11 @@ template <typename Scalar_, typename PCLPoint_>
     virtual void undistort(pcl::PointCloud<PCLPoint_> & cloud) const
     {
       // Do nothing
+    }
+
+    virtual typename DepthUndistortionModelPCL<Scalar_, PCLPoint_>::Ptr clone() const
+    {
+      return boost::make_shared<NoUndistortionPCL>();
     }
 
   };

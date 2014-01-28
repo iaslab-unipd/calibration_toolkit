@@ -45,18 +45,18 @@ public:
 
   DepthSensor()
     : Sensor(),
-      undistortion_model_(boost::make_shared<NoUndistortion<Types::Scalar> >()),
+      undistortion_model_(boost::make_shared<NoUndistortionEigen<Types::Scalar> >()),
       depth_error_function_(Types::Vector3(1.0, 0.0, 0.0))
   {
     // Do nothing
   }
 
-  const typename DepthUndistortionModel<Types::Scalar>::ConstPtr undistortionModel() const
+  const typename DepthUndistortionModelEigen<Types::Scalar>::ConstPtr undistortionModel() const
   {
     return undistortion_model_;
   }
 
-  void setUndistortionModel(const typename DepthUndistortionModel<Types::Scalar>::ConstPtr & undistortion_model)
+  void setUndistortionModel(const typename DepthUndistortionModelEigen<Types::Scalar>::ConstPtr & undistortion_model)
   {
     undistortion_model_ = undistortion_model;
   }
@@ -73,7 +73,7 @@ public:
 
 private:
 
-  typename DepthUndistortionModel<Types::Scalar>::ConstPtr undistortion_model_;
+  typename DepthUndistortionModelEigen<Types::Scalar>::ConstPtr undistortion_model_;
   Polynomial<Types::Scalar, 2> depth_error_function_;
 
 };

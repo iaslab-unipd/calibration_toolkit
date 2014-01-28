@@ -35,11 +35,11 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
     typedef boost::shared_ptr<PointMatrix> Ptr;
     typedef boost::shared_ptr<const PointMatrix> ConstPtr;
 
-    typedef Eigen::Matrix<ScalarT, Dimension, SIZE, OPTIONS, Dimension> Data;
+    typedef Eigen::Matrix<ScalarT, Dimension, SIZE, OPTIONS, Dimension> RawMatrix;
     typedef Eigen::Transform<ScalarT, 3, Eigen::Affine> Transform;
 
-    typedef typename Data::ColXpr Element;
-    typedef typename Data::ConstColXpr ConstElement;
+    typedef typename RawMatrix::ColXpr Element;
+    typedef typename RawMatrix::ConstColXpr ConstElement;
 
     PointMatrix()
       : x_size_(XSize == Eigen::Dynamic ? 0 : XSize),
@@ -63,7 +63,7 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
         : x_size_(XSize),
           y_size_(YSize)
       {
-        EIGEN_STATIC_ASSERT_FIXED_SIZE(Data);
+        EIGEN_STATIC_ASSERT_FIXED_SIZE(RawMatrix);
         points_.colwise() = value;
       }
 
@@ -80,17 +80,17 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
         points_.colwise() = value;
       }
 
-    explicit PointMatrix(const Data & points)
+    explicit PointMatrix(const RawMatrix & points)
       : points_(points),
         x_size_(XSize),
         y_size_(YSize)
     {
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(Data);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(RawMatrix);
     }
 
     explicit PointMatrix(size_t x_size,
                          size_t y_size,
-                         const Data & points)
+                         const RawMatrix & points)
       : points_(points),
         x_size_(x_size),
         y_size_(y_size)
@@ -115,7 +115,7 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
       return y_size_;
     }
 
-    void setData(const Data & points)
+    void setData(const RawMatrix & points)
     {
       assert(size() == points.cols());
       points_ = points;
@@ -185,12 +185,12 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
       points_ = transform * points_;
     }
 
-    Data & matrix()
+    RawMatrix & matrix()
     {
       return points_;
     }
 
-    const Data & matrix() const
+    const RawMatrix & matrix() const
     {
       return points_;
     }
@@ -199,7 +199,7 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
 
   private:
 
-    Data points_;
+    RawMatrix points_;
 
     size_t x_size_;
     size_t y_size_;

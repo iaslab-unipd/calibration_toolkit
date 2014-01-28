@@ -105,13 +105,16 @@ template <typename Scalar_>
       return robustFit(initial_plane, *cloud_, scale);
     }
 
-    static typename Types_<Scalar_>::Plane fit(const typename Types_<Scalar_>::Point3Matrix & cloud);
+    static typename Types_<Scalar_>::Plane robustFit(const typename Types_<Scalar_>::Point3Matrix & points,
+                                                     Scalar_ scale = Scalar_(1.0))
+    {
+      return robustFit(fit(points), points, scale);
+    }
 
-    static typename Types_<Scalar_>::Plane robustFit(const typename Types_<Scalar_>::Point3Matrix & cloud,
-                                                     Scalar_ scale = Scalar_(1.0));
+    static typename Types_<Scalar_>::Plane fit(const typename Types_<Scalar_>::Point3Matrix & points);
 
     static typename Types_<Scalar_>::Plane robustFit(const typename Types_<Scalar_>::Plane & initial_plane,
-                                                     const typename Types_<Scalar_>::Point3Matrix & cloud,
+                                                     const typename Types_<Scalar_>::Point3Matrix & points,
                                                      Scalar_ scale = Scalar_(1.0));
 
   private:

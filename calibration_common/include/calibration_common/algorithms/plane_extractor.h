@@ -50,7 +50,7 @@ namespace calibration
 
 struct PlaneInfo
 {
-  Types::Plane equation_;
+  Types::Plane plane_;
   pcl::IndicesPtr indices_;
   Types::Scalar std_dev_;
 

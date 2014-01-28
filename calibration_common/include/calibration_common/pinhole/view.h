@@ -30,6 +30,7 @@
 #define CALIBRATON_COMMON_PINHOLE_VIEW_H_
 
 #include <calibration_common/color/view.h>
+#include <calibration_common/pinhole/sensor.h>
 
 namespace calibration
 {

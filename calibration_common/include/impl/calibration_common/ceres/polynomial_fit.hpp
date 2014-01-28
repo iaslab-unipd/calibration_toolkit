@@ -40,7 +40,7 @@ template <typename Polynomial_>
       problem.AddResidualBlock(
         new ceres::AutoDiffCostFunction<PolynomialResidual_, 1, Size>(
           new PolynomialResidual_(data_bin_[i].first, data_bin_[i].second)),
-        NULL, polynomial_->data());
+        NULL, polynomial_->dataPtr());
     }
 
     ceres::Solver::Options options;

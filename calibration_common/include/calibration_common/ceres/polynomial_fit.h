@@ -138,6 +138,11 @@ template <typename Polynomial_>
       data_bin_.push_back(std::make_pair(x, y));
     }
 
+    const Polynomial_ & polynomial()
+    {
+      return *polynomial_;
+    }
+
     virtual bool update();
 
   private:

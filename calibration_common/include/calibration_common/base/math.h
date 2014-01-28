@@ -95,23 +95,22 @@ template <typename Scalar_, int Degree, int MinDegree>
       return evaluate(coefficients_, x);
     }
 
-    template <typename OtherDerived>
-      void setCoefficients(const Eigen::DenseBase<OtherDerived> & coefficients)
-      {
-        coefficients_ = coefficients;
-      }
-
     const Coefficients & coefficients() const
     {
       return coefficients_;
     }
 
-    Scalar * data()
+    Coefficients & coefficients()
+    {
+      return coefficients_;
+    }
+
+    Scalar * dataPtr()
     {
       return coefficients_.data();
     }
 
-    const Scalar * data() const
+    const Scalar * dataPtr() const
     {
       return coefficients_.data();
     }
@@ -123,7 +122,7 @@ template <typename Scalar_, int Degree, int MinDegree>
 
     size_t size() const
     {
-      return Traits<Polynomial>::SIZE;
+      return Traits<Polynomial>::Size;
     }
 
     static const Coefficients IdentityCoefficients()

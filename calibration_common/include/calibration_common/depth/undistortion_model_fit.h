@@ -37,12 +37,12 @@ namespace calibration
 {
 
 template <typename Scalar_>
-  class DepthUndistortionModelFitBase
+  class DepthUndistortionModelFit
   {
   public:
 
-    typedef boost::shared_ptr<DepthUndistortionModelFitBase> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModelFitBase> ConstPtr;
+    typedef boost::shared_ptr<DepthUndistortionModelFit> Ptr;
+    typedef boost::shared_ptr<const DepthUndistortionModelFit> ConstPtr;
 
     typedef std::vector<std::pair<Scalar_, Scalar_> > PointDistorsionBin;
 
@@ -92,14 +92,14 @@ template <typename Scalar_>
   };
 
 template <typename Scalar_>
-  class DepthUndistortionModelFit : public DepthUndistortionModel<Scalar_>
+  class DepthUndistortionModelFitEigen : public DepthUndistortionModelEigen<Scalar_>
   {
   public:
 
-    typedef boost::shared_ptr<DepthUndistortionModelFit> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModelFit> ConstPtr;
+    typedef boost::shared_ptr<DepthUndistortionModelFitEigen> Ptr;
+    typedef boost::shared_ptr<const DepthUndistortionModelFitEigen> ConstPtr;
 
-    virtual ~DepthUndistortionModelFit()
+    virtual ~DepthUndistortionModelFitEigen()
     {
       // Do nothing
     }
