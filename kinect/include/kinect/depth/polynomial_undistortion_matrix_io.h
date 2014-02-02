@@ -40,10 +40,10 @@ template <class Polynomial_>
   {
   public:
 
-    typedef typename Traits<Polynomial_>::Scalar Scalar;
-    typedef typename PolynomialUndistortionMatrix<Polynomial_>::Data Data;
+    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef typename PolynomialUndistortionMatrixImpl<Polynomial_>::Data Data;
 
-    bool write(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+    bool write(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                const std::string & file_name) const
     {
       return write(*undistortion_matrix.data(), file_name);
@@ -58,14 +58,15 @@ template <class Polynomial_>
                    undistortion_matrix.fieldOfViewY());
     }
 
-    bool read(typename PolynomialUndistortionMatrix<Polynomial_>::Ptr & undistortion_matrix,
+    bool read(typename PolynomialUndistortionMatrixImpl<Polynomial_>::Ptr & undistortion_matrix,
               const std::string & file_name) const
     {
+      assert(undistortion_matrix);
       typename Data::Ptr data;
       Scalar x_fov, y_fov;
       if (not read(data, file_name, x_fov, y_fov))
         return false;
-      undistortion_matrix = boost::make_shared<calibration::PolynomialUndistortionMatrix<Polynomial_> >();
+
       undistortion_matrix->setData(data);
       return true;
     }
@@ -73,27 +74,28 @@ template <class Polynomial_>
     bool read(typename PolynomialUndistortionMatrixSphere<Polynomial_>::Ptr & undistortion_matrix,
               const std::string & file_name) const
     {
+      assert(undistortion_matrix);
       typename Data::Ptr data;
       Scalar x_fov, y_fov;
       if (not read(data, file_name, x_fov, y_fov) or x_fov == 0 or y_fov == 0)
         return false;
-      undistortion_matrix = boost::make_shared<calibration::PolynomialUndistortionMatrix<Polynomial_> >();
+
       undistortion_matrix->setData(data);
       undistortion_matrix->setFieldOfView(x_fov, y_fov);
       return true;
     }
 
-    void toImage(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+    void toImage(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                  const Scalar z,
                  cv::Mat & image,
                  const Scalar max) const;
 
-    void toImageAuto(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+    void toImageAuto(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                      const Scalar z,
                      cv::Mat & image,
                      Scalar & max) const;
 
-    bool writeImage(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+    bool writeImage(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                     Scalar z,
                     const std::string & file_name,
                     const Scalar max) const
@@ -103,7 +105,7 @@ template <class Polynomial_>
       return cv::imwrite(file_name, image);
     }
 
-    bool writeImageAuto(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+    bool writeImageAuto(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                         Scalar z,
                         const std::string & file_name,
                         Scalar & max) const

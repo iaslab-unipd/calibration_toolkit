@@ -36,7 +36,7 @@
 namespace calibration
 {
 
-template <typename Scalar_>
+template <typename ModelTraits_>
   class DepthUndistortionModelFit
   {
   public:
@@ -44,14 +44,56 @@ template <typename Scalar_>
     typedef boost::shared_ptr<DepthUndistortionModelFit> Ptr;
     typedef boost::shared_ptr<const DepthUndistortionModelFit> ConstPtr;
 
-    typedef std::vector<std::pair<Scalar_, Scalar_> > PointDistorsionBin;
+    typedef typename ModelTraits_::Scalar Scalar;
+    typedef typename ModelTraits_::Point Point;
+    typedef typename ModelTraits_::Cloud Cloud;
+    typedef typename Types_<Scalar>::Plane Plane;
+
+    virtual ~DepthUndistortionModelFit()
+    {
+      // Do nothing
+    }
+
+    virtual const typename DepthUndistortionModel<ModelTraits_>::Ptr & model() const = 0;
+
+    virtual void accumulateCloud(const Cloud & cloud) = 0;
+
+    virtual void accumulateCloud(const Cloud & cloud,
+                                 const std::vector<int> & indices) = 0;
+
+    virtual void accumulatePoint(const Point & point) = 0;
+
+    virtual void addPoint(const Point & point,
+                          const Plane & plane) = 0;
+
+    virtual void addAccumulatedPoints(const Plane & plane) = 0;
+
+    virtual void update() = 0;
+
+    virtual Ptr clone() const = 0;
+
+  };
+
+template <typename ModelImpl_>
+  class DepthUndistortionModelFitImpl
+  {
+  public:
+
+    typedef boost::shared_ptr<DepthUndistortionModelFitImpl> Ptr;
+    typedef boost::shared_ptr<const DepthUndistortionModelFitImpl> ConstPtr;
+
+    typedef typename ModelImpl_::Scalar Scalar;
+
+    typedef std::vector<std::pair<Scalar, Scalar> > PointDistorsionBin;
 
     class AccumulationBin
     {
     public:
 
+      typedef typename Types_<Scalar>::Point3 Point;
+
       AccumulationBin()
-        : sum_(Types_<Scalar_>::Point3::Zero()),
+        : sum_(Point::Zero()),
           n_(0)
       {
         // Do nothing
@@ -59,11 +101,11 @@ template <typename Scalar_>
 
       void reset()
       {
-        sum_ = Types_<Scalar_>::Point3::Zero();
+        sum_ = Point::Zero();
         n_ = 0;
       }
 
-      AccumulationBin & operator +=(const typename Types_<Scalar_>::Point3 & point)
+      AccumulationBin & operator +=(const Point & point)
       {
         sum_ += point;
         ++n_;
@@ -75,77 +117,26 @@ template <typename Scalar_>
         return n_ == 0;
       }
 
-      typename Types_<Scalar_>::Point3 average()
+      Point average()
       {
-        return sum_ / Scalar_(n_);
+        return sum_ / Scalar(n_);
       }
 
       EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
     private:
 
-      typename Types_<Scalar_>::Point3 sum_;
+      Point sum_;
       int n_;
 
     };
 
-  };
-
-template <typename Scalar_>
-  class DepthUndistortionModelFitEigen : public DepthUndistortionModelEigen<Scalar_>
-  {
-  public:
-
-    typedef boost::shared_ptr<DepthUndistortionModelFitEigen> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModelFitEigen> ConstPtr;
-
-    virtual ~DepthUndistortionModelFitEigen()
+    virtual ~DepthUndistortionModelFitImpl()
     {
       // Do nothing
     }
 
-    virtual void accumulateCloud(const typename Types_<Scalar_>::Point3Matrix & cloud) = 0;
-
-    virtual void accumulateCloud(const typename Types_<Scalar_>::Point3Matrix & cloud,
-                                 const std::vector<int> & indices) = 0;
-
-    virtual void accumulatePoint(const typename Types_<Scalar_>::Point3 & point) = 0;
-
-    virtual void addPoint(const typename Types_<Scalar_>::Point3 & point,
-                          const typename Types_<Scalar_>::Plane & plane) = 0;
-
-    virtual void addAccumulatedPoints(const typename Types_<Scalar_>::Plane & plane) = 0;
-
-    virtual void update() = 0;
-
-  };
-
-template <typename Scalar_, typename PCLPoint_>
-  class DepthUndistortionModelFitPCL : public DepthUndistortionModelPCL<Scalar_, PCLPoint_>
-  {
-  public:
-
-    typedef boost::shared_ptr<DepthUndistortionModelFitPCL> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModelFitPCL> ConstPtr;
-
-    virtual ~DepthUndistortionModelFitPCL()
-    {
-      // Do nothing
-    }
-
-    virtual void accumulateCloud(const pcl::PointCloud<PCLPoint_> & cloud) = 0;
-
-    virtual void accumulateCloud(const pcl::PointCloud<PCLPoint_> & cloud,
-                                 const std::vector<int> & indices) = 0;
-
-    virtual void accumulatePoint(const PCLPoint_ & point) = 0;
-
-    virtual void addPoint(const PCLPoint_ & point,
-                          const typename Types_<Scalar_>::Plane & plane) = 0;
-
-    virtual void addAccumulatedPoints(const typename Types_<Scalar_>::Plane & plane) = 0;
-
-    virtual void update() = 0;
+    virtual const typename ModelImpl_::Ptr & modelImpl() const = 0;
 
   };
 

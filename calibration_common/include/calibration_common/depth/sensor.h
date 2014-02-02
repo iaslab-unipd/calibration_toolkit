@@ -40,8 +40,11 @@ namespace calibration
 class DepthSensor : public Sensor
 {
 public:
+
   typedef boost::shared_ptr<DepthSensor> Ptr;
   typedef boost::shared_ptr<const DepthSensor> ConstPtr;
+
+  typedef DepthUndistortionModel<UndTraitsEigen<Types::Scalar> > UndistortionModel;
 
   DepthSensor()
     : Sensor(),
@@ -51,12 +54,12 @@ public:
     // Do nothing
   }
 
-  const typename DepthUndistortionModelEigen<Types::Scalar>::ConstPtr undistortionModel() const
+  const typename UndistortionModel::ConstPtr undistortionModel() const
   {
     return undistortion_model_;
   }
 
-  void setUndistortionModel(const typename DepthUndistortionModelEigen<Types::Scalar>::ConstPtr & undistortion_model)
+  void setUndistortionModel(const typename UndistortionModel::ConstPtr & undistortion_model)
   {
     undistortion_model_ = undistortion_model;
   }
@@ -73,7 +76,7 @@ public:
 
 private:
 
-  typename DepthUndistortionModelEigen<Types::Scalar>::ConstPtr undistortion_model_;
+  typename UndistortionModel::ConstPtr undistortion_model_;
   Polynomial<Types::Scalar, 2> depth_error_function_;
 
 };

@@ -38,78 +38,15 @@
 namespace calibration
 {
 
-template <typename Scalar_, typename Model_>
-  class TwoStepsUndistortionModel : public DepthUndistortionModel<Scalar_>
-  {
-  public:
-
-    typedef boost::shared_ptr<TwoStepsUndistortionModel> Ptr;
-    typedef boost::shared_ptr<const TwoStepsUndistortionModel> ConstPtr;
-
-    TwoStepsUndistortionModel()
-    {
-      // Do nothing
-    }
-
-    virtual ~TwoStepsUndistortionModel()
-    {
-      // Do nothing
-    }
-
-    void setLocalUndistortionModel(const typename Model_::ConstPtr & local)
-    {
-      local_ = local;
-    }
-
-    void setGlobalUndistortionModel(const typename Model_::ConstPtr & global)
-    {
-      global_ = global;
-    }
-
-    const typename Model_::ConstPtr & getLocalUndistortionModel() const
-    {
-      return local_;
-    }
-
-    const typename Model_::ConstPtr & getGlobalUndistortionModel() const
-    {
-      return global_;
-    }
-
-    virtual Scalar_ * dataPtr()
-    {
-      return NULL;
-    }
-
-    virtual const Scalar_ * dataPtr() const
-    {
-      return NULL;
-    }
-
-  protected:
-
-    typename Model_::ConstPtr global_;
-    typename Model_::ConstPtr local_;
-
-  };
-
 template <typename Scalar_>
-  class TwoStepsUndistortionModelEigen : public TwoStepsUndistortionModel<Scalar_,
-                                           DepthUndistortionModelEigen<Scalar_> >,
-                                         public DepthUndistortionModelEigen<Scalar_>
+  class TwoStepsUndistortionModelEigen : public DepthUndistortionModel<UndTraitsEigen<Scalar_> >
   {
   public:
 
     typedef boost::shared_ptr<TwoStepsUndistortionModelEigen> Ptr;
     typedef boost::shared_ptr<const TwoStepsUndistortionModelEigen> ConstPtr;
 
-    typedef TwoStepsUndistortionModel<Scalar_, DepthUndistortionModelEigen<Scalar_> > Base;
-
-    TwoStepsUndistortionModelEigen()
-      : Base()
-    {
-      // Do nothing
-    }
+    typedef DepthUndistortionModel<UndTraitsEigen<Scalar_> > Interface;
 
     virtual ~TwoStepsUndistortionModelEigen()
     {
@@ -118,45 +55,62 @@ template <typename Scalar_>
 
     virtual void undistort(typename Types_<Scalar_>::Point3 & point) const
     {
-      assert(Base::local_ and Base::global_);
-      Base::local_->undistort(point);
-      Base::global_->undistort(point);
+      assert(local_ and global_);
+      local_->undistort(point);
+      global_->undistort(point);
     }
 
     virtual void undistort(typename Types_<Scalar_>::Point3Matrix & cloud) const
     {
-      assert(Base::local_ and Base::global_);
-      Base::local_->undistort(cloud);
-      Base::global_->undistort(cloud);
+      assert(local_ and global_);
+      local_->undistort(cloud);
+      global_->undistort(cloud);
     }
 
-    virtual typename DepthUndistortionModelEigen<Scalar_>::Ptr clone() const
+    virtual typename Interface::Ptr clone() const
     {
       TwoStepsUndistortionModelEigen::Ptr clone = boost::make_shared<TwoStepsUndistortionModelEigen>();
-      clone->setLocalUndistortionModel(Base::local_->clone());
-      clone->setGlobalUndistortionModel(Base::global_->clone());
+      clone->setLocalUndistortionModel(local_->clone());
+      clone->setGlobalUndistortionModel(global_->clone());
       return clone;
     }
+
+    void setLocalUndistortionModel(const typename Interface::ConstPtr & local)
+    {
+      local_ = local;
+    }
+
+    void setGlobalUndistortionModel(const typename Interface::ConstPtr & global)
+    {
+      global_ = global;
+    }
+
+    const typename Interface::ConstPtr & getLocalUndistortionModel() const
+    {
+      return local_;
+    }
+
+    const typename Interface::ConstPtr & getGlobalUndistortionModel() const
+    {
+      return global_;
+    }
+
+  protected:
+
+    typename Interface::ConstPtr global_;
+    typename Interface::ConstPtr local_;
 
   };
 
 template <typename Scalar_, typename PCLPoint_>
-  class TwoStepsUndistortionModelPCL : public TwoStepsUndistortionModel<Scalar_,
-                                         DepthUndistortionModelPCL<Scalar_, PCLPoint_> >,
-                                       public DepthUndistortionModelPCL<Scalar_, PCLPoint_>
+  class TwoStepsUndistortionModelPCL : public DepthUndistortionModel<UndTraitsPCL<Scalar_, PCLPoint_> >
   {
   public:
 
     typedef boost::shared_ptr<TwoStepsUndistortionModelPCL> Ptr;
     typedef boost::shared_ptr<const TwoStepsUndistortionModelPCL> ConstPtr;
 
-    typedef TwoStepsUndistortionModel<Scalar_, DepthUndistortionModelPCL<Scalar_, PCLPoint_> > Base;
-
-    TwoStepsUndistortionModelPCL()
-      : Base()
-    {
-      // Do nothing
-    }
+    typedef DepthUndistortionModel<UndTraitsPCL<Scalar_, PCLPoint_> > Interface;
 
     virtual ~TwoStepsUndistortionModelPCL()
     {
@@ -165,25 +119,50 @@ template <typename Scalar_, typename PCLPoint_>
 
     virtual void undistort(PCLPoint_ & point) const
     {
-      assert(Base::local_ and Base::global_);
-      Base::local_->undistort(point);
-      Base::global_->undistort(point);
+      assert(local_ and global_);
+      local_->undistort(point);
+      global_->undistort(point);
     }
 
     virtual void undistort(pcl::PointCloud<PCLPoint_> & cloud) const
     {
-      assert(Base::local_ and Base::global_);
-      Base::local_->undistort(cloud);
-      Base::global_->undistort(cloud);
+      assert(local_ and global_);
+      local_->undistort(cloud);
+      global_->undistort(cloud);
     }
 
-    virtual typename DepthUndistortionModelPCL<Scalar_, PCLPoint_>::Ptr clone() const
+    virtual typename Interface::Ptr clone() const
     {
       TwoStepsUndistortionModelPCL::Ptr clone = boost::make_shared<TwoStepsUndistortionModelPCL>();
-      clone->setLocalUndistortionModel(Base::local_->clone());
-      clone->getGlobalUndistortionModel(Base::global_->clone());
+      clone->setLocalUndistortionModel(local_->clone());
+      clone->getGlobalUndistortionModel(global_->clone());
       return clone;
     }
+
+    void setLocalUndistortionModel(const typename Interface::ConstPtr & local)
+    {
+      local_ = local;
+    }
+
+    void setGlobalUndistortionModel(const typename Interface::ConstPtr & global)
+    {
+      global_ = global;
+    }
+
+    const typename Interface::ConstPtr & getLocalUndistortionModel() const
+    {
+      return local_;
+    }
+
+    const typename Interface::ConstPtr & getGlobalUndistortionModel() const
+    {
+      return global_;
+    }
+
+  protected:
+
+    typename Interface::ConstPtr global_;
+    typename Interface::ConstPtr local_;
 
   };
 

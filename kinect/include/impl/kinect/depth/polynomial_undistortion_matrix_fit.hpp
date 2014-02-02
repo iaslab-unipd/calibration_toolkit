@@ -35,8 +35,8 @@
 namespace calibration
 {
 
-template <typename Polynomial_, typename Matrix_>
-  void PolynomialUndistortionMatrixFit<Polynomial_, Matrix_>::addAccumulatedPoints(const typename Types_<Scalar>::Plane & plane)
+template <typename ModelImpl_>
+  void PolynomialUndistortionMatrixFitImpl<ModelImpl_>::addAccumulatedPoints(const Plane & plane)
   {
     for (size_t i = 0; i < accumulation_bins_.size(); ++i)
     {
@@ -51,10 +51,10 @@ template <typename Polynomial_, typename Matrix_>
     }
   }
 
-template <typename Polynomial_, typename Matrix_>
-  void PolynomialUndistortionMatrixFit<Polynomial_, Matrix_>::update()
+template <typename ModelImpl_>
+  void PolynomialUndistortionMatrixFitImpl<ModelImpl_>::update()
   {
-    typedef PolynomialResidual<Polynomial_> PolynomialResidual_;
+    assert(model_impl_);
 
 #pragma omp parallel for
     for (size_t y_index = 0; y_index < distorsion_bins_.ySize(); ++y_index)
@@ -70,10 +70,11 @@ template <typename Polynomial_, typename Matrix_>
         ceres::Problem problem;
         for (size_t i = 0; i < bin_size; ++i)
         {
-          problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual_, 1, Size>(new PolynomialResidual_(distorsion_bin[i].first,
-                                                                                                                         distorsion_bin[i].second)),
+          PolynomialResidual<Poly> * residual = new PolynomialResidual<Poly>(distorsion_bin[i].first,
+                                                                             distorsion_bin[i].second);
+          problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual<Poly>, 1, Size>(residual),
                                    NULL,
-                                   matrix_->polynomialAt(x_index, y_index).data());
+                                   model_impl_->polynomialAt(x_index, y_index).data());
         }
 
         ceres::Solver::Options options;
@@ -88,20 +89,22 @@ template <typename Polynomial_, typename Matrix_>
   }
 
 template <typename Polynomial_>
-  void PolynomialUndistortionMatrixFitEigen<Polynomial_>::addPoint(const typename Types_<Scalar>::Point3 & point,
-                                                                   const typename Types_<Scalar>::Plane & plane)
+  void PolynomialUndistortionMatrixFitEigen<Polynomial_>::addPoint(const Point & point,
+                                                                   const Plane & plane)
   {
+    assert(Base::model_impl_);
     typename Types_<Scalar>::Line line(point, Types_<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
-    Base::matrix_->getIndex(UndistortionMatrix::toSphericalCoordinates(point), x_index, y_index);
+    Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
   }
 
 template <typename Polynomial_, typename PCLPoint_>
-  void PolynomialUndistortionMatrixFitPCL<Polynomial_, PCLPoint_>::addPoint(const PCLPoint_ & point,
-                                                                            const typename Types_<Scalar>::Plane & plane)
+  void PolynomialUndistortionMatrixFitPCL<Polynomial_, PCLPoint_>::addPoint(const Point & point,
+                                                                            const Plane & plane)
   {
+    assert(Base::model_impl_);
     if (not pcl::isFinite(point))
       return;
 
@@ -109,7 +112,7 @@ template <typename Polynomial_, typename PCLPoint_>
     typename Types_<Scalar>::Line line(eigen_point, Types_<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
-    Base::matrix_->getIndex(UndistortionMatrix::toSphericalCoordinates(point), x_index, y_index);
+    Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(eigen_point.z(),
                                                                       line.intersectionPoint(plane).z()));
   }

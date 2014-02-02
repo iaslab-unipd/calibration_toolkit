@@ -42,9 +42,9 @@ template <class Polynomial_>
                                                           Scalar fov_x,
                                                           Scalar fov_y) const
   {
-    const int degree = Traits<Polynomial_>::Degree;
-    const int min_degree = Traits<Polynomial_>::MinDegree;
-    const int size = Traits<Polynomial_>::Size;
+    const int degree = MathTraits<Polynomial_>::Degree;
+    const int min_degree = MathTraits<Polynomial_>::MinDegree;
+    const int size = MathTraits<Polynomial_>::Size;
     assert(size > 0);
 
     const int matrix_column_number = data.xSize();
@@ -117,7 +117,7 @@ template <class Polynomial_>
         {
           degree = boost::lexical_cast<int>(tokens.at(1));
           min_degree = boost::lexical_cast<int>(tokens.at(2));
-          if (degree != Traits<Polynomial_>::Degree or min_degree != Traits<Polynomial_>::MinDegree)
+          if (degree != MathTraits<Polynomial_>::Degree or min_degree != MathTraits<Polynomial_>::MinDegree)
             return false;
           line_count++;
         }
@@ -204,7 +204,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                                                             const Scalar z,
                                                             cv::Mat & image,
                                                             Scalar max) const
@@ -228,7 +228,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialUndistortionMatrix<Polynomial_> & undistortion_matrix,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
                                                                 const Scalar z,
                                                                 cv::Mat & image,
                                                                 Scalar & max) const

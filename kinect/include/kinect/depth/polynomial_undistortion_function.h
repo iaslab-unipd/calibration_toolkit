@@ -36,38 +36,51 @@ namespace calibration
 {
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunction : public DepthUndistortionModel<typename Traits<Polynomial_>::Scalar>
+  struct UndFunctionTraits
+  {
+    typedef Polynomial_ Poly;
+
+    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef Polynomial_ Data;
+  };
+
+template <typename Polynomial_>
+  class PolynomialUndistortionFunctionImpl : public DepthUndistortionModelImpl<UndFunctionTraits<Polynomial_> >
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialUndistortionFunction> Ptr;
-    typedef boost::shared_ptr<const PolynomialUndistortionFunction> ConstPtr;
+    typedef boost::shared_ptr<PolynomialUndistortionFunctionImpl> Ptr;
+    typedef boost::shared_ptr<const PolynomialUndistortionFunctionImpl> ConstPtr;
 
-    typedef Polynomial_ Data;
-    typedef typename Traits<Data>::Scalar Scalar;
+    typedef UndFunctionTraits<Polynomial_> Traits;
+    typedef DepthUndistortionModelImpl<Traits> Base;
 
-    PolynomialUndistortionFunction()
+    typedef typename Traits::Poly Poly;
+    typedef typename Traits::Scalar Scalar;
+    typedef typename Traits::Data Data;
+
+    PolynomialUndistortionFunctionImpl()
     {
       // Do nothing
     }
 
-    explicit PolynomialUndistortionFunction(const typename Data::Ptr & polynomial)
+    explicit PolynomialUndistortionFunctionImpl(const boost::shared_ptr<Data> & polynomial)
       : polynomial_(polynomial)
     {
       // Do nothing
     }
 
-    virtual ~PolynomialUndistortionFunction()
+    virtual ~PolynomialUndistortionFunctionImpl()
     {
       // Do nothing
     }
 
-    virtual void setData(const typename Data::Ptr & polynomial)
+    virtual void setData(const boost::shared_ptr<Data> & polynomial)
     {
       polynomial_ = polynomial;
     }
 
-    virtual const typename Data::Ptr data() const
+    virtual const boost::shared_ptr<Data> & data() const
     {
       return polynomial_;
     }
@@ -91,25 +104,27 @@ template <typename Polynomial_>
 
   protected:
 
-    typename Data::Ptr polynomial_;
+    boost::shared_ptr<Data> polynomial_;
 
   };
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunctionEigen : public PolynomialUndistortionFunction<Polynomial_>,
-                                              public DepthUndistortionModelEigen<typename Traits<Polynomial_>::Scalar>
+  class PolynomialUndistortionFunctionEigen : public PolynomialUndistortionFunctionImpl<Polynomial_>,
+                                              public DepthUndistortionModel<UndTraitsEigen<typename MathTraits<Polynomial_>::Scalar> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionFunctionEigen> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionFunctionEigen> ConstPtr;
 
-    typedef PolynomialUndistortionFunction<Polynomial_> Base;
+    typedef PolynomialUndistortionFunctionImpl<Polynomial_> Base;
 
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::Data Data;
+    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef typename UndTraitsEigen<Scalar>::Point Point;
+    typedef typename UndTraitsEigen<Scalar>::Cloud Cloud;
+    typedef typename UndFunctionTraits<Polynomial_>::Data Data;
 
-    typedef DepthUndistortionModelEigen<Scalar> Interface;
+    typedef DepthUndistortionModel<UndTraitsEigen<Scalar> > Interface;
 
     PolynomialUndistortionFunctionEigen()
       : Base()
@@ -134,13 +149,13 @@ template <typename Polynomial_>
       // Do nothing
     }
 
-    virtual void undistort(typename Types_<Scalar>::Point3 & point) const
+    virtual void undistort(Point & point) const
     {
       assert(Base::polynomial_);
       point *= Base::polynomial_->evaluate(point.z()) / point.z();
     }
 
-    virtual void undistort(typename Types_<Scalar>::Point3Matrix & cloud) const
+    virtual void undistort(Cloud & cloud) const
     {
       assert(Base::polynomial_);
       for (size_t i = 0; i < cloud.size(); ++i)
@@ -155,21 +170,22 @@ template <typename Polynomial_>
   };
 
 template <typename Polynomial_, typename PCLPoint_>
-  class PolynomialUndistortionFunctionPCL : public PolynomialUndistortionFunction<Polynomial_>,
-                                            public DepthUndistortionModelPCL<typename Traits<Polynomial_>::Scalar,
-                                              PCLPoint_>
+  class PolynomialUndistortionFunctionPCL : public PolynomialUndistortionFunctionImpl<Polynomial_>,
+                                            public DepthUndistortionModel<UndTraitsPCL<typename MathTraits<Polynomial_>::Scalar, PCLPoint_> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionFunctionPCL> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionFunctionPCL> ConstPtr;
 
-    typedef PolynomialUndistortionFunction<Polynomial_> Base;
+    typedef PolynomialUndistortionFunctionImpl<Polynomial_> Base;
 
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::Data Data;
+    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef typename UndTraitsPCL<Scalar, PCLPoint_>::Point Point;
+    typedef typename UndTraitsPCL<Scalar, PCLPoint_>::Cloud Cloud;
+    typedef typename UndFunctionTraits<Polynomial_>::Data Data;
 
-    typedef DepthUndistortionModelPCL<Scalar, PCLPoint_> Interface;
+    typedef DepthUndistortionModel<UndTraitsPCL<Scalar, PCLPoint_> > Interface;
 
     PolynomialUndistortionFunctionPCL()
       : Base()
@@ -194,7 +210,7 @@ template <typename Polynomial_, typename PCLPoint_>
       // Do nothing
     }
 
-    virtual void undistort(PCLPoint_ & point) const
+    virtual void undistort(Point & point) const
     {
       assert(Base::polynomial_);
       float k = static_cast<float>(Base::polynomial_->evaluate(point.z)) / point.z;
@@ -203,7 +219,7 @@ template <typename Polynomial_, typename PCLPoint_>
       point.z *= k;
     }
 
-    virtual void undistort(pcl::PointCloud<PCLPoint_> & cloud) const
+    virtual void undistort(Cloud & cloud) const
     {
       for (size_t i = 0; i < cloud.size(); ++i)
         undistort(cloud.points[i]);
