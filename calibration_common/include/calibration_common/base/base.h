@@ -29,7 +29,6 @@
 #ifndef CALIBRATION_COMMON_BASE_BASE_H_
 #define CALIBRATION_COMMON_BASE_BASE_H_
 
-#include "traits.h"
 #include "math.h"
 #include "matrix.h"
 #include "point_matrix.h"

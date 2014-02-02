@@ -18,12 +18,17 @@
 #ifndef CALIBRATION_COMMON_BASE_MATH_H_
 #define CALIBRATION_COMMON_BASE_MATH_H_
 
-#include <calibration_common/base/traits.h>
 #include <boost/smart_ptr/shared_ptr.hpp>
 #include <unsupported/Eigen/Polynomials>
 
 namespace calibration
 {
+
+template <typename Derived>
+  struct MathTraits
+  {
+
+  };
 
 template <typename Derived>
   class MathFunction
@@ -33,9 +38,9 @@ template <typename Derived>
     typedef boost::shared_ptr<MathFunction> Ptr;
     typedef boost::shared_ptr<const MathFunction> ConstPtr;
 
-    typedef typename Traits<Derived>::Scalar Scalar;
-    typedef typename Traits<Derived>::FunctionX FunctionX;
-    typedef typename Traits<Derived>::FunctionY FunctionY;
+    typedef typename MathTraits<Derived>::Scalar Scalar;
+    typedef typename MathTraits<Derived>::FunctionX FunctionX;
+    typedef typename MathTraits<Derived>::FunctionY FunctionY;
 
     FunctionY operator ()(const FunctionX & x) const
     {
@@ -48,7 +53,7 @@ template <typename Scalar_, int Degree, int MinDegree = 0>
   class Polynomial;
 
 template <typename Scalar_, int Degree_, int MinDegree_>
-  struct Traits<Polynomial<Scalar_, Degree_, MinDegree_> >
+  struct MathTraits<Polynomial<Scalar_, Degree_, MinDegree_> >
   {
     static const int Size = (Degree_ == Eigen::Dynamic ? Eigen::Dynamic : Degree_ + 1 - MinDegree_);
 //    static const int Size = Degree_ + 1 - MinDegree_;
@@ -71,10 +76,10 @@ template <typename Scalar_, int Degree, int MinDegree>
 
     typedef MathFunction<Polynomial> Base;
 
-    typedef typename Traits<Polynomial>::Scalar Scalar;
-    typedef typename Traits<Polynomial>::FunctionX FunctionX;
-    typedef typename Traits<Polynomial>::FunctionY FunctionY;
-    typedef typename Traits<Polynomial>::Coefficients Coefficients;
+    typedef typename MathTraits<Polynomial>::Scalar Scalar;
+    typedef typename MathTraits<Polynomial>::FunctionX FunctionX;
+    typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
+    typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
 
     Polynomial()
     {
@@ -122,7 +127,7 @@ template <typename Scalar_, int Degree, int MinDegree>
 
     size_t size() const
     {
-      return Traits<Polynomial>::Size;
+      return MathTraits<Polynomial>::Size;
     }
 
     static const Coefficients IdentityCoefficients()
@@ -161,10 +166,10 @@ template <typename Scalar_>
 
     typedef MathFunction<Polynomial> Base;
 
-    typedef typename Traits<Polynomial>::Scalar Scalar;
-    typedef typename Traits<Polynomial>::FunctionX FunctionX;
-    typedef typename Traits<Polynomial>::FunctionY FunctionY;
-    typedef typename Traits<Polynomial>::Coefficients Coefficients;
+    typedef typename MathTraits<Polynomial>::Scalar Scalar;
+    typedef typename MathTraits<Polynomial>::FunctionX FunctionX;
+    typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
+    typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
 
     Polynomial(size_t degree)
       : coefficients_(degree + 1)

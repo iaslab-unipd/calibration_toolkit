@@ -119,7 +119,7 @@ template <typename Scalar_, int Degree, int MinDegree = 0>
 namespace calibration
 {
 template <typename Scalar_, int Degree_, int MinDegree_>
-  struct Traits<ceres::Polynomial<Scalar_, Degree_, MinDegree_> >
+  struct MathTraits<ceres::Polynomial<Scalar_, Degree_, MinDegree_> >
   {
     static const int Size = (Degree_ == Eigen::Dynamic ? Eigen::Dynamic : Degree_ + 1 - MinDegree_);
     static const int MinDegree = MinDegree_;

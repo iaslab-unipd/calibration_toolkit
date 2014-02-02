@@ -61,11 +61,11 @@ template <typename Polynomial_>
   {
   public:
 
-    typedef typename Traits<Polynomial_>::Scalar Scalar;
+    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
 
-    static const int Size = Traits<Polynomial_>::Size;
-    static const int MinDegree = Traits<Polynomial_>::MinDegree;
-    static const int Degree = Traits<Polynomial_>::Degree;
+    static const int Size = MathTraits<Polynomial_>::Size;
+    static const int MinDegree = MathTraits<Polynomial_>::MinDegree;
+    static const int Degree = MathTraits<Polynomial_>::Degree;
 
     PolynomialResidual(Scalar x,
                        Scalar y)
@@ -92,7 +92,7 @@ template <typename Polynomial_>
                       T * residual) const
       {
         typedef ceres::Polynomial<T, Degree, MinDegree> Polynomial_;
-        typedef typename Traits<Polynomial_>::Coefficients Coefficients;
+        typedef typename MathTraits<Polynomial_>::Coefficients Coefficients;
         residual[0] = T(y_) - Polynomial_::evaluate(Eigen::Map<const Coefficients>(coefficients), T(x_));
         return true;
       }
@@ -105,19 +105,19 @@ template <typename Polynomial_>
   };
 
 template <typename Polynomial_>
-  class PolynomialFit : public MathFunctionFit<typename Traits<Polynomial_>::Scalar>
+  class PolynomialFit : public MathFunctionFit<typename MathTraits<Polynomial_>::Scalar>
   {
   public:
 
     typedef boost::shared_ptr<PolynomialFit> Ptr;
     typedef boost::shared_ptr<const PolynomialFit> ConstPtr;
 
-    typedef typename Traits<Polynomial_>::Scalar Scalar;
+    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
     typedef typename Polynomial_::Ptr PolynomialPtr;
 
-    static const int Size = Traits<Polynomial_>::Size;
-    static const int MinDegree = Traits<Polynomial_>::MinDegree;
-    static const int Degree = Traits<Polynomial_>::Degree;
+    static const int Size = MathTraits<Polynomial_>::Size;
+    static const int MinDegree = MathTraits<Polynomial_>::MinDegree;
+    static const int Degree = MathTraits<Polynomial_>::Degree;
 
     typedef std::vector<std::pair<Scalar, Scalar> > DataBin;
 
