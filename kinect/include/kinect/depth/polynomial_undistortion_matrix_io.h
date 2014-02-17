@@ -115,8 +115,6 @@ template <class Polynomial_>
       return cv::imwrite(file_name, image);
     }
 
-  private:
-
     bool write(const Data & data,
                const std::string & file_name,
                Scalar fov_x = 0.0,
@@ -126,6 +124,8 @@ template <class Polynomial_>
               const std::string & file_name,
               Scalar & x_fov,
               Scalar & y_fov) const;
+
+  protected:
 
     void toColorImage(const cv::Mat & float_image,
                       cv::Mat & image,

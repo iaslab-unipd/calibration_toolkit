@@ -91,6 +91,12 @@ template <typename ModelImpl_>
       return model_impl_;
     }
 
+    const PointDistorsionBin & getSamples(size_t x_index,
+                                          size_t y_index) const
+    {
+      return distorsion_bins_(x_index, y_index);
+    }
+
     virtual void addAccumulatedPoints(const Plane & plane);
 
     virtual void update();

@@ -29,10 +29,13 @@
 #ifndef KINECT_DEPTH_DEPTH_H_
 #define KINECT_DEPTH_DEPTH_H_
 
+#include "camera_model.h"
 #include "undistortion_model.h"
+
 #include "polynomial_undistortion_function.h"
 #include "polynomial_undistortion_function_fit.h"
 #include "polynomial_undistortion_matrix.h"
 #include "polynomial_undistortion_matrix_fit.h"
+#include "polynomial_undistortion_matrix_io.h"
 
 #endif /* KINECT_DEPTH_DEPTH_H_ */

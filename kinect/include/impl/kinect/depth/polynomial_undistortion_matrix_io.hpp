@@ -110,8 +110,7 @@ template <class Polynomial_>
         char split_char = ' ';
         std::istringstream split(line);
         std::vector<std::string> tokens;
-        for (std::string each; std::getline(split, each, split_char); tokens.push_back(each))
-          ;
+        for (std::string each; std::getline(split, each, split_char); tokens.push_back(each));
 
         if (line_count == 0)
         {
@@ -159,7 +158,7 @@ template <class Polynomial_>
       {
         int x = coeff_count % matrix_column_number;
         int y = coeff_count / matrix_column_number;
-        data(x, y)[line_coeff_count++] = *int_it;
+        (*data)(x, y)[line_coeff_count++] = *int_it;
       }
       coeff_count++;
     }

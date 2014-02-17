@@ -182,9 +182,12 @@ template <typename Polynomial_>
       assert(Base::data_);
       fov_x_ = x;
       fov_y_ = y;
-      bin_x_size_ = fov_x_ / Base::data_->xSize();
-      bin_y_size_ = fov_y_ / Base::data_->ySize();
-      zero_ = typename Types_<Scalar>::Point2(M_PI - fov_x_ / Scalar(2), M_PI_2 - fov_y_ / Scalar(2));
+//      bin_x_size_ = fov_x_ / Base::data_->xSize();
+//      bin_y_size_ = fov_y_ / Base::data_->ySize();
+//      zero_ = typename Types_<Scalar>::Point2(M_PI - fov_x_ / Scalar(2), M_PI_2 - fov_y_ / Scalar(2));
+      zero_ = typename Types_<Scalar>::Point2(- std::tan(fov_x_ / 2), - std::tan(fov_y_ / 2));
+      bin_x_size_ =  - 2 * zero_.x() / Base::data_->xSize();
+      bin_y_size_ =  - 2 * zero_.y() / Base::data_->ySize();
     }
 
     Scalar fieldOfViewX() const
@@ -223,6 +226,8 @@ template <typename Polynomial_>
       getIndex(point_sphere, x_index, y_index);
       return Base::polynomialAt(x_index, y_index);
     }
+
+    using Base::undistort;
 
     void undistort(const typename Types_<Scalar>::Point2 & point_sphere,
                    Scalar & z) const
@@ -279,8 +284,9 @@ template <typename Polynomial_>
                                                                   Scalar y,
                                                                   Scalar z)
     {
-      Scalar norm(std::sqrt(x * x + y * y + z * z));
-      return typename Types_<Scalar>::Point2(M_PI + std::atan2(x, z), M_PI_2 - std::asin(y / norm));
+//      Scalar norm(std::sqrt(x * x + y * y + z * z));
+//      return typename Types_<Scalar>::Point2(M_PI + std::atan2(x, z), M_PI_2 - std::asin(y / norm));
+      return typename Types_<Scalar>::Point2(x / z, y / z);
     }
 
   protected:
@@ -336,6 +342,8 @@ template <typename Polynomial_>
       // Do nothing
     }
 
+    using Base::undistort;
+
     virtual void undistort(Point & point) const
     {
       //point *= Polynomial_::evaluate(Base::polynomialAt(toSphericalCoordinates(point)), point.z()) / point.z();
@@ -362,8 +370,9 @@ template <typename Polynomial_>
 
     static typename Types_<Scalar>::Point2 toSphericalCoordinates(const Point & point)
     {
-      return typename Types_<Scalar>::Point2(M_PI + std::atan2(point.x(), point.z()),
-      M_PI_2 - std::asin(point.y() / point.norm()));
+//      return typename Types_<Scalar>::Point2(M_PI + std::atan2(point.x(), point.z()),
+//      M_PI_2 - std::asin(point.y() / point.norm()));
+      return typename Types_<Scalar>::Point2(point.x() / point.z(), point.y() / point.z());
     }
 
     virtual typename Interface::Ptr clone() const
@@ -417,6 +426,8 @@ template <typename Polynomial_, typename PCLPoint_>
     {
       // Do nothing
     }
+
+    using Base::undistort;
 
     virtual void undistort(Point & point) const
     {
