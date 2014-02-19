@@ -49,7 +49,7 @@ public:
   DepthSensor()
     : Sensor(),
       undistortion_model_(boost::make_shared<NoUndistortionEigen<Types::Scalar> >()),
-      depth_error_function_(Types::Vector3(1.0, 0.0, 0.0))
+      depth_error_function_(Types::Vector3::Zero())
   {
     // Do nothing
   }

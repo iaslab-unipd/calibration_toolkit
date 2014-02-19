@@ -177,7 +177,7 @@ template <typename T, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic, 
   };
 
 #ifndef MAX
-  #define MAX(a,b)  ((a) < (b) ? (b) : (a))
+#define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
 
 template <typename EigenType_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic>
@@ -346,6 +346,12 @@ template <typename EigenType_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::
     size_t y_size_;
 
   };
+
+template <typename EigenType_, int XSize_, int YSize_>
+  const int EigenMatrix<EigenType_, XSize_, YSize_>::TSize;
+
+template <typename EigenType_, int XSize_, int YSize_>
+  const int EigenMatrix<EigenType_, XSize_, YSize_>::Size;
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_BASE_MATRIX_H_ */

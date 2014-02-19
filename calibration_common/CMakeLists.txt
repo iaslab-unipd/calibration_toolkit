@@ -75,12 +75,12 @@ add_library(${PROJECT_NAME}
   src/calibration_common/objects/checkerboard.cpp
   src/calibration_common/objects/planar_object.cpp
   src/calibration_common/pinhole/camera_model.cpp
+  src/calibration_common/rgbd/data.cpp
 )
 
-add_library(calibration_algorithms STATIC
+add_library(calibration_algorithms
   src/calibration_common/algorithms/automatic_checkerboard_finder.cpp
   src/calibration_common/algorithms/interactive_checkerboard_finder.cpp
-#  src/calibration_common/algorithms/plane_fit.cpp
   src/calibration_common/algorithms/plane_to_plane_calibration.cpp
   src/calibration_common/algorithms/point_on_plane_calibration.cpp
 )

@@ -63,7 +63,7 @@ template <typename Scalar_, int Degree_, int MinDegree_>
     typedef Scalar_ Scalar;
     typedef Scalar FunctionX;
     typedef Scalar FunctionY;
-    typedef Eigen::Array<Scalar, Size, 1, Eigen::DontAlign> Coefficients;
+    typedef Eigen::Array<Scalar, Size, 1> Coefficients;
   };
 
 template <typename Scalar_, int Degree, int MinDegree>
