@@ -135,7 +135,7 @@ template <typename Scalar_, typename PCLPoint_>
     {
       TwoStepsUndistortionModelPCL::Ptr clone = boost::make_shared<TwoStepsUndistortionModelPCL>();
       clone->setLocalUndistortionModel(local_->clone());
-      clone->getGlobalUndistortionModel(global_->clone());
+      clone->setGlobalUndistortionModel(global_->clone());
       return clone;
     }
 

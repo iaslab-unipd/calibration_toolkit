@@ -434,6 +434,9 @@ template <typename Polynomial_, typename PCLPoint_>
 //      float k = static_cast<float>(Polynomial_::evaluate(Base::polynomialAt(toSphericalCoordinates(point)), point.z))
 //        / point.z;
 
+      if (not pcl::isFinite(point))
+        return;
+
       Scalar z = Scalar(point.z);
       Base::undistort(toSphericalCoordinates(point), z);
       float k = static_cast<float>(z) / point.z;
