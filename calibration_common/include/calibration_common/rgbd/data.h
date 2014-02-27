@@ -115,12 +115,12 @@ public:
     color_sensor_ = color_sensor;
   }
 
-  const DepthSensor::ConstPtr & depthSensor() const
+  const DepthSensorPCL<pcl::PointXYZ>::ConstPtr & depthSensor() const
   {
     return depth_sensor_;
   }
 
-  void setDepthSensor(const DepthSensor::ConstPtr & depth_sensor)
+  void setDepthSensor(const DepthSensorPCL<pcl::PointXYZ>::ConstPtr & depth_sensor)
   {
     depth_sensor_ = depth_sensor;
   }
@@ -132,7 +132,7 @@ private:
   PinholeSensor::ConstPtr color_sensor_;
   cv::Mat color_data_;
 
-  DepthSensor::ConstPtr depth_sensor_;
+  DepthSensorPCL<pcl::PointXYZ>::ConstPtr depth_sensor_;
   Types::PCLCloud::Ptr depth_data_;
 
   Types::PCLCloudRGB::Ptr fused_data_;

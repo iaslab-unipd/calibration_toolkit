@@ -81,5 +81,50 @@ private:
 
 };
 
+template <typename PCLPoint_>
+  class DepthSensorPCL : public Sensor
+  {
+  public:
+
+    typedef boost::shared_ptr<DepthSensorPCL> Ptr;
+    typedef boost::shared_ptr<const DepthSensorPCL> ConstPtr;
+
+    typedef DepthUndistortionModel<UndTraitsPCL<Types::Scalar, PCLPoint_> > UndistortionModel;
+
+    DepthSensorPCL()
+      : Sensor(),
+        undistortion_model_(boost::make_shared<NoUndistortionPCL<Types::Scalar, PCLPoint_> >()),
+        depth_error_function_(Types::Vector3::Zero())
+    {
+      // Do nothing
+    }
+
+    const typename UndistortionModel::ConstPtr undistortionModel() const
+    {
+      return undistortion_model_;
+    }
+
+    void setUndistortionModel(const typename UndistortionModel::ConstPtr & undistortion_model)
+    {
+      undistortion_model_ = undistortion_model;
+    }
+
+    const Polynomial<Types::Scalar, 2> depthErrorFunction() const
+    {
+      return depth_error_function_;
+    }
+
+    void setDepthErrorFunction(const Polynomial<Types::Scalar, 2> & depth_error_function)
+    {
+      depth_error_function_ = depth_error_function;
+    }
+
+  private:
+
+    typename UndistortionModel::ConstPtr undistortion_model_;
+    Polynomial<Types::Scalar, 2> depth_error_function_;
+
+  };
+
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_SENSOR_H_ */
