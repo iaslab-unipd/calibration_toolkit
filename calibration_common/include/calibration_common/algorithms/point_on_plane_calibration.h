@@ -42,8 +42,8 @@ struct PointPlanePair
     // Do nothing
   }
 
-  PointPlanePair(const Types::Point3 & point,
-                 const Types::Plane & plane)
+  PointPlanePair(const Point3 & point,
+                 const Plane & plane)
     : point_(point),
       plane_(plane)
   {
@@ -52,8 +52,8 @@ struct PointPlanePair
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  Types::Point3 point_;
-  Types::Plane plane_;
+  Point3 point_;
+  Plane plane_;
 };
 
 class PointOnPlaneCalibration
@@ -65,8 +65,8 @@ public:
     pair_vec_.push_back(pair);
   }
 
-  void addPair(const Types::Point3 & point,
-               const Types::Plane & plane)
+  void addPair(const Point3 & point,
+               const Plane & plane)
   {
     addPair(PointPlanePair(point, plane));
   }
@@ -76,12 +76,12 @@ public:
     return pair_vec_.size();
   }
 
-  Types::Transform estimateTransform()
+  Transform estimateTransform()
   {
     return estimateTransform(pair_vec_);
   }
 
-  static Types::Transform estimateTransform(const std::vector<PointPlanePair> & pair_vec);
+  static Transform estimateTransform(const std::vector<PointPlanePair> & pair_vec);
 
 private:
 

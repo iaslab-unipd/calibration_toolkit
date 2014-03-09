@@ -18,34 +18,35 @@
 #ifndef CALIBRATION_COMMON_BASE_OPENCV_CONVERSION_H_
 #define CALIBRATION_COMMON_BASE_OPENCV_CONVERSION_H_
 
+#include <calibration_common/base/point_matrix.h>
+
 #include <opencv2/core/core.hpp>
-#include "point_matrix.h"
 
 namespace calibration
 {
 
-template <typename ScalarT>
+template <typename ScalarT_>
   class OpenCVConversion
   {
   public:
 
-    template <typename OtherScalarT>
-      static void toPointMatrix(const std::vector<cv::Point_<OtherScalarT> > & cv_points,
-                                PointMatrix<ScalarT, 2> & point_matrix);
+    template <typename OtherScalarT_>
+      static void toPointMatrix(const std::vector<cv::Point_<OtherScalarT_> > & cv_points,
+                                PointMatrix<ScalarT_, 2> & point_matrix);
 
-    template <typename OtherScalarT>
-      static PointMatrix<ScalarT, 2> toPointMatrix(const std::vector<cv::Point_<OtherScalarT> > & cv_points);
+    template <typename OtherScalarT_>
+      static PointMatrix<ScalarT_, 2> toPointMatrix(const std::vector<cv::Point_<OtherScalarT_> > & cv_points);
 
-    template <typename OtherScalarT>
-      static void toPointMatrix(const std::vector<cv::Point3_<OtherScalarT> > & cv_points,
-                                PointMatrix<ScalarT, 3> & point_matrix);
+    template <typename OtherScalarT_>
+      static void toPointMatrix(const std::vector<cv::Point3_<OtherScalarT_> > & cv_points,
+                                PointMatrix<ScalarT_, 3> & point_matrix);
 
-    template <typename OtherScalarT>
-      static PointMatrix<ScalarT, 3> toPointMatrix(const std::vector<cv::Point3_<OtherScalarT> > & cv_points);
+    template <typename OtherScalarT_>
+      static PointMatrix<ScalarT_, 3> toPointMatrix(const std::vector<cv::Point3_<OtherScalarT_> > & cv_points);
 
-    template <int Dimension, int Elements>
-      static void toOpenCV(const Eigen::Matrix<ScalarT, Dimension, Elements> & in,
-                           cv::Mat_<cv::Vec<ScalarT, Dimension> > & out);
+    template <int Dimension_, int Elements_>
+      static void toOpenCV(const Eigen::Matrix<ScalarT_, Dimension_, Elements_> & in,
+                           cv::Mat_<cv::Vec<ScalarT_, Dimension_> > & out);
 
   };
 

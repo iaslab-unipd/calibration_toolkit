@@ -26,13 +26,49 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_DEPTH_DEPTH_H_
-#define CALIBRATION_COMMON_DEPTH_DEPTH_H_
+#ifndef CALIBRATION_COMMON_DEPTH_TRAITS_H_
+#define CALIBRATION_COMMON_DEPTH_TRAITS_H_
 
-#include "sensor.h"
-#include "traits.h"
-#include "undistortion_model_fit.h"
-#include "undistortion_model.h"
-#include "view.h"
+#include <pcl/point_cloud.h>
+#include <calibration_common/objects/globals.h>
 
-#endif /* CALIBRATION_COMMON_DEPTH_DEPTH_H_ */
+namespace calibration
+{
+
+template <typename DepthT_>
+  struct DepthTraits
+  {
+  };
+
+template <typename ScalarT_>
+  struct DepthEigen_
+  {
+  };
+
+template <typename ScalarT_>
+  struct DepthTraits<DepthEigen_<ScalarT_> >
+  {
+    typedef ScalarT_ Scalar;
+    typedef typename Types<ScalarT_>::Point3 Point;
+    typedef typename Types<ScalarT_>::Cloud3 Cloud;
+  };
+
+template <typename PCLPointT_>
+  struct DepthPCL_
+  {
+  };
+
+template <typename PCLPointT_>
+  struct DepthTraits<DepthPCL_<PCLPointT_> >
+  {
+    typedef float Scalar;
+    typedef PCLPointT_ Point;
+    typedef pcl::PointCloud<PCLPointT_> Cloud;
+  };
+
+typedef DepthEigen_<Scalar> DepthEigen;
+typedef DepthPCL_<PCLPoint3> DepthPCL;
+
+} /* namespace calibration */
+
+#endif /* CALIBRATION_COMMON_DEPTH_TRAITS_H_ */

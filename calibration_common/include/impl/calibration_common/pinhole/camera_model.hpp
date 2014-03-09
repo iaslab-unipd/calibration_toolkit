@@ -36,11 +36,11 @@ namespace calibration
 {
 
 template <typename Scalar>
-  typename Types_<Scalar>::Point3 PinholeCameraModel::projectPixelTo3dRay(const typename Types_<Scalar>::Point2 & pixel_point) const
+  typename Types<Scalar>::Point3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const
   {
     assert(initialized());
 
-    typename Types_<Scalar>::Point3 ray;
+    typename Types<Scalar>::Point3 ray;
     ray[0] = Scalar((pixel_point[0] - cx() - Tx()) / fx());
     ray[1] = Scalar((pixel_point[1] - cy() - Ty()) / fy());
     ray[2] = Scalar(1.0);
@@ -50,12 +50,12 @@ template <typename Scalar>
   }
 
 template <typename Scalar>
-  typename Types_<Scalar>::Point2 PinholeCameraModel::project3dToPixel(const typename Types_<Scalar>::Point3 & world_point) const
+  typename Types<Scalar>::Point2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const
   {
     assert(initialized());
     assert(P_(2, 3) == 0.0);
 
-    typename Types_<Scalar>::Point2 uv_rect;
+    typename Types<Scalar>::Point2 uv_rect;
     uv_rect[0] = Scalar((fx() * world_point[0] + Tx()) / world_point[2] + cx());
     uv_rect[1] = Scalar((fy() * world_point[1] + Ty()) / world_point[2] + cy());
 
@@ -63,8 +63,8 @@ template <typename Scalar>
   }
 
 template <typename Scalar>
-  void PinholeCameraModel::projectPixelTo3dRay(const typename Types_<Scalar>::Point2Matrix & pixel_points,
-                                               typename Types_<Scalar>::Point3Matrix & world_points) const
+  void PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
+                                               typename Types<Scalar>::Cloud3 & world_points) const
   {
     assert(initialized());
     assert(pixel_points.size() == world_points.size());
@@ -78,24 +78,24 @@ template <typename Scalar>
   }
 
 template <typename Scalar>
-  typename Types_<Scalar>::Point3Matrix PinholeCameraModel::projectPixelTo3dRay(const typename Types_<Scalar>::Point2Matrix & pixel_points) const
+  typename Types<Scalar>::Cloud3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const
   {
-    typename Types_<Scalar>::Point3Matrix world_points(pixel_points.xSize(), pixel_points.ySize());
+    typename Types<Scalar>::Cloud3 world_points(pixel_points.xSize(), pixel_points.ySize());
     projectPixelTo3dRay<Scalar>(pixel_points, world_points);
     return world_points;
   }
 
 template <typename Scalar>
-  void PinholeCameraModel::project3dToPixel(const typename Types_<Scalar>::Point3Matrix & world_points,
-                                            typename Types_<Scalar>::Point2Matrix & pixel_points) const
+  void PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
+                                            typename Types<Scalar>::Cloud2 & pixel_points) const
   {
     assert(initialized());
     assert(P_(2, 3) == 0.0);
     assert(pixel_points.size() == world_points.size());
 
     Eigen::Array<double, 2, 1> prod(fx(), fy());
-    Types_<double>::Point2 sum(Tx(), Ty());
-    Types_<double>::Point2 sum_final(cx(), cy());
+    Types<double>::Point2 sum(Tx(), Ty());
+    Types<double>::Point2 sum_final(cx(), cy());
 
     pixel_points.matrix() = world_points.matrix().template topRows<2>();
     pixel_points.matrix().array().colwise() *= prod.template cast<Scalar>();
@@ -105,16 +105,16 @@ template <typename Scalar>
   }
 
 template <typename Scalar>
-  typename Types_<Scalar>::Point2Matrix PinholeCameraModel::project3dToPixel(const typename Types_<Scalar>::Point3Matrix & world_points) const
+  typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const
   {
-    typename Types_<Scalar>::Point2Matrix pixel_points(world_points.xSize(), world_points.ySize());
+    typename Types<Scalar>::Cloud2 pixel_points(world_points.xSize(), world_points.ySize());
     project3dToPixel<Scalar>(world_points, pixel_points);
     return pixel_points;
   }
 
 template <typename Scalar>
-  typename Types_<Scalar>::Pose PinholeCameraModel::estimatePose(const typename Types_<Scalar>::Point2Matrix & points_image,
-                                                                 const typename Types_<Scalar>::Point3Matrix & points_object) const
+  typename Types<Scalar>::Pose PinholeCameraModel::estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
+                                                                const typename Types<Scalar>::Cloud3 & points_object) const
   {
     assert(points_image.size() == points_object.size());
 
@@ -126,13 +126,13 @@ template <typename Scalar>
     cv::Vec<Scalar, 3> cv_r, cv_t;
     cv::solvePnP(cv_points_object, cv_points_image, intrinsicMatrix(), distortionCoeffs(), cv_r, cv_t);
 
-    Types::Vector3 r;
+    Vector3 r;
     r << cv_r[0], cv_r[1], cv_r[2];
-    Types::Vector3 t;
+    Vector3 t;
     t << cv_t[0], cv_t[1], cv_t[2];
 
-    Types::AngleAxis rotation(r.norm(), r.normalized());
-    Types::Translation3 translation(t);
+    AngleAxis rotation(r.norm(), r.normalized());
+    Translation3 translation(t);
 
     return translation * rotation;
   }

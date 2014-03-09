@@ -26,7 +26,6 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <calibration_common/objects/base_object.h>
 #include <eigen_conversions/eigen_msg.h>
 

@@ -26,7 +26,6 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 #include <calibration_common/objects/planar_object.h>
 #include <pcl/common/eigen.h>
 #include <eigen_conversions/eigen_msg.h>

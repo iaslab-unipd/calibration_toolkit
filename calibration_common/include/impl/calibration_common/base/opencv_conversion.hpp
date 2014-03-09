@@ -34,56 +34,56 @@
 namespace calibration
 {
 
-template <typename ScalarT>
-  template <typename OtherScalarT>
-    void OpenCVConversion<ScalarT>::toPointMatrix(const std::vector<cv::Point_<OtherScalarT> > & cv_points,
-                                                  PointMatrix<ScalarT, 2> & point_matrix)
+template <typename ScalarT_>
+  template <typename OtherScalarT_>
+    void OpenCVConversion<ScalarT_>::toPointMatrix(const std::vector<cv::Point_<OtherScalarT_> > & cv_points,
+                                                   PointMatrix<ScalarT_, 2> & point_matrix)
     {
       for (size_t i = 0; i < cv_points.size(); ++i)
       {
-        const cv::Point_<OtherScalarT> & p = cv_points[i];
-        point_matrix[i] << ScalarT(p.x), ScalarT(p.y);
+        const cv::Point_<OtherScalarT_> & p = cv_points[i];
+        point_matrix[i] << ScalarT_(p.x), ScalarT_(p.y);
       }
     }
 
-template <typename ScalarT>
-  template <typename OtherScalarT>
-    PointMatrix<ScalarT, 2> OpenCVConversion<ScalarT>::toPointMatrix(const std::vector<cv::Point_<OtherScalarT> > & cv_points)
+template <typename ScalarT_>
+  template <typename OtherScalarT_>
+    PointMatrix<ScalarT_, 2> OpenCVConversion<ScalarT_>::toPointMatrix(const std::vector<cv::Point_<OtherScalarT_> > & cv_points)
     {
-      PointMatrix<ScalarT, 2> point_matrix(cv_points.size(), 1);
+      PointMatrix<ScalarT_, 2> point_matrix(cv_points.size(), 1);
       toPointMatrix(cv_points, point_matrix);
       return point_matrix;
     }
 
-template <typename ScalarT>
-  template <typename OtherScalarT>
-    void OpenCVConversion<ScalarT>::toPointMatrix(const std::vector<cv::Point3_<OtherScalarT> > & cv_points,
-                                                  PointMatrix<ScalarT, 3> & point_matrix)
+template <typename ScalarT_>
+  template <typename OtherScalarT_>
+    void OpenCVConversion<ScalarT_>::toPointMatrix(const std::vector<cv::Point3_<OtherScalarT_> > & cv_points,
+                                                   PointMatrix<ScalarT_, 3> & point_matrix)
     {
       for (size_t i = 0; i < cv_points.size(); ++i)
       {
-        const cv::Point3_<OtherScalarT> & p = cv_points[i];
-        point_matrix[i] << ScalarT(p.x), ScalarT(p.y), ScalarT(p.z);
+        const cv::Point3_<OtherScalarT_> & p = cv_points[i];
+        point_matrix[i] << ScalarT_(p.x), ScalarT_(p.y), ScalarT_(p.z);
       }
     }
 
-template <typename ScalarT>
-  template <typename OtherScalarT>
-    PointMatrix<ScalarT, 3> OpenCVConversion<ScalarT>::toPointMatrix(const std::vector<cv::Point3_<OtherScalarT> > & cv_points)
+template <typename ScalarT_>
+  template <typename OtherScalarT_>
+    PointMatrix<ScalarT_, 3> OpenCVConversion<ScalarT_>::toPointMatrix(const std::vector<cv::Point3_<OtherScalarT_> > & cv_points)
     {
-      PointMatrix<ScalarT, 3> point_matrix(cv_points.size(), 1);
+      PointMatrix<ScalarT_, 3> point_matrix(cv_points.size(), 1);
       toPointMatrix(cv_points, point_matrix);
       return point_matrix;
     }
 
-template <typename ScalarT>
+template <typename ScalarT_>
   template <int Dimension, int Elements>
-    void OpenCVConversion<ScalarT>::toOpenCV(const Eigen::Matrix<ScalarT, Dimension, Elements> & in,
-                                             cv::Mat_<cv::Vec<ScalarT, Dimension> > & out)
+    void OpenCVConversion<ScalarT_>::toOpenCV(const Eigen::Matrix<ScalarT_, Dimension, Elements> & in,
+                                              cv::Mat_<cv::Vec<ScalarT_, Dimension> > & out)
     {
-      out = cv::Mat_<cv::Vec<ScalarT, Dimension> >(in.cols(), 1);
+      out = cv::Mat_<cv::Vec<ScalarT_, Dimension> >(in.cols(), 1);
       for (int i = 0; i < in.cols(); ++i)
-        out(i) = cv::Vec<ScalarT, Dimension>(in.col(i).data());
+        out(i) = cv::Vec<ScalarT_, Dimension>(in.col(i).data());
     }
 
 } /* namespace calibration */

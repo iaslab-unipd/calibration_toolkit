@@ -48,7 +48,7 @@ protected:
 
 };
 
-template <typename Sensor, typename Data, typename Object, int Dimension>
+template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
   class View_ : public View
   {
   public:
@@ -57,17 +57,17 @@ template <typename Sensor, typename Data, typename Object, int Dimension>
     typedef boost::shared_ptr<const View_> ConstPtr;
 
     View_()
-      : points_std_dev_(Types::Scalar(1.0))
+      : points_std_dev_(Scalar(1.0))
     {
 
     }
 
-    void setPoints(const PointMatrix<Types::Scalar, Dimension> & points)
+    void setPoints(const PointMatrix<Scalar, Dimension_> & points)
     {
       points_ = points;
     }
 
-    void setPoints(const PointMatrix<Types::Scalar, Dimension> & points,
+    void setPoints(const PointMatrix<Scalar, Dimension_> & points,
                    const std::vector<int> & indices)
     {
       points_.resize(indices.size(), 1);
@@ -75,58 +75,58 @@ template <typename Sensor, typename Data, typename Object, int Dimension>
         points_[i] << points[indices[i]];
     }
 
-    const PointMatrix<Types::Scalar, Dimension> & points() const
+    const PointMatrix<Scalar, Dimension_> & points() const
     {
       return points_;
     }
 
-    void setObject(const typename Object::ConstPtr & object)
+    void setObject(const typename ObjectT_::ConstPtr & object)
     {
       object_ = object;
     }
 
-    const typename Object::ConstPtr & object() const
+    const typename ObjectT_::ConstPtr & object() const
     {
       return object_;
     }
 
-    void setSensor(const typename Sensor::ConstPtr & sensor)
+    void setSensor(const typename SensorT_::ConstPtr & sensor)
     {
       sensor_ = sensor;
     }
 
-    const typename Sensor::ConstPtr & sensor() const
+    const typename SensorT_::ConstPtr & sensor() const
     {
       return sensor_;
     }
 
-    void setData(const Data & data)
+    void setData(const DataT_ & data)
     {
       data_ = data;
     }
 
-    const Data & data() const
+    const DataT_ & data() const
     {
       return data_;
     }
 
-    void setPointsStdDev(const Types::Scalar & points_std_dev)
+    void setPointsStdDev(const Scalar & points_std_dev)
     {
       points_std_dev_ = points_std_dev;
     }
 
-    const Types::Scalar & pointsStdDev() const
+    const Scalar & pointsStdDev() const
     {
       return points_std_dev_;
     }
 
   protected:
 
-    typename Sensor::ConstPtr sensor_;
-    Data data_;
-    typename Object::ConstPtr object_;
-    PointMatrix<Types::Scalar, Dimension> points_;
-    Types::Scalar points_std_dev_;
+    typename SensorT_::ConstPtr sensor_;
+    DataT_ data_;
+    typename ObjectT_::ConstPtr object_;
+    PointMatrix<Scalar, Dimension_> points_;
+    Scalar points_std_dev_;
 
   };
 

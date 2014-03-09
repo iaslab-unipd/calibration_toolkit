@@ -42,13 +42,13 @@ public:
   typedef boost::shared_ptr<Checkerboard> Ptr;
   typedef boost::shared_ptr<const Checkerboard> ConstPtr;
 
-  typedef Types::Point3Matrix::Element Element;
-  typedef Types::Point3Matrix::ConstElement ConstElement;
+  typedef Cloud3::Element Element;
+  typedef Cloud3::ConstElement ConstElement;
 
   Checkerboard(size_t cols,
                size_t rows,
-               Types::Scalar cell_width,
-               Types::Scalar cell_height)
+               Scalar cell_width,
+               Scalar cell_height)
     : PlanarObject(),
       corners_(cols, rows),
       cell_width_(cell_width),
@@ -60,54 +60,54 @@ public:
     assert(cell_height > 0);
     for (size_t r = 0; r < rows; ++r)
       for (size_t c = 0; c < cols; ++c)
-        corners_(c, r) << c * cell_width, r * cell_height, Types::Scalar(0);
+        corners_(c, r) << c * cell_width, r * cell_height, Scalar(0);
   }
 
   template <typename ColorSensor>
-    Checkerboard(const ColorView<ColorSensor, Checkerboard> & view)
-      : PlanarObject(),
-        corners_(view.object()->corners()),
-        cell_width_(view.object()->cellWidth()),
-        cell_height_(view.object()->cellHeight())
+  Checkerboard(const ColorView<ColorSensor, Checkerboard> & view)
+    : PlanarObject(),
+      corners_(view.object()->corners()),
+      cell_width_(view.object()->cellWidth()),
+      cell_height_(view.object()->cellHeight())
 
-    {
-      setParent(view.sensor());
-      setPlane(view.object()->plane());
+  {
+    setParent(view.sensor());
+    setPlane(view.object()->plane());
 
-      std::stringstream ss;
-      ss << view.object()->frameId() << "_" << view.id();
-      setFrameId(ss.str());
+    std::stringstream ss;
+    ss << view.object()->frameId() << "_" << view.id();
+    setFrameId(ss.str());
 
-      transform(view.sensor()->cameraModel()->estimatePose(view.points(), view.object()->corners()));
-    }
+    transform(view.sensor()->cameraModel()->estimatePose(view.points(), view.object()->corners()));
+  }
 
   virtual ~Checkerboard()
   {
     // Do nothing
   }
 
-  virtual void transform(const Types::Transform & transform)
+  virtual void transform(const Transform & transform)
   {
     PlanarObject::transform(transform);
     corners_.transform(transform);
   }
 
-  virtual const Types::Point3Matrix & points() const
+  virtual const Cloud3 & points() const
   {
     return corners();
   }
 
-  Types::Point3 center() const
+  Point3 center() const
   {
-    return Types::Point3((corners_(0, 0) + corners_(cols() - 1, rows() - 1)) / 2);
+    return Point3((corners_(0, 0) + corners_(cols() - 1, rows() - 1)) / 2);
   }
 
-  Types::Point3Matrix & corners()
+  Cloud3 & corners()
   {
     return corners_;
   }
 
-  const Types::Point3Matrix & corners() const
+  const Cloud3 & corners() const
   {
     return corners_;
   }
@@ -127,27 +127,27 @@ public:
     return corners_.xSize();
   }
 
-  Types::Scalar cellWidth() const
+  Scalar cellWidth() const
   {
     return cell_width_;
   }
 
-  Types::Scalar cellHeight() const
+  Scalar cellHeight() const
   {
     return cell_height_;
   }
 
-  Types::Scalar area() const
+  Scalar area() const
   {
     return width() * height();
   }
 
-  Types::Scalar width() const
+  Scalar width() const
   {
     return cellWidth() * (cols() + 1);
   }
 
-  Types::Scalar height() const
+  Scalar height() const
   {
     return cellHeight() * (rows() + 1);
   }
@@ -190,10 +190,10 @@ public:
 
 private:
 
-  Types::Scalar cell_width_;
-  Types::Scalar cell_height_;
+  Scalar cell_width_;
+  Scalar cell_height_;
 
-  Types::Point3Matrix corners_;
+  Cloud3 corners_;
 
 };
 

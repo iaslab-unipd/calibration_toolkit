@@ -36,25 +36,27 @@
 namespace calibration
 {
 
-template <typename Polynomial_>
-  struct UMatrixTraits
-  {
-    typedef Polynomial_ Poly;
+template <typename PolynomialT_>
+  class PolynomialUndistortionMatrixImpl;
 
-    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef EigenMatrix<typename MathTraits<Polynomial_>::Coefficients> Data;
+template <typename PolynomialT_>
+  struct ImplTraits<PolynomialUndistortionMatrixImpl<PolynomialT_> >
+  {
+    typedef PolynomialT_ Poly;
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef EigenMatrix<typename MathTraits<PolynomialT_>::Coefficients> Data;
   };
 
-template <typename Polynomial_>
-  class PolynomialUndistortionMatrixImpl : public DepthUndistortionModelImpl<UMatrixTraits<Polynomial_> >
+template <typename PolynomialT_>
+  class PolynomialUndistortionMatrixImpl : public DepthUndistortionModelImpl<PolynomialUndistortionMatrixImpl<PolynomialT_> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionMatrixImpl> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionMatrixImpl> ConstPtr;
 
-    typedef UMatrixTraits<Polynomial_> Traits;
-    typedef DepthUndistortionModelImpl<Traits> Base;
+    typedef ImplTraits<PolynomialUndistortionMatrixImpl> Traits;
+    typedef DepthUndistortionModelImpl<PolynomialUndistortionMatrixImpl> Base;
 
     typedef typename Traits::Poly Poly;
     typedef typename Traits::Scalar Scalar;
@@ -107,7 +109,7 @@ template <typename Polynomial_>
                            size_t y_index,
                            Scalar & z) const
     {
-      z = Polynomial_::evaluate(polynomialAt(x_index, y_index), z);
+      z = PolynomialT_::evaluate(polynomialAt(x_index, y_index), z);
     }
 
     virtual Scalar * dataPtr()
@@ -128,15 +130,15 @@ template <typename Polynomial_>
 
   };
 
-template <typename Polynomial_>
-  class PolynomialUndistortionMatrixSphere : public PolynomialUndistortionMatrixImpl<Polynomial_>
+template <typename PolynomialT_>
+  class PolynomialUndistortionMatrixSphere : public PolynomialUndistortionMatrixImpl<PolynomialT_>
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionMatrixSphere> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionMatrixSphere> ConstPtr;
 
-    typedef PolynomialUndistortionMatrixImpl<Polynomial_> Base;
+    typedef PolynomialUndistortionMatrixImpl<PolynomialT_> Base;
 
     typedef typename Base::Scalar Scalar;
     typedef typename Base::Data Data;
@@ -185,7 +187,7 @@ template <typename Polynomial_>
 //      bin_x_size_ = fov_x_ / Base::data_->xSize();
 //      bin_y_size_ = fov_y_ / Base::data_->ySize();
 //      zero_ = typename Types_<Scalar>::Point2(M_PI - fov_x_ / Scalar(2), M_PI_2 - fov_y_ / Scalar(2));
-      zero_ = typename Types_<Scalar>::Point2(- std::tan(fov_x_ / 2), - std::tan(fov_y_ / 2));
+      zero_ = typename Types<Scalar>::Point2(- std::tan(fov_x_ / 2), - std::tan(fov_y_ / 2));
       bin_x_size_ =  - 2 * zero_.x() / Base::data_->xSize();
       bin_y_size_ =  - 2 * zero_.y() / Base::data_->ySize();
     }
@@ -200,27 +202,27 @@ template <typename Polynomial_>
       return fov_y_;
     }
 
-    void getIndex(const typename Types_<Scalar>::Point2 & point_sphere,
+    void getIndex(const typename Types<Scalar>::Point2 & point_sphere,
                   size_t & x_index,
                   size_t & y_index) const
     {
       assert(Base::data_);
       assert(bin_x_size_ > 0 and bin_y_size_ > 0);
-      typename Types_<Scalar>::Point2 diff = point_sphere - zero_;
+      typename Types<Scalar>::Point2 diff = point_sphere - zero_;
       x_index = diff.x() < 0 ? 0 : size_t(std::min(Base::data_->xSize() - 1.0, std::floor(diff.x() / bin_x_size_)));
       y_index = diff.y() < 0 ? 0 : size_t(std::min(Base::data_->ySize() - 1.0, std::floor(diff.y() / bin_y_size_)));
     }
 
     using Base::polynomialAt;
 
-    Element polynomialAt(const typename Types_<Scalar>::Point2 & point_sphere)
+    Element polynomialAt(const typename Types<Scalar>::Point2 & point_sphere)
     {
       size_t x_index, y_index;
       getIndex(point_sphere, x_index, y_index);
       return Base::polynomialAt(x_index, y_index);
     }
 
-    const ConstElement polynomialAt(const typename Types_<Scalar>::Point2 & point_sphere) const
+    const ConstElement polynomialAt(const typename Types<Scalar>::Point2 & point_sphere) const
     {
       size_t x_index, y_index;
       getIndex(point_sphere, x_index, y_index);
@@ -229,13 +231,13 @@ template <typename Polynomial_>
 
     using Base::undistort;
 
-    void undistort(const typename Types_<Scalar>::Point2 & point_sphere,
+    void undistort(const typename Types<Scalar>::Point2 & point_sphere,
                    Scalar & z) const
     {
       assert(Base::data_);
       assert(bin_x_size_ > 0 and bin_y_size_ > 0);
-      typename Types_<Scalar>::Point2 diff = point_sphere - zero_;
-      diff -= typename Types_<Scalar>::Point2(bin_x_size_ * 0.5, bin_y_size_ * 0.5);
+      typename Types<Scalar>::Point2 diff = point_sphere - zero_;
+      diff -= typename Types<Scalar>::Point2(bin_x_size_ * 0.5, bin_y_size_ * 0.5);
 
       size_t x_index[2];
       size_t y_index[2];
@@ -274,24 +276,24 @@ template <typename Polynomial_>
       for (int i = 0; i < 2; ++i)
         for (int j = 0; j < 2; ++j)
           tmp_z += x_weight[i] * y_weight[j]
-                   * Polynomial_::evaluate(Base::polynomialAt(x_index[i], y_index[j]), z);
+                   * PolynomialT_::evaluate(Base::polynomialAt(x_index[i], y_index[j]), z);
 
       z = tmp_z;
 
     }
 
-    static typename Types_<Scalar>::Point2 toSphericalCoordinates(Scalar x,
+    static typename Types<Scalar>::Point2 toSphericalCoordinates(Scalar x,
                                                                   Scalar y,
                                                                   Scalar z)
     {
 //      Scalar norm(std::sqrt(x * x + y * y + z * z));
 //      return typename Types_<Scalar>::Point2(M_PI + std::atan2(x, z), M_PI_2 - std::asin(y / norm));
-      return typename Types_<Scalar>::Point2(x / z, y / z);
+      return typename Types<Scalar>::Point2(x / z, y / z);
     }
 
   protected:
 
-    typename Types_<Scalar>::Point2 zero_;
+    typename Types<Scalar>::Point2 zero_;
     Scalar fov_x_;
     Scalar fov_y_;
     Scalar bin_x_size_;
@@ -299,23 +301,22 @@ template <typename Polynomial_>
 
   };
 
-template <typename Polynomial_>
-  class PolynomialUndistortionMatrixEigen : public PolynomialUndistortionMatrixSphere<Polynomial_>,
-                                            public DepthUndistortionModel<
-                                              UndTraitsEigen<typename MathTraits<Polynomial_>::Scalar> >
+template <typename PolynomialT_>
+  class PolynomialUndistortionMatrixEigen : public PolynomialUndistortionMatrixSphere<PolynomialT_>,
+                                            public DepthUndistortionModel<DepthEigen_<typename MathTraits<PolynomialT_>::Scalar> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionMatrixEigen> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionMatrixEigen> ConstPtr;
 
-    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
 
-    typedef PolynomialUndistortionMatrixSphere<Polynomial_> Base;
+    typedef PolynomialUndistortionMatrixSphere<PolynomialT_> Base;
     typedef typename Base::Data Data;
     typedef typename Base::Poly Poly;
 
-    typedef DepthUndistortionModel<UndTraitsEigen<Scalar> > Interface;
+    typedef DepthUndistortionModel<DepthEigen_<Scalar> > Interface;
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
@@ -368,11 +369,11 @@ template <typename Polynomial_>
       }
     }
 
-    static typename Types_<Scalar>::Point2 toSphericalCoordinates(const Point & point)
+    static typename Types<Scalar>::Point2 toSphericalCoordinates(const Point & point)
     {
 //      return typename Types_<Scalar>::Point2(M_PI + std::atan2(point.x(), point.z()),
 //      M_PI_2 - std::asin(point.y() / point.norm()));
-      return typename Types_<Scalar>::Point2(point.x() / point.z(), point.y() / point.z());
+      return typename Types<Scalar>::Point2(point.x() / point.z(), point.y() / point.z());
     }
 
     virtual typename Interface::Ptr clone() const
@@ -384,23 +385,22 @@ template <typename Polynomial_>
 
   };
 
-template <typename Polynomial_, typename PCLPoint_>
-  class PolynomialUndistortionMatrixPCL : public PolynomialUndistortionMatrixSphere<Polynomial_>,
-                                          public DepthUndistortionModel<
-                                            UndTraitsPCL<typename MathTraits<Polynomial_>::Scalar, PCLPoint_> >
+template <typename PolynomialT_, typename PCLPointT_>
+  class PolynomialUndistortionMatrixPCL : public PolynomialUndistortionMatrixSphere<PolynomialT_>,
+                                          public DepthUndistortionModel<DepthPCL_<PCLPointT_> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionMatrixPCL> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionMatrixPCL> ConstPtr;
 
-    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
 
-    typedef PolynomialUndistortionMatrixSphere<Polynomial_> Base;
+    typedef PolynomialUndistortionMatrixSphere<PolynomialT_> Base;
     typedef typename Base::Data Data;
     typedef typename Base::Poly Poly;
 
-    typedef DepthUndistortionModel<UndTraitsPCL<Scalar, PCLPoint_> > Interface;
+    typedef DepthUndistortionModel<DepthPCL_<PCLPointT_> > Interface;
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
@@ -452,7 +452,7 @@ template <typename Polynomial_, typename PCLPoint_>
         undistort(cloud.points[i]);
     }
 
-    static typename Types_<Scalar>::Point2 toSphericalCoordinates(const Point & point)
+    static typename Types<Scalar>::Point2 toSphericalCoordinates(const Point & point)
     {
       return Base::toSphericalCoordinates(Scalar(point.x), Scalar(point.y), Scalar(point.z));
     }

@@ -57,7 +57,7 @@ void Checkerboard::toMarker(visualization_msgs::Marker & marker) const
   Eigen::Vector3d dx = (corners_(1, 0) - corners_(0, 0));
   Eigen::Vector3d dy = (corners_(0, 1) - corners_(0, 0));
 
-  Types::Point3Matrix centers(cols() + 1, rows() + 1);
+  Cloud3 centers(cols() + 1, rows() + 1);
 
   centers(0, 0) = corners_(0, 0) - dc;
   for (int x = 1; x < cols() + 1; ++x)

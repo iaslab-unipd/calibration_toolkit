@@ -34,8 +34,8 @@
 namespace calibration
 {
 
-template <typename Object>
-  void DepthView<Object>::toMarker(visualization_msgs::Marker & marker) const
+template <typename SensorT_, typename DataT_, typename ObjectT_>
+  void DepthView_<SensorT_, DataT_, ObjectT_>::toMarker(visualization_msgs::Marker & marker) const
   {
     marker.header.stamp = ros::Time::now();
     marker.header.frame_id = Base::sensor()->frameId();
@@ -48,7 +48,7 @@ template <typename Object>
     marker.color.r = 1.0;
     marker.color.a = 1.0;
 
-    const Types::Point3Matrix & points = Base::points();
+    const Cloud3 & points = Base::points();
     for (size_t i = 0; i < points.size(); ++i)
     {
       geometry_msgs::Point p;

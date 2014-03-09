@@ -43,8 +43,8 @@ template <typename ModelImpl_>
       if (accumulation_bins_[i].isEmpty())
         continue;
 
-      typename Types_<Scalar>::Point3 point = accumulation_bins_[i].average();
-      typename Types_<Scalar>::Line line(point, Types_<Scalar>::Vector3::UnitZ());
+      typename Types<Scalar>::Point3 point = accumulation_bins_[i].average();
+      typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
       distorsion_bins_[i].push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
       accumulation_bins_[i].reset();
@@ -93,7 +93,7 @@ template <typename Polynomial_>
                                                                    const Plane & plane)
   {
     assert(Base::model_impl_);
-    typename Types_<Scalar>::Line line(point, Types_<Scalar>::Vector3::UnitZ());
+    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
     Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
@@ -108,8 +108,8 @@ template <typename Polynomial_, typename PCLPoint_>
     if (not pcl::isFinite(point))
       return;
 
-    typename Types_<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
-    typename Types_<Scalar>::Line line(eigen_point, Types_<Scalar>::Vector3::UnitZ());
+    typename Types<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
+    typename Types<Scalar>::Line line(eigen_point, Types<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
     Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);

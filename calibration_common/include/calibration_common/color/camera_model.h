@@ -42,11 +42,11 @@ template <typename Scalar>
     typedef boost::shared_ptr<ColorCameraModel_> Ptr;
     typedef boost::shared_ptr<const ColorCameraModel_> ConstPtr;
 
-    typedef typename Types_<Scalar>::Point2 Point2;
-    typedef typename Types_<Scalar>::Point3 Point3;
-    typedef typename Types_<Scalar>::Point2Matrix Point2Matrix;
-    typedef typename Types_<Scalar>::Point3Matrix Point3Matrix;
-    typedef typename Types_<Scalar>::Pose Pose;
+    typedef typename Types<Scalar>::Point2 Point2;
+    typedef typename Types<Scalar>::Point3 Point3;
+    typedef typename Types<Scalar>::Cloud2 Point2Matrix;
+    typedef typename Types<Scalar>::Cloud3 Point3Matrix;
+    typedef typename Types<Scalar>::Pose Pose;
 
     virtual ~ColorCameraModel_()
     {
@@ -71,7 +71,7 @@ template <typename Scalar>
                               const Point3Matrix & points_object) const = 0;
   };
 
-class ColorCameraModel : virtual public ColorCameraModel_<Types::Scalar>
+class ColorCameraModel : virtual public ColorCameraModel_<Scalar>
 {
 public:
 

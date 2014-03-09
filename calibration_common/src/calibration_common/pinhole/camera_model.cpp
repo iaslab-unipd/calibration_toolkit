@@ -31,14 +31,14 @@
 namespace calibration
 {
 
-Types::Point3 PinholeCameraModel::projectPixelTo3dRay(const Types::Point2 & pixel_point) const
+Point3 PinholeCameraModel::projectPixelTo3dRay(const Point2 & pixel_point) const
 {
   //cv::Point3d cv_point = Base::projectPixelTo3dRay(cv::Point2d(pixel_point[0], pixel_point[1]));
   //return Eigen::Vector3d(cv_point.x, cv_point.y, cv_point.z).normalized();
 
   assert(initialized());
 
-  Types::Point3 ray;
+  Point3 ray;
   ray[0] = (pixel_point[0] - cx() - Tx()) / fx();
   ray[1] = (pixel_point[1] - cy() - Ty()) / fy();
   ray[2] = 1.0;
@@ -47,29 +47,29 @@ Types::Point3 PinholeCameraModel::projectPixelTo3dRay(const Types::Point2 & pixe
   return ray;
 }
 
-Types::Point2 PinholeCameraModel::project3dToPixel(const Types::Point3 & world_point) const
+Point2 PinholeCameraModel::project3dToPixel(const Point3 & world_point) const
 {
   //cv::Point2d cv_point = Base::project3dToPixel(cv::Point3d(world_point[0], world_point[1], world_point[2]));
-  //return Types::Point2(cv_point.x, cv_point.y);
+  //return Point2(cv_point.x, cv_point.y);
 
   assert(initialized());
   assert(P_(2, 3) == 0.0);
 
-  Types::Point2 uv_rect;
+  Point2 uv_rect;
   uv_rect[0] = (fx() * world_point[0] + Tx()) / world_point[2] + cx();
   uv_rect[1] = (fy() * world_point[1] + Ty()) / world_point[2] + cy();
 
   return uv_rect;
 }
 
-void PinholeCameraModel::projectPixelTo3dRay(const Types::Point2Matrix & pixel_points,
-                                             Types::Point3Matrix & world_points) const
+void PinholeCameraModel::projectPixelTo3dRay(const Cloud2 & pixel_points,
+                                             Cloud3 & world_points) const
 {
   assert(initialized());
   assert(pixel_points.size() == world_points.size());
 
-  Eigen::Array<Types::Scalar, 2, 1> sub(-cx() - Tx(), -cy() - Ty());
-  Eigen::Array<Types::Scalar, 2, 1> div(fx(), fy());
+  Eigen::Array<Scalar, 2, 1> sub(-cx() - Tx(), -cy() - Ty());
+  Eigen::Array<Scalar, 2, 1> div(fx(), fy());
 
   world_points.matrix().topRows<2>() = (pixel_points.matrix().array().colwise() + sub).colwise() / div;
   world_points.matrix().bottomRows<1>().setOnes();
@@ -77,23 +77,23 @@ void PinholeCameraModel::projectPixelTo3dRay(const Types::Point2Matrix & pixel_p
 
 }
 
-Types::Point3Matrix PinholeCameraModel::projectPixelTo3dRay(const Types::Point2Matrix & pixel_points) const
+Cloud3 PinholeCameraModel::projectPixelTo3dRay(const Cloud2 & pixel_points) const
 {
-  Types::Point3Matrix world_points(pixel_points.xSize(), pixel_points.ySize());
+  Cloud3 world_points(pixel_points.xSize(), pixel_points.ySize());
   projectPixelTo3dRay(pixel_points, world_points);
   return world_points;
 }
 
-void PinholeCameraModel::project3dToPixel(const Types::Point3Matrix & world_points,
-                                          Types::Point2Matrix & pixel_points) const
+void PinholeCameraModel::project3dToPixel(const Cloud3 & world_points,
+                                          Cloud2 & pixel_points) const
 {
   assert(initialized());
   assert(P_(2, 3) == 0.0);
   assert(pixel_points.size() == world_points.size());
 
-  Eigen::Array<Types::Scalar, 2, 1> prod(fx(), fy());
-  Types::Point2 sum(Tx(), Ty());
-  Types::Point2 sum_final(cx(), cy());
+  Eigen::Array<Scalar, 2, 1> prod(fx(), fy());
+  Point2 sum(Tx(), Ty());
+  Point2 sum_final(cx(), cy());
 
   pixel_points.matrix() = world_points.matrix().topRows<2>();
   pixel_points.matrix().array().colwise() *= prod;
@@ -103,34 +103,34 @@ void PinholeCameraModel::project3dToPixel(const Types::Point3Matrix & world_poin
 
 }
 
-Types::Point2Matrix PinholeCameraModel::project3dToPixel(const Types::Point3Matrix & world_points) const
+Cloud2 PinholeCameraModel::project3dToPixel(const Cloud3 & world_points) const
 {
-  Types::Point2Matrix pixel_points(world_points.xSize(), world_points.ySize());
+  Cloud2 pixel_points(world_points.xSize(), world_points.ySize());
   project3dToPixel(world_points, pixel_points);
   return pixel_points;
 }
 
-Types::Pose PinholeCameraModel::estimatePose(const Types::Point2Matrix & points_image,
-                                             const Types::Point3Matrix & points_object) const
+Pose PinholeCameraModel::estimatePose(const Cloud2 & points_image,
+                                      const Cloud3 & points_object) const
 {
   assert(points_image.size() == points_object.size());
 
-  cv::Mat_<cv::Vec<Types::Scalar, 2> > cv_points_image;
-  cv::Mat_<cv::Vec<Types::Scalar, 3> > cv_points_object;
-  OpenCVConversion<Types::Scalar>::toOpenCV(points_image.matrix(), cv_points_image);
-  OpenCVConversion<Types::Scalar>::toOpenCV(points_object.matrix(), cv_points_object);
+  cv::Mat_<cv::Vec<Scalar, 2> > cv_points_image;
+  cv::Mat_<cv::Vec<Scalar, 3> > cv_points_object;
+  OpenCVConversion<Scalar>::toOpenCV(points_image.matrix(), cv_points_image);
+  OpenCVConversion<Scalar>::toOpenCV(points_object.matrix(), cv_points_object);
 
-  cv::Vec<Types::Scalar, 3> cv_r;
-  cv::Vec<Types::Scalar, 3> cv_t;
+  cv::Vec<Scalar, 3> cv_r;
+  cv::Vec<Scalar, 3> cv_t;
   cv::solvePnP(cv_points_object, cv_points_image, intrinsicMatrix(), distortionCoeffs(), cv_r, cv_t);
 
-  Types::Vector3 r;
+  Vector3 r;
   r << cv_r[0], cv_r[1], cv_r[2];
-  Types::Vector3 t;
+  Vector3 t;
   t << cv_t[0], cv_t[1], cv_t[2];
 
-  Types::AngleAxis rotation(r.norm(), r.normalized());
-  Types::Translation3 translation(t);
+  AngleAxis rotation(r.norm(), r.normalized());
+  Translation3 translation(t);
 
   return translation * rotation;
 }

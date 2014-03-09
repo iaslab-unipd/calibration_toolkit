@@ -36,7 +36,7 @@
 namespace calibration
 {
 
-template <typename Scalar_>
+template <typename ScalarT_>
   class MathFunctionFit
   {
   public:
@@ -49,23 +49,23 @@ template <typename Scalar_>
       // Do nothing
     }
 
-    virtual void addData(const Scalar_ & x,
-                         const Scalar_ & y) = 0;
+    virtual void addData(const ScalarT_ & x,
+                         const ScalarT_ & y) = 0;
 
     virtual bool update() = 0;
 
   };
 
-template <typename Polynomial_>
+template <typename PolynomialT_>
   class PolynomialResidual
   {
   public:
 
-    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
 
-    static const int Size = MathTraits<Polynomial_>::Size;
-    static const int MinDegree = MathTraits<Polynomial_>::MinDegree;
-    static const int Degree = MathTraits<Polynomial_>::Degree;
+    static const int Size = MathTraits<PolynomialT_>::Size;
+    static const int MinDegree = MathTraits<PolynomialT_>::MinDegree;
+    static const int Degree = MathTraits<PolynomialT_>::Degree;
 
     PolynomialResidual(Scalar x,
                        Scalar y)
@@ -75,17 +75,17 @@ template <typename Polynomial_>
       // Do nothing
     }
 
-//    template <typename T, int N>
-//      bool operator()(const ceres::Jet<T, N> * const coefficients,
-//                      ceres::Jet<T, N> * residual) const
-//      {
-//        typedef typename Traits<Polynomial<ceres::Jet<T, N>, Degree, MinDegree> >::Coefficients Coefficients;
-//        ceres::Jet<T, N> y = ceres::poly_eval(Eigen::Map<const Coefficients>(coefficients), ceres::Jet<T, N>(x_));
-//        for (int i = 0; i < MinDegree; ++i)
-//          y = y * x_;
-//        residual[0] = ceres::Jet<T, N>(y_) - y;
-//        return true;
-//      }
+    //    template <typename T, int N>
+    //      bool operator()(const ceres::Jet<T, N> * const coefficients,
+    //                      ceres::Jet<T, N> * residual) const
+    //      {
+    //        typedef typename Traits<Polynomial<ceres::Jet<T, N>, Degree, MinDegree> >::Coefficients Coefficients;
+    //        ceres::Jet<T, N> y = ceres::poly_eval(Eigen::Map<const Coefficients>(coefficients), ceres::Jet<T, N>(x_));
+    //        for (int i = 0; i < MinDegree; ++i)
+    //          y = y * x_;
+    //        residual[0] = ceres::Jet<T, N>(y_) - y;
+    //        return true;
+    //      }
 
     template <typename T>
       bool operator()(const T * const coefficients,
@@ -104,20 +104,20 @@ template <typename Polynomial_>
 
   };
 
-template <typename Polynomial_>
-  class PolynomialFit : public MathFunctionFit<typename MathTraits<Polynomial_>::Scalar>
+template <typename PolynomialT_>
+  class PolynomialFit : public MathFunctionFit<typename MathTraits<PolynomialT_>::Scalar>
   {
   public:
 
     typedef boost::shared_ptr<PolynomialFit> Ptr;
     typedef boost::shared_ptr<const PolynomialFit> ConstPtr;
 
-    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef typename Polynomial_::Ptr PolynomialPtr;
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef typename boost::shared_ptr<PolynomialT_> PolynomialPtr;
 
-    static const int Size = MathTraits<Polynomial_>::Size;
-    static const int MinDegree = MathTraits<Polynomial_>::MinDegree;
-    static const int Degree = MathTraits<Polynomial_>::Degree;
+    static const int Size = MathTraits<PolynomialT_>::Size;
+    static const int MinDegree = MathTraits<PolynomialT_>::MinDegree;
+    static const int Degree = MathTraits<PolynomialT_>::Degree;
 
     typedef std::vector<std::pair<Scalar, Scalar> > DataBin;
 
@@ -138,7 +138,7 @@ template <typename Polynomial_>
       data_bin_.push_back(std::make_pair(x, y));
     }
 
-    const Polynomial_ & polynomial()
+    const PolynomialT_ & polynomial()
     {
       return *polynomial_;
     }

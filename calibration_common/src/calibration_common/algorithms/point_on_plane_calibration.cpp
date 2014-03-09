@@ -33,7 +33,7 @@
 namespace calibration
 {
 
-Types::Transform PointOnPlaneCalibration::estimateTransform(const std::vector<PointPlanePair> & pair_vector)
+Transform PointOnPlaneCalibration::estimateTransform(const std::vector<PointPlanePair> & pair_vector)
 {
   const int size = pair_vector.size();
 
@@ -44,10 +44,10 @@ Types::Transform PointOnPlaneCalibration::estimateTransform(const std::vector<Po
   Eigen::MatrixXd system(size, 13);
   for (int i = 0; i < size; ++i)
   {
-    const double d = pair_vector[i].plane_.offset();
-    const Eigen::Vector3d n = pair_vector[i].plane_.normal();
+    const Scalar d = pair_vector[i].plane_.offset();
+    const Vector3 n = pair_vector[i].plane_.normal();
 
-    const Types::Point3 & x = pair_vector[i].point_;
+    const Point3 & x = pair_vector[i].point_;
 
     system.row(i) <<  d + n[0] * x[0] + n[1] * x[1] + n[2] * x[2],  // q_0^2
                       2 * n[2] * x[1] - 2 * n[1] * x[2],            // q_0 * q_1
@@ -69,7 +69,7 @@ Types::Transform PointOnPlaneCalibration::estimateTransform(const std::vector<Po
       system.row(i) = system.row(i) - system.row(k) * system.row(i)[10 + k] / system.row(k)[10 + k];
 
   // Quaternion q
-  Eigen::Vector4d q;
+  Vector4 q;
 
   // Transform to inhomogeneous (Eq. 13)
   bool P_is_ok(false);

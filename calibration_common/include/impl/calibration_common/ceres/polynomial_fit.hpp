@@ -24,10 +24,10 @@
 namespace calibration
 {
 
-template <typename Polynomial_>
-  bool PolynomialFit<Polynomial_>::update()
+template <typename PolynomialT_>
+  bool PolynomialFit<PolynomialT_>::update()
   {
-    typedef PolynomialResidual<Polynomial_> PolynomialResidual_;
+    typedef PolynomialResidual<PolynomialT_> PolynomialResidualT;
 
     const size_t bin_size = data_bin_.size();
 
@@ -37,16 +37,16 @@ template <typename Polynomial_>
     ceres::Problem problem;
     for (size_t i = 0; i < bin_size; ++i)
     {
-      problem.AddResidualBlock(
-        new ceres::AutoDiffCostFunction<PolynomialResidual_, 1, Size>(
-          new PolynomialResidual_(data_bin_[i].first, data_bin_[i].second)),
-        NULL, polynomial_->dataPtr());
+      problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidualT, 1, Size>(new PolynomialResidualT(data_bin_[i].first,
+                                                                                                                     data_bin_[i].second)),
+                               NULL,
+                               polynomial_->dataPtr());
     }
 
     ceres::Solver::Options options;
     options.max_num_iterations = 25;
     options.linear_solver_type = ceres::DENSE_QR;
-//    options.minimizer_progress_to_stdout = true;
+//  options.minimizer_progress_to_stdout = true;
 
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);

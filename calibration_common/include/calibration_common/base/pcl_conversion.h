@@ -28,39 +28,39 @@ template <typename ScalarT>
   struct PCLConversion
   {
 
-    template <typename PointT>
-      static void toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
+    template <typename PCLPointT_>
+      static void toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
                                 PointMatrix<ScalarT, 2> & point_matrix);
 
-    template <typename PointT>
-      static void toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
+    template <typename PCLPointT_>
+      static void toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
                                 PointMatrix<ScalarT, 3> & point_matrix);
 
-    template <typename PointT>
-      static PointMatrix<ScalarT, 3> toPointMatrix(const pcl::PointCloud<PointT> & point_cloud);
+    template <typename PCLPointT_>
+      static PointMatrix<ScalarT, 3> toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud);
 
-    template <typename PointT>
-      static void toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
+    template <typename PCLPointT_>
+      static void toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
                                 const std::vector<int> & indices,
                                 PointMatrix<ScalarT, 3> & point_matrix);
 
-    template <typename PointT>
-      static PointMatrix<ScalarT, 3> toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
+    template <typename PCLPointT_>
+      static PointMatrix<ScalarT, 3> toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
                                                    const std::vector<int> & indices);
 
-    template <typename PointT>
+    template <typename PCLPointT_>
       static void toPCL(const Eigen::Matrix<ScalarT, 3, 1> & point_in,
-                        PointT & point_out);
+                        PCLPointT_ & point_out);
 
-    template <typename PointT>
-      static PointT toPCL(const Eigen::Matrix<ScalarT, 3, 1> & point_in);
+    template <typename PCLPointT_>
+      static PCLPointT_ toPCL(const Eigen::Matrix<ScalarT, 3, 1> & point_in);
 
-    template <typename PointT>
-      static void toEigen(const PointT & point_in,
+    template <typename PCLPointT_>
+      static void toEigen(const PCLPointT_ & point_in,
                           Eigen::Matrix<ScalarT, 3, 1> & point_out);
 
-    template <typename PointT>
-      static Eigen::Matrix<ScalarT, 3, 1> toEigen(const PointT & point_in);
+    template <typename PCLPointT_>
+      static Eigen::Matrix<ScalarT, 3, 1> toEigen(const PCLPointT_ & point_in);
 
   };
 

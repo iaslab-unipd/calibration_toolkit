@@ -36,18 +36,29 @@
 namespace calibration
 {
 
-template <typename Object>
-  class DepthView : public View_<DepthSensor, Types::Point3Matrix, Object, 3>
+template <typename SensorT_, typename DataT_, typename ObjectT_>
+  struct DepthView_ : public View_<SensorT_, DataT_, ObjectT_, 3>
   {
-  public:
+    typedef boost::shared_ptr<DepthView_> Ptr;
+    typedef boost::shared_ptr<const DepthView_> ConstPtr;
 
-    typedef boost::shared_ptr<DepthView> Ptr;
-    typedef boost::shared_ptr<const DepthView> ConstPtr;
-
-    typedef View_<DepthSensor, Types::Point3Matrix, Object, 3> Base;
+    typedef View_<SensorT_, DataT_, ObjectT_, 3> Base;
 
     void toMarker(visualization_msgs::Marker & marker) const;
+  };
 
+template <typename ObjectT_>
+  struct DepthViewEigen : public DepthView_<DepthSensorEigen, Cloud3::ConstPtr, ObjectT_>
+  {
+    typedef boost::shared_ptr<DepthViewEigen> Ptr;
+    typedef boost::shared_ptr<const DepthViewEigen> ConstPtr;
+  };
+
+template <typename ObjectT_>
+  struct DepthViewPCL : public DepthView_<DepthSensorPCL, PCLCloud3::ConstPtr, ObjectT_>
+  {
+    typedef boost::shared_ptr<DepthViewPCL> Ptr;
+    typedef boost::shared_ptr<const DepthViewPCL> ConstPtr;
   };
 
 } /* namespace calibration */

@@ -63,46 +63,46 @@ public:
     // Do nothing
   }
 
-  virtual Types::Point3 projectPixelTo3dRay(const Types::Point2 & pixel_point) const;
+  virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const;
 
-  virtual Types::Point2 project3dToPixel(const Types::Point3 & world_point) const;
+  virtual Point2 project3dToPixel(const Point3 & world_point) const;
 
-  virtual void projectPixelTo3dRay(const Types::Point2Matrix & pixel_points,
-                           Types::Point3Matrix & world_points) const;
+  virtual void projectPixelTo3dRay(const Point2Matrix & pixel_points,
+                                   Point3Matrix & world_points) const;
 
-  virtual Types::Point3Matrix projectPixelTo3dRay(const Types::Point2Matrix & pixel_points) const;
+  virtual Point3Matrix projectPixelTo3dRay(const Point2Matrix & pixel_points) const;
 
-  virtual void project3dToPixel(const Types::Point3Matrix & world_points,
-                        Types::Point2Matrix & pixel_points) const;
+  virtual void project3dToPixel(const Point3Matrix & world_points,
+                                Point2Matrix & pixel_points) const;
 
-  virtual Types::Point2Matrix project3dToPixel(const Types::Point3Matrix & world_points) const;
+  virtual Point2Matrix project3dToPixel(const Point3Matrix & world_points) const;
 
-  virtual Types::Pose estimatePose(const Types::Point2Matrix & points_image,
-                           const Types::Point3Matrix & points_object) const;
-
-  template <typename Scalar>
-    typename Types_<Scalar>::Point3 projectPixelTo3dRay(const typename Types_<Scalar>::Point2 & pixel_point) const;
+  virtual Pose estimatePose(const Point2Matrix & points_image,
+                            const Point3Matrix & points_object) const;
 
   template <typename Scalar>
-    typename Types_<Scalar>::Point2 project3dToPixel(const typename Types_<Scalar>::Point3 & world_point) const;
+    typename Types<Scalar>::Point3 projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const;
 
   template <typename Scalar>
-    void projectPixelTo3dRay(const typename Types_<Scalar>::Point2Matrix & pixel_points,
-                             typename Types_<Scalar>::Point3Matrix & world_points) const;
+    typename Types<Scalar>::Point2 project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const;
 
   template <typename Scalar>
-    typename Types_<Scalar>::Point3Matrix projectPixelTo3dRay(const typename Types_<Scalar>::Point2Matrix & pixel_points) const;
+    void projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
+                             typename Types<Scalar>::Cloud3 & world_points) const;
 
   template <typename Scalar>
-    void project3dToPixel(const typename Types_<Scalar>::Point3Matrix & world_points,
-                          typename Types_<Scalar>::Point2Matrix & pixel_points) const;
+    typename Types<Scalar>::Cloud3 projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const;
 
   template <typename Scalar>
-    typename Types_<Scalar>::Point2Matrix project3dToPixel(const typename Types_<Scalar>::Point3Matrix & world_points) const;
+    void project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
+                          typename Types<Scalar>::Cloud2 & pixel_points) const;
 
   template <typename Scalar>
-    typename Types_<Scalar>::Pose estimatePose(const typename Types_<Scalar>::Point2Matrix & points_image,
-                                               const typename Types_<Scalar>::Point3Matrix & points_object) const;
+    typename Types<Scalar>::Cloud2 project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const;
+
+  template <typename Scalar>
+    typename Types<Scalar>::Pose estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
+                                              const typename Types<Scalar>::Cloud3 & points_object) const;
 
 };
 

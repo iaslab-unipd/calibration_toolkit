@@ -34,48 +34,14 @@
 namespace calibration
 {
 
-//template <typename CameraModel>
-//  class ColorSensor : public Sensor
-//  {
-//  public:
-//
-//    typedef boost::shared_ptr<ColorSensor> Ptr;
-//    typedef boost::shared_ptr<const ColorSensor> ConstPtr;
-//
-//    ColorSensor()
-//      : Sensor()
-//    {
-//      // Do nothing
-//    }
-//
-//    const typename CameraModel::ConstPtr & cameraModel() const
-//    {
-//      return camera_model_;
-//    }
-//
-//    void setCameraModel(const typename CameraModel::ConstPtr & camera_model)
-//    {
-//      camera_model_ = camera_model;
-//    }
-//
-//    Types::Pose estimatePose(const Types::Point2Matrix & points_image,
-//                             const Types::Point3Matrix & points_object) const
-//    {
-//      return camera_model_->estimatePose(points_image, points_object);
-//    }
-//
-//    template <typename Scalar>
-//      typename Types_<Scalar>::Pose estimatePose(const typename Types_<Scalar>::Point2Matrix & points_image,
-//                                                 const typename Types_<Scalar>::Point3Matrix & points_object) const
-//      {
-//        return camera_model_->estimatePose(points_image, points_object);
-//      }
-//
-//  private:
-//
-//    typename CameraModel::ConstPtr camera_model_;
-//
-//  };
+class ColorSensor : public Sensor
+{
+public:
+
+  typedef boost::shared_ptr<ColorSensor> Ptr;
+  typedef boost::shared_ptr<const ColorSensor> ConstPtr;
+
+};
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_COLOR_SENSOR_H_ */

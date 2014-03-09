@@ -29,9 +29,16 @@
 #ifndef CALIBRATION_COMMON_ALGORITHMS_CHECKERBOARD_FINDER_H_
 #define CALIBRATION_COMMON_ALGORITHMS_CHECKERBOARD_FINDER_H_
 
-#include <opencv2/opencv.hpp>
-#include <calibration_common/objects/checkerboard.h>
+#include <boost/smart_ptr/shared_ptr.hpp>
+
 #include <calibration_common/base/opencv_conversion.h>
+#include <calibration_common/objects/checkerboard.h>
+#include <calibration_common/objects/globals.h>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
+#include <vector>
 
 namespace calibration
 {
@@ -58,12 +65,12 @@ public:
                     std::vector<cv::Point2f> & corners) const = 0;
 
   virtual bool find(const Checkerboard & checkerboard,
-                    Types::Point2Matrix & corners) const
+                    Cloud2 & corners) const
   {
     std::vector<cv::Point2f> cv_corners;
     bool pattern_found = find(checkerboard, cv_corners);
     corners.resize(checkerboard.cols(), checkerboard.rows());
-    OpenCVConversion<Types::Scalar>::toPointMatrix(cv_corners, corners);
+    OpenCVConversion<Scalar>::toPointMatrix(cv_corners, corners);
     return pattern_found;
   }
 

@@ -33,12 +33,12 @@ namespace calibration
 {
 
 bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
-                                         Types::Point2Matrix & corners,
+                                         Cloud2 & corners,
                                          bool try_automatically)
 {
   std::vector<cv::Point2d> cv_corners;
   bool pattern_found = find(checkerboard, cv_corners, try_automatically);
-  OpenCVConversion<Types::Scalar>::toPointMatrix(cv_corners, corners);
+  OpenCVConversion<Scalar>::toPointMatrix(cv_corners, corners);
   return pattern_found;
 }
 
@@ -76,7 +76,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
 
   while (/*ros::ok() and */not pattern_found)
   {
-    for (int i = 1; /*ros::ok() and not*/ pattern_found and i <= 5; ++i)
+    for (int i = 1; /*ros::ok() and not*/pattern_found and i <= 5; ++i)
     {
       corners_float_.clear();
 
@@ -98,7 +98,10 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
       }
 
       if (pattern_found)
-        cv::cornerSubPix(gray, corners_float_, cv::Size(i * 2, i * 2), cv::Size(-1, -1),
+        cv::cornerSubPix(gray,
+                         corners_float_,
+                         cv::Size(i * 2, i * 2),
+                         cv::Size(-1, -1),
                          cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 100, 0.01));
 
       for (unsigned int j = 0; j < corners_float_.size(); ++j)

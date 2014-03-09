@@ -35,8 +35,8 @@
 namespace calibration
 {
 
-template <typename ColorSensor, typename Object>
-  class ColorView : public View_<ColorSensor, cv::Mat, Object, 2>
+template <typename ColorSensorT_, typename ObjectT_>
+  class ColorView : public View_<ColorSensorT_, cv::Mat, ObjectT_, 2>
   {
   public:
 

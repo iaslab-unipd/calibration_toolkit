@@ -29,13 +29,13 @@
 #ifndef CALIBRATION_COMMON_PINHOLE_SENSOR_H_
 #define CALIBRATION_COMMON_PINHOLE_SENSOR_H_
 
-#include <calibration_common/objects/sensor.h>
+#include <calibration_common/color/sensor.h>
 #include <calibration_common/pinhole/camera_model.h>
 
 namespace calibration
 {
 
-class PinholeSensor : public Sensor
+class PinholeSensor : public ColorSensor
 {
 public:
 
@@ -43,7 +43,7 @@ public:
   typedef boost::shared_ptr<const PinholeSensor> ConstPtr;
 
   PinholeSensor()
-    : Sensor()
+    : ColorSensor()
   {
     // Do nothing
   }
@@ -58,15 +58,15 @@ public:
     camera_model_ = camera_model;
   }
 
-  Types::Pose estimatePose(const Types::Point2Matrix & points_image,
-                           const Types::Point3Matrix & points_object) const
+  Pose estimatePose(const Cloud2 & points_image,
+                    const Cloud3 & points_object) const
   {
     return camera_model_->estimatePose(points_image, points_object);
   }
 
-  template <typename Scalar>
-    typename Types_<Scalar>::Pose estimatePose(const typename Types_<Scalar>::Point2Matrix & points_image,
-                                               const typename Types_<Scalar>::Point3Matrix & points_object) const
+  template <typename ScalarT_>
+    typename Types<ScalarT_>::Pose estimatePose(const typename Types<ScalarT_>::Cloud2 & points_image,
+                                                const typename Types<ScalarT_>::Cloud3 & points_object) const
     {
       return camera_model_->estimatePose(points_image, points_object);
     }

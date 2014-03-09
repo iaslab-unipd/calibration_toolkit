@@ -29,18 +29,24 @@
 #ifndef CALIBRATION_COMMON_ALGORITHMS_PLANE_EXTRACTOR_H_
 #define CALIBRATION_COMMON_ALGORITHMS_PLANE_EXTRACTOR_H_
 
-#include <boost/make_shared.hpp>
-
-#include <pcl/point_cloud.h>
-#include <pcl/visualization/pcl_visualizer.h>
-#include <pcl/kdtree/kdtree_flann.h>
-#include <pcl/sample_consensus/sac_model_normal_plane.h>
-#include <pcl/features/normal_3d_omp.h>
-#include <pcl/filters/voxel_grid.h>
-
-#include <pcl/segmentation/extract_clusters.h>
+#include <boost/signals2/connection.hpp>
+#include <boost/smart_ptr/shared_ptr.hpp>
 
 #include <calibration_common/objects/globals.h>
+
+#include <Eigen/src/Core/util/Memory.h>
+
+#include <pcl/features/normal_3d_omp.h>
+#include <pcl/point_types.h>
+#include <pcl/pcl_base.h>
+#include <pcl/point_cloud.h>
+#include <pcl/sample_consensus/sac_model_normal_plane.h>
+#include <pcl/search/kdtree.h>
+#include <pcl/visualization/pcl_visualizer.h>
+#include <pcl/visualization/point_cloud_color_handlers.h>
+#include <pcl/visualization/point_picking_event.h>
+
+#include <string>
 
 namespace pcl_vis = pcl::visualization;
 using pcl_vis::PointCloudColorHandlerGenericField;
@@ -50,14 +56,14 @@ namespace calibration
 
 struct PlaneInfo
 {
-  Types::Plane plane_;
+  Plane plane_;
   pcl::IndicesPtr indices_;
-  Types::Scalar std_dev_;
+  Scalar std_dev_;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
-template <typename PointT>
+template <typename PCLPointT_>
   class PlaneExtractor
   {
   public:
@@ -65,7 +71,7 @@ template <typename PointT>
     typedef boost::shared_ptr<PlaneExtractor> Ptr;
     typedef boost::shared_ptr<const PlaneExtractor> ConstPtr;
 
-    typedef typename pcl::PointCloud<PointT>::ConstPtr PointCloudConstPtr;
+    typedef typename pcl::PointCloud<PCLPointT_>::ConstPtr PointCloudConstPtr;
 
     virtual ~PlaneExtractor()
     {
@@ -77,44 +83,44 @@ template <typename PointT>
 
   };
 
-template <typename PointT>
-  class PointPlaneExtractor : public PlaneExtractor<PointT>
+template <typename PCLPointT_>
+  class PointPlaneExtractor : public PlaneExtractor<PCLPointT_>
   {
   public:
 
     struct PickingPoint
     {
-      PickingPoint(PointT point,
-                   Types::Scalar radius)
+      PickingPoint(PCLPointT_ point,
+                   Scalar radius)
         : point_(point),
           radius_(radius)
       {
       }
 
-      const PointT point_;
-      const Types::Scalar radius_;
+      const PCLPointT_ point_;
+      const Scalar radius_;
     };
 
     typedef boost::shared_ptr<PointPlaneExtractor> Ptr;
     typedef boost::shared_ptr<const PointPlaneExtractor> ConstPtr;
 
-    typedef pcl::PointCloud<PointT> PointCloud;
+    typedef pcl::PointCloud<PCLPointT_> PointCloud;
     typedef typename PointCloud::ConstPtr PointCloudConstPtr;
 
-    typedef pcl::search::KdTree<PointT> KdTree;
+    typedef pcl::search::KdTree<PCLPointT_> KdTree;
     typedef typename KdTree::Ptr KdTreePtr;
-    typedef pcl::NormalEstimationOMP<PointT, pcl::Normal> NormalEstimator;
-    typedef pcl::SampleConsensusModelNormalPlane<PointT, pcl::Normal> ModelNormalPlane;
+    typedef pcl::NormalEstimationOMP<PCLPointT_, pcl::Normal> NormalEstimator;
+    typedef pcl::SampleConsensusModelNormalPlane<PCLPointT_, pcl::Normal> ModelNormalPlane;
 
     PointPlaneExtractor();
 
     virtual ~PointPlaneExtractor();
 
-    void setRadius(Types::Scalar radius);
+    void setRadius(Scalar radius);
 
     virtual void setInputCloud(const PointCloudConstPtr & cloud);
 
-    virtual void setPoint(const PointT & point);
+    virtual void setPoint(const PCLPointT_ & point);
 
     virtual void setPoint(const PickingPoint & picking_point);
 
@@ -126,21 +132,21 @@ template <typename PointT>
     pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_;
     KdTreePtr cloud_tree_;
 
-    PointT point_;
+    PCLPointT_ point_;
 
-    Types::Scalar radius_;
+    Scalar radius_;
 
   };
 
-template <typename PointT>
-  class PointPlaneExtractorGUI : public PointPlaneExtractor<PointT>
+template <typename PCLPointT_>
+  class PointPlaneExtractorGUI : public PointPlaneExtractor<PCLPointT_>
   {
   public:
 
     typedef boost::shared_ptr<PointPlaneExtractorGUI> Ptr;
     typedef boost::shared_ptr<const PointPlaneExtractorGUI> ConstPtr;
 
-    typedef pcl::PointCloud<PointT> PointCloud;
+    typedef pcl::PointCloud<PCLPointT_> PointCloud;
     typedef typename PointCloud::ConstPtr PointCloudConstPtr;
 
     typedef pcl::PointCloud<pcl::PointXYZL> PointCloudLabel;
@@ -151,7 +157,7 @@ template <typename PointT>
     typedef boost::shared_ptr<ColorHandler> ColorHandlerPtr;
     typedef boost::signals2::connection Connection;
 
-    typedef PointPlaneExtractor<PointT> Base;
+    typedef PointPlaneExtractor<PCLPointT_> Base;
 
     PointPlaneExtractorGUI();
 
@@ -184,7 +190,7 @@ template <typename PointT>
     mutable bool next_plane_;
 
     mutable PlaneInfo last_plane_info_;
-    mutable Types::Point3 last_clicked_point_;
+    mutable Point3 last_clicked_point_;
 
   };
 

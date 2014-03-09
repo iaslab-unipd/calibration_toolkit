@@ -42,8 +42,8 @@ template <typename ModelImpl_>
     if (accumulation_bin_.isEmpty())
       return;
 
-    typename Types_<Scalar>::Point3 point = accumulation_bin_.average();
-    typename Types_<Scalar>::Line line(point, Types_<Scalar>::Vector3::UnitZ());
+    typename Types<Scalar>::Point3 point = accumulation_bin_.average();
+    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
     distorsion_bin_.push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
     accumulation_bin_.reset();
@@ -85,7 +85,7 @@ template <typename Polynomial_>
   void PolynomialUndistortionFunctionFitEigen<Polynomial_>::addPoint(const Point & point,
                                                                      const Plane & plane)
   {
-    typename Types_<Scalar>::Line line(point, Types_<Scalar>::Vector3::UnitZ());
+    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
     Base::distorsion_bin_.push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
@@ -98,8 +98,8 @@ template <typename Polynomial_, typename PCLPoint_>
     if (not pcl::isFinite(point))
       return;
 
-    typename Types_<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
-    typename Types_<Scalar>::Line line(eigen_point, Types_<Scalar>::Vector3::UnitZ());
+    typename Types<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
+    typename Types<Scalar>::Line line(eigen_point, Types<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
     Base::distorsion_bin_.push_back(std::make_pair(eigen_point.z(), line.intersectionPoint(plane).z()));

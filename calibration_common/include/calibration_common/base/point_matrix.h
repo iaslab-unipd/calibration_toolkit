@@ -24,44 +24,44 @@
 namespace calibration
 {
 
-template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize = Eigen::Dynamic>
+template <typename ScalarT_, int Dimension_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic>
   class PointMatrix
   {
   public:
 
-    static const int SIZE = (XSize == Eigen::Dynamic || YSize == Eigen::Dynamic) ? Eigen::Dynamic : XSize * YSize;
-    static const int OPTIONS = (Dimension > 1) ? Eigen::ColMajor : Eigen::RowMajor;
+    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
+    static const int Options = (Dimension_ > 1) ? Eigen::ColMajor : Eigen::RowMajor;
 
     typedef boost::shared_ptr<PointMatrix> Ptr;
     typedef boost::shared_ptr<const PointMatrix> ConstPtr;
 
-    typedef Eigen::Matrix<ScalarT, Dimension, SIZE, OPTIONS, Dimension> RawMatrix;
-    typedef Eigen::Transform<ScalarT, 3, Eigen::Affine> Transform;
+    typedef Eigen::Matrix<ScalarT_, Dimension_, Size, Options, Dimension_> RawMatrix;
+    typedef Eigen::Transform<ScalarT_, 3, Eigen::Affine> Transform;
 
     typedef typename RawMatrix::ColXpr Element;
     typedef typename RawMatrix::ConstColXpr ConstElement;
 
     PointMatrix()
-      : x_size_(XSize == Eigen::Dynamic ? 0 : XSize),
-        y_size_(YSize == Eigen::Dynamic ? 0 : YSize)
+      : x_size_(XSize_ == Eigen::Dynamic ? 0 : XSize_),
+        y_size_(YSize_ == Eigen::Dynamic ? 0 : YSize_)
     {
       //EIGEN_STATIC_ASSERT_FIXED_SIZE(Data);
     }
 
     PointMatrix(size_t x_size,
                 size_t y_size)
-      : points_(Dimension, x_size * y_size),
+      : points_(Dimension_, x_size * y_size),
         x_size_(x_size),
         y_size_(y_size)
     {
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
     }
 
     template <typename OtherDerived>
       explicit PointMatrix(const Eigen::DenseBase<OtherDerived> & value)
-        : x_size_(XSize),
-          y_size_(YSize)
+        : x_size_(XSize_),
+          y_size_(YSize_)
       {
         EIGEN_STATIC_ASSERT_FIXED_SIZE(RawMatrix);
         points_.colwise() = value;
@@ -71,19 +71,19 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
       PointMatrix(size_t x_size,
                   size_t y_size,
                   const Eigen::DenseBase<OtherDerived> & value)
-        : points_(Dimension, x_size * y_size),
+        : points_(Dimension_, x_size * y_size),
           x_size_(x_size),
           y_size_(y_size)
       {
-        assert(XSize == Eigen::Dynamic || x_size == XSize);
-        assert(YSize == Eigen::Dynamic || y_size == YSize);
+        assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+        assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
         points_.colwise() = value;
       }
 
     explicit PointMatrix(const RawMatrix & points)
       : points_(points),
-        x_size_(XSize),
-        y_size_(YSize)
+        x_size_(XSize_),
+        y_size_(YSize_)
     {
       EIGEN_STATIC_ASSERT_FIXED_SIZE(RawMatrix);
     }
@@ -95,8 +95,8 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
         x_size_(x_size),
         y_size_(y_size)
     {
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
       assert(x_size * y_size == points.cols());
     }
 
@@ -124,9 +124,9 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
     void resize(size_t x_size,
                 size_t y_size)
     {
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
-      points_.conservativeResize(Dimension, x_size * y_size);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
+      points_.conservativeResize(Dimension_, x_size * y_size);
       x_size_ = x_size;
       y_size_ = y_size;
     }
@@ -134,8 +134,8 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
     void reshape(size_t x_size,
                  size_t y_size)
     {
-      assert(XSize == Eigen::Dynamic || x_size == XSize);
-      assert(YSize == Eigen::Dynamic || y_size == YSize);
+      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
+      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
       assert(x_size * y_size == size());
       x_size_ = x_size;
       y_size_ = y_size;
@@ -179,9 +179,9 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
       return operator [](y_index * x_size_ + x_index);
     }
 
-    void transform(const Eigen::Transform<ScalarT, 3, Eigen::Affine> & transform)
+    void transform(const Eigen::Transform<ScalarT_, 3, Eigen::Affine> & transform)
     {
-      EIGEN_STATIC_ASSERT(Dimension == 3, THIS_METHOD_IS_ONLY_FOR_OBJECTS_OF_A_SPECIFIC_SIZE);
+      EIGEN_STATIC_ASSERT(Dimension_ == 3, THIS_METHOD_IS_ONLY_FOR_OBJECTS_OF_A_SPECIFIC_SIZE);
       points_ = transform * points_;
     }
 
@@ -205,6 +205,12 @@ template <typename ScalarT, int Dimension, int XSize = Eigen::Dynamic, int YSize
     size_t y_size_;
 
   };
+
+template <typename ScalarT_, int Dimension_, int XSize_, int YSize_>
+  const int PointMatrix<ScalarT_, Dimension_, XSize_, YSize_>::Size;
+
+template <typename ScalarT_, int Dimension_, int XSize_, int YSize_>
+  const int PointMatrix<ScalarT_, Dimension_, XSize_, YSize_>::Options;
 
 } /* namespace calibration */
 

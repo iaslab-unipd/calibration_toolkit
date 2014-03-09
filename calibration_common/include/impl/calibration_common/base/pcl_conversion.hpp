@@ -34,96 +34,96 @@
 namespace calibration
 {
 
-template <typename ScalarT>
-  template <typename PointT>
-    void PCLConversion<ScalarT>::toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
-                                               PointMatrix<ScalarT, 2> & point_matrix)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    void PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
+                                                PointMatrix<ScalarT_, 2> & point_matrix)
     {
       for (size_t i = 0; i < point_cloud.size(); ++i)
       {
-        const PointT & p = point_cloud.points[i];
+        const PCLPointT_ & p = point_cloud.points[i];
         point_matrix[i] << p.x, p.y;
       }
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    void PCLConversion<ScalarT>::toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
-                                               PointMatrix<ScalarT, 3> & point_matrix)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    void PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
+                                                PointMatrix<ScalarT_, 3> & point_matrix)
     {
       for (size_t i = 0; i < point_cloud.size(); ++i)
       {
-        const PointT & p = point_cloud.points[i];
+        const PCLPointT_ & p = point_cloud.points[i];
         point_matrix[i] << p.x, p.y, p.z;
       }
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    PointMatrix<ScalarT, 3> PCLConversion<ScalarT>::toPointMatrix(const pcl::PointCloud<PointT> & point_cloud)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    PointMatrix<ScalarT_, 3> PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud)
     {
-      PointMatrix<ScalarT, 3> point_matrix(point_cloud.width, point_cloud.height);
+      PointMatrix<ScalarT_, 3> point_matrix(point_cloud.width, point_cloud.height);
       toPointMatrix(point_cloud, point_matrix);
       return point_matrix;
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    void PCLConversion<ScalarT>::toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
-                                               const std::vector<int> & indices,
-                                               PointMatrix<ScalarT, 3> & point_matrix)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    void PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
+                                                const std::vector<int> & indices,
+                                                PointMatrix<ScalarT_, 3> & point_matrix)
     {
       for (size_t i = 0; i < indices.size(); ++i)
       {
-        const PointT & p = point_cloud.points[indices[i]];
+        const PCLPointT_ & p = point_cloud.points[indices[i]];
         point_matrix[i] << p.x, p.y, p.z;
       }
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    PointMatrix<ScalarT, 3> PCLConversion<ScalarT>::toPointMatrix(const pcl::PointCloud<PointT> & point_cloud,
-                                                                  const std::vector<int> & indices)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    PointMatrix<ScalarT_, 3> PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
+                                                                    const std::vector<int> & indices)
     {
-      PointMatrix<ScalarT, 3> point_matrix(indices.size(), 1);
+      PointMatrix<ScalarT_, 3> point_matrix(indices.size(), 1);
       toPointMatrix(point_cloud, indices, point_matrix);
       return point_matrix;
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    void PCLConversion<ScalarT>::toPCL(const Eigen::Matrix<ScalarT, 3, 1> & point_in,
-               PointT & point_out)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    void PCLConversion<ScalarT_>::toPCL(const Eigen::Matrix<ScalarT_, 3, 1> & point_in,
+                                        PCLPointT_ & point_out)
     {
       point_out.x = float(point_in[0]);
       point_out.y = float(point_in[1]);
       point_out.z = float(point_in[2]);
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    PointT PCLConversion<ScalarT>::toPCL(const Eigen::Matrix<ScalarT, 3, 1> & point_in)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    PCLPointT_ PCLConversion<ScalarT_>::toPCL(const Eigen::Matrix<ScalarT_, 3, 1> & point_in)
     {
-      PointT point_out;
+      PCLPointT_ point_out;
       toPCL(point_in, point_out);
       return point_out;
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    void PCLConversion<ScalarT>::toEigen(const PointT & point_in,
-                 Eigen::Matrix<ScalarT, 3, 1> & point_out)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    void PCLConversion<ScalarT_>::toEigen(const PCLPointT_ & point_in,
+                                          Eigen::Matrix<ScalarT_, 3, 1> & point_out)
     {
-      point_out[0] = ScalarT(point_in.x);
-      point_out[1] = ScalarT(point_in.y);
-      point_out[2] = ScalarT(point_in.z);
+      point_out[0] = ScalarT_(point_in.x);
+      point_out[1] = ScalarT_(point_in.y);
+      point_out[2] = ScalarT_(point_in.z);
     }
 
-template <typename ScalarT>
-  template <typename PointT>
-    Eigen::Matrix<ScalarT, 3, 1> PCLConversion<ScalarT>::toEigen(const PointT & point_in)
+template <typename ScalarT_>
+  template <typename PCLPointT_>
+    Eigen::Matrix<ScalarT_, 3, 1> PCLConversion<ScalarT_>::toEigen(const PCLPointT_ & point_in)
     {
-      Eigen::Matrix<ScalarT, 3, 1> point_out;
+      Eigen::Matrix<ScalarT_, 3, 1> point_out;
       toPCL(point_in, point_out);
       return point_out;
     }

@@ -39,28 +39,28 @@ namespace calibration
 {
 
 template <typename Scalar_>
-  class TwoStepsUndistortionModelEigen : public DepthUndistortionModel<UndTraitsEigen<Scalar_> >
+  class TwoStepsUndistortionModelEigen : public DepthUndistortionModel<DepthEigen_<Scalar_> >
   {
   public:
 
     typedef boost::shared_ptr<TwoStepsUndistortionModelEigen> Ptr;
     typedef boost::shared_ptr<const TwoStepsUndistortionModelEigen> ConstPtr;
 
-    typedef DepthUndistortionModel<UndTraitsEigen<Scalar_> > Interface;
+    typedef DepthUndistortionModel<DepthEigen_<Scalar_> > Interface;
 
     virtual ~TwoStepsUndistortionModelEigen()
     {
       // Do nothing
     }
 
-    virtual void undistort(typename Types_<Scalar_>::Point3 & point) const
+    virtual void undistort(typename Types<Scalar_>::Point3 & point) const
     {
       assert(local_ and global_);
       local_->undistort(point);
       global_->undistort(point);
     }
 
-    virtual void undistort(typename Types_<Scalar_>::Point3Matrix & cloud) const
+    virtual void undistort(typename Types<Scalar_>::Cloud3 & cloud) const
     {
       assert(local_ and global_);
       local_->undistort(cloud);
@@ -103,14 +103,14 @@ template <typename Scalar_>
   };
 
 template <typename Scalar_, typename PCLPoint_>
-  class TwoStepsUndistortionModelPCL : public DepthUndistortionModel<UndTraitsPCL<Scalar_, PCLPoint_> >
+  class TwoStepsUndistortionModelPCL : public DepthUndistortionModel<DepthPCL_<PCLPoint_> >
   {
   public:
 
     typedef boost::shared_ptr<TwoStepsUndistortionModelPCL> Ptr;
     typedef boost::shared_ptr<const TwoStepsUndistortionModelPCL> ConstPtr;
 
-    typedef DepthUndistortionModel<UndTraitsPCL<Scalar_, PCLPoint_> > Interface;
+    typedef DepthUndistortionModel<DepthPCL_<PCLPoint_> > Interface;
 
     virtual ~TwoStepsUndistortionModelPCL()
     {

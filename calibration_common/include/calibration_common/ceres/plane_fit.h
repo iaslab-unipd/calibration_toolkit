@@ -35,32 +35,32 @@
 namespace calibration
 {
 
-template <typename Matrix_, typename Roots_>
-  void computeRoots(const Matrix_ & m,
-                    Roots_ & roots);
+//template <typename Matrix_, typename RootsT_>
+//void computeRoots(const Matrix_ & m,
+//                  RootsT_ & roots);
 
-template <typename Scalar_, typename Roots_>
-  void computeRoots2(const Scalar_ & b,
-                     const Scalar_ & c,
-                     Roots_ & roots);
+//template <typename ScalarT_, typename RootsT_>
+//void computeRoots2(const ScalarT_ & b,
+//                   const ScalarT_ & c,
+//                   RootsT_ & roots);
 
-template <typename Matrix_, typename Vector_>
-  void eigen33(const Matrix_ & mat,
-               typename Matrix_::Scalar & eigenvalue,
-               Vector_ & eigenvector);
+//template <typename Matrix_, typename VectorT_>
+//void eigen33(const Matrix_ & mat,
+//             typename Matrix_::Scalar & eigenvalue,
+//             VectorT_ & eigenvector);
 
-template <typename Scalar_>
-  void computeMeanAndCovarianceMatrix(const typename Types_<Scalar_>::Point3Matrix & cloud,
-                                      Eigen::Matrix<Scalar_, 3, 3> & covariance_matrix,
-                                      typename Types_<Scalar_>::Point3 & centroid);
+//template <typename ScalarT_>
+//void computeMeanAndCovarianceMatrix(const typename Types<ScalarT_>::Point3Matrix & cloud,
+//                                    Eigen::Matrix<ScalarT_, 3, 3> & covariance_matrix,
+//                                    typename Types<ScalarT_>::Point3 & centroid);
 
-template <typename Scalar_>
+template <typename ScalarT_>
   class PlaneResidual
   {
   public:
 
-    PlaneResidual(const typename Types_<Scalar_>::Point3 & point)
-      : point_(point.x(), point.y(), point.z())
+    PlaneResidual(const typename Types<ScalarT_>::Point3 & point)
+      : point_(point.x(), point.y(), point.z(), ScalarT_(1))
     {
     }
 
@@ -68,58 +68,64 @@ template <typename Scalar_>
       bool operator()(const T * const plane,
                       T * residual) const
       {
+//    Eigen::Map<const typename Types<ScalarT_>::Vector4> plane_eigen(plane);
+//    residual[0] = point_.dot(plane_eigen) / plane_eigen.template head<3>().norm();
         residual[0] = point_[0] * plane[0] + point_[1] * plane[1] + point_[2] * plane[2] + plane[3];
         residual[0] /= ceres::sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
         return true;
       }
 
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
   private:
 
-    const Eigen::Matrix<Scalar_, 3, 1> point_;
+    const typename Types<ScalarT_>::Vector4 point_;
 
   };
 
-template <typename Scalar_>
+template <typename ScalarT_>
   class PlaneFit
   {
+    typedef Types<ScalarT_> T;
+
   public:
 
-    void setCloud(const typename Types_<Scalar_>::Point3Matrix::ConstPtr & cloud)
+    void setCloud(const typename T::Cloud3::ConstPtr & cloud)
     {
       cloud_ = cloud;
     }
 
-    typename Types_<Scalar_>::Plane fit()
+    typename T::Plane fit()
     {
       return fit(*cloud_);
     }
 
-    typename Types_<Scalar_>::Plane robustFit(Scalar_ scale = Scalar_(1.0))
+    typename T::Plane robustFit(ScalarT_ scale = ScalarT_(1.0))
     {
       return robustFit(*cloud_, scale);
     }
 
-    typename Types_<Scalar_>::Plane robustFit(const typename Types_<Scalar_>::Plane & initial_plane,
-                                              Scalar_ scale = Scalar_(1.0))
+    typename T::Plane robustFit(const typename T::Plane & initial_plane,
+                                ScalarT_ scale = ScalarT_(1.0))
     {
       return robustFit(initial_plane, *cloud_, scale);
     }
 
-    static typename Types_<Scalar_>::Plane robustFit(const typename Types_<Scalar_>::Point3Matrix & points,
-                                                     Scalar_ scale = Scalar_(1.0))
+    static typename T::Plane robustFit(const typename T::Cloud3 & points,
+                                       ScalarT_ scale = ScalarT_(1.0))
     {
       return robustFit(fit(points), points, scale);
     }
 
-    static typename Types_<Scalar_>::Plane fit(const typename Types_<Scalar_>::Point3Matrix & points);
+    static typename T::Plane fit(const typename T::Cloud3 & points);
 
-    static typename Types_<Scalar_>::Plane robustFit(const typename Types_<Scalar_>::Plane & initial_plane,
-                                                     const typename Types_<Scalar_>::Point3Matrix & points,
-                                                     Scalar_ scale = Scalar_(1.0));
+    static typename T::Plane robustFit(const typename T::Plane & initial_plane,
+                                       const typename T::Cloud3 & points,
+                                       ScalarT_ scale = ScalarT_(1.0));
 
   private:
 
-    typename Types_<Scalar_>::Point3Matrix::ConstPtr cloud_;
+    typename T::Cloud3::ConstPtr cloud_;
 
   };
 

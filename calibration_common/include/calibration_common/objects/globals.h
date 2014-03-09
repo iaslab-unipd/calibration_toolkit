@@ -30,64 +30,76 @@
 #define CALIBRATION_COMMON_OBJECTS_GLOBALS_H_
 
 #include <calibration_common/base/point_matrix.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 
 namespace calibration
 {
 
-template <typename Scalar>
-  struct Types_
-  {
-    typedef Eigen::Matrix<Scalar, 2, 1> Vector2;
-    typedef Vector2 Point2;
-
-    typedef Eigen::Matrix<Scalar, 3, 1> Vector3;
-    typedef Vector3 Point3;
-
-    typedef Eigen::Hyperplane<Scalar, 3> Plane;
-    typedef Eigen::ParametrizedLine<Scalar, 3> Line;
-
-    typedef Eigen::Transform<Scalar, 3, Eigen::Affine> Transform;
-    typedef Transform Pose;
-
-    typedef Eigen::Quaternion<Scalar> Quaternion;
-    typedef Eigen::Translation<Scalar, 2> Translation2;
-    typedef Eigen::Translation<Scalar, 3> Translation3;
-    typedef Eigen::AngleAxis<Scalar> AngleAxis;
-
-    typedef PointMatrix<Scalar, 2> Point2Matrix;
-    typedef PointMatrix<Scalar, 3> Point3Matrix;
-  };
-
-namespace Types
+template <typename ScalarT_>
+struct Types
 {
+  typedef ScalarT_ Scalar;
 
-typedef double Scalar;
+  typedef Eigen::Matrix<Scalar, 2, 1> Vector2;
+  typedef Vector2 Point2;
 
-typedef Eigen::Matrix<Scalar, 2, 1> Vector2;
-typedef Vector2 Point2;
+  typedef Eigen::Matrix<Scalar, 3, 1> Vector3;
+  typedef Vector3 Point3;
 
-typedef Eigen::Matrix<Scalar, 3, 1> Vector3;
-typedef Vector3 Point3;
+  typedef Eigen::Matrix<Scalar, 4, 1> Vector4;
+  typedef Vector4 Point4;
 
-typedef Eigen::Hyperplane<Scalar, 3> Plane;
-typedef Eigen::ParametrizedLine<Scalar, 3> Line;
+  typedef Eigen::Hyperplane<Scalar, 3> Plane;
+  typedef Eigen::ParametrizedLine<Scalar, 3> Line;
 
-typedef Eigen::Transform<Scalar, 3, Eigen::Affine> Transform;
-typedef Transform Pose;
+  typedef Eigen::Transform<Scalar, 3, Eigen::Affine> Transform;
+  typedef Transform Pose;
 
-typedef Eigen::Quaternion<Scalar> Quaternion;
-typedef Eigen::Translation<Scalar, 2> Translation2;
-typedef Eigen::Translation<Scalar, 3> Translation3;
-typedef Eigen::AngleAxis<Scalar> AngleAxis;
+  typedef Eigen::Quaternion<Scalar> Quaternion;
+  typedef Eigen::Translation<Scalar, 2> Translation2;
+  typedef Eigen::Translation<Scalar, 3> Translation3;
+  typedef Eigen::AngleAxis<Scalar> AngleAxis;
 
-typedef PointMatrix<Scalar, 2> Point2Matrix;
-typedef PointMatrix<Scalar, 3> Point3Matrix;
+  typedef PointMatrix<Scalar, 2> Cloud2;
+  typedef PointMatrix<Scalar, 3> Cloud3;
+};
 
-} /* namespace Types */
+// Eigen
+
+typedef Types<double>::Scalar Scalar;
+
+typedef Types<Scalar>::Vector2 Vector2;
+typedef Types<Scalar>::Point2 Point2;
+
+typedef Types<Scalar>::Vector3 Vector3;
+typedef Types<Scalar>::Point3 Point3;
+
+typedef Types<Scalar>::Vector4 Vector4;
+typedef Types<Scalar>::Point4 Point4;
+
+typedef Types<Scalar>::Plane Plane;
+typedef Types<Scalar>::Line Line;
+
+typedef Types<Scalar>::Transform Transform;
+typedef Types<Scalar>::Pose Pose;
+
+typedef Types<Scalar>::Quaternion Quaternion;
+typedef Types<Scalar>::Translation2 Translation2;
+typedef Types<Scalar>::Translation3 Translation3;
+typedef Types<Scalar>::AngleAxis AngleAxis;
+
+typedef Types<Scalar>::Cloud2 Cloud2;
+typedef Types<Scalar>::Cloud3 Cloud3;
+
+// PCL
+
+typedef pcl::PointXYZ PCLPoint3;
+typedef pcl::PointCloud<PCLPoint3> PCLCloud3;
 
 /* ******************************************************************* */
 
-const Types::Plane PLANE_XY = Types::Plane(Types::Point3::UnitZ(), 0);
+const Plane PLANE_XY = Plane(Vector3::UnitZ(), 0);
 
 // TODO move to another file ?  |
 //                             _|_
@@ -96,42 +108,43 @@ const Types::Plane PLANE_XY = Types::Plane(Types::Point3::UnitZ(), 0);
 
 struct Util
 {
-  inline static Types::Transform plane3dTransform(const Types::Plane & from,
-                                                  const Types::Plane & to)
+  inline static Transform plane3dTransform(const Plane & from,
+                                           const Plane & to)
   {
-    Types::Quaternion rotation;
+    Quaternion rotation;
     rotation.setFromTwoVectors(from.normal(), to.normal());
-    Types::Translation3 translation(-to.normal() * to.offset());
+    Translation3 translation(-to.normal() * to.offset());
     return translation * rotation;
   }
 };
 
 /* ******************************************************************* */
 
-template <typename ObjectT>
-  struct Constraint
+template <typename ObjectT_>
+struct Constraint
+{
+  typedef boost::shared_ptr<Constraint> Ptr;
+  typedef boost::shared_ptr<const Constraint> ConstPtr;
+
+  virtual ~Constraint()
   {
-    typedef boost::shared_ptr<Constraint> Ptr;
-    typedef boost::shared_ptr<const Constraint> ConstPtr;
+    // Do nothing
+  }
 
-    virtual ~Constraint()
-    {
-      // Do nothing
-    }
-    virtual bool isValid(const ObjectT & object) const = 0;
-  };
+  virtual bool isValid(const ObjectT_ & object) const = 0;
+};
 
-template <typename ObjectT>
-  struct NoConstraint : public Constraint<ObjectT>
+template <typename ObjectT_>
+struct NoConstraint : public Constraint<ObjectT_>
+{
+  typedef boost::shared_ptr<NoConstraint> Ptr;
+  typedef boost::shared_ptr<const NoConstraint> ConstPtr;
+
+  bool isValid(const ObjectT_ & object) const
   {
-    typedef boost::shared_ptr<NoConstraint> Ptr;
-    typedef boost::shared_ptr<const NoConstraint> ConstPtr;
-
-    bool isValid(const ObjectT & object) const
-    {
-      return true;
-    }
-  };
+    return true;
+  }
+};
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_OBJECTS_GLOBALS_H_ */

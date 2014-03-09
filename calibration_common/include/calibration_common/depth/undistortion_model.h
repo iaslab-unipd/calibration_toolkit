@@ -32,48 +32,53 @@
 #include <pcl/point_cloud.h>
 
 #include <calibration_common/base/matrix.h>
-#include <calibration_common/objects/globals.h>
+#include <calibration_common/depth/traits.h>
 
 namespace calibration
 {
 
-template <typename Traits_>
+template <typename DepthT_>
   struct DepthUndistortionModel
   {
     typedef boost::shared_ptr<DepthUndistortionModel> Ptr;
     typedef boost::shared_ptr<const DepthUndistortionModel> ConstPtr;
 
-    typedef typename Traits_::Point Point;
-    typedef typename Traits_::Cloud Cloud;
+    typedef typename DepthTraits<DepthT_>::Point Point;
+    typedef typename DepthTraits<DepthT_>::Cloud Cloud;
 
     virtual ~DepthUndistortionModel()
     {
       // Do nothing
     }
 
-    virtual void undistort(Point &) const = 0;
+    virtual void undistort(Point & point) const = 0;
 
-    virtual void undistort(Cloud &) const = 0;
+    virtual void undistort(Cloud & cloud) const = 0;
 
     virtual Ptr clone() const = 0;
 
   };
 
-template <typename Traits_>
+template <typename ImplT_>
+  struct ImplTraits
+  {
+  };
+
+template <typename ImplT_>
   struct DepthUndistortionModelImpl
   {
     typedef boost::shared_ptr<DepthUndistortionModelImpl> Ptr;
     typedef boost::shared_ptr<const DepthUndistortionModelImpl> ConstPtr;
 
-    typedef typename Traits_::Scalar Scalar;
-    typedef typename Traits_::Data Data;
+    typedef typename ImplTraits<ImplT_>::Scalar Scalar;
+    typedef typename ImplTraits<ImplT_>::Data Data;
 
     virtual ~DepthUndistortionModelImpl()
     {
       // Do nothing
     }
 
-    virtual void setData(const boost::shared_ptr<Data> &) = 0;
+    virtual void setData(const boost::shared_ptr<Data> & data) = 0;
 
     virtual const boost::shared_ptr<Data> & data() const = 0;
 
@@ -83,20 +88,20 @@ template <typename Traits_>
 
   };
 
-template <typename Traits_>
-  class NoUndistortion : public DepthUndistortionModel<Traits_>
+template <typename DepthT_>
+  class NoUndistortion_ : public DepthUndistortionModel<DepthT_>
   {
   public:
 
-    typedef boost::shared_ptr<NoUndistortion> Ptr;
-    typedef boost::shared_ptr<const NoUndistortion> ConstPtr;
+    typedef boost::shared_ptr<NoUndistortion_> Ptr;
+    typedef boost::shared_ptr<const NoUndistortion_> ConstPtr;
 
-    typedef DepthUndistortionModel<Traits_> Interface;
+    typedef DepthUndistortionModel<DepthT_> Interface;
 
-    typedef typename Traits_::Point Point;
-    typedef typename Traits_::Cloud Cloud;
+    typedef typename Interface::Point Point;
+    typedef typename Interface::Cloud Cloud;
 
-    virtual ~NoUndistortion()
+    virtual ~NoUndistortion_()
     {
       // Do nothing
     }
@@ -113,40 +118,27 @@ template <typename Traits_>
 
     virtual typename Interface::Ptr clone() const
     {
-      return boost::make_shared<NoUndistortion>();
+      return boost::make_shared<NoUndistortion_>();
     }
 
   };
 
 template <typename Scalar_>
-  struct UndTraitsEigen
+  struct NoUndistortionEigen_ : public NoUndistortion_<DepthEigen_<Scalar_> >
   {
-    typedef Scalar_ Scalar;
-    typedef typename Types_<Scalar_>::Point3 Point;
-    typedef typename Types_<Scalar_>::Point3Matrix Cloud;
+    typedef boost::shared_ptr<NoUndistortionEigen_> Ptr;
+    typedef boost::shared_ptr<const NoUndistortionEigen_> ConstPtr;
   };
 
-template <typename Scalar_>
-  struct NoUndistortionEigen : public NoUndistortion<UndTraitsEigen<Scalar_> >
+template <typename PCLPointT_>
+  struct NoUndistortionPCL_ : public NoUndistortion_<DepthPCL_<PCLPointT_> >
   {
-    typedef boost::shared_ptr<NoUndistortionEigen> Ptr;
-    typedef boost::shared_ptr<const NoUndistortionEigen> ConstPtr;
+    typedef boost::shared_ptr<NoUndistortionPCL_> Ptr;
+    typedef boost::shared_ptr<const NoUndistortionPCL_> ConstPtr;
   };
 
-template <typename Scalar_, typename PCLPoint_>
-  struct UndTraitsPCL
-  {
-    typedef Scalar_ Scalar;
-    typedef PCLPoint_ Point;
-    typedef pcl::PointCloud<PCLPoint_> Cloud;
-  };
-
-template <typename Scalar_, typename PCLPoint_>
-  struct NoUndistortionPCL : public NoUndistortion<UndTraitsPCL<Scalar_, PCLPoint_> >
-  {
-    typedef boost::shared_ptr<NoUndistortionPCL> Ptr;
-    typedef boost::shared_ptr<const NoUndistortionPCL> ConstPtr;
-  };
+typedef NoUndistortionPCL_<PCLPoint3> NoUndistortionPCL;
+typedef NoUndistortionEigen_<Scalar> NoUndistortionEigen;
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_DEPTH_UNDISTORTION_MODEL_H_ */

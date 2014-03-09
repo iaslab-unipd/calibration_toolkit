@@ -29,8 +29,9 @@
 #ifndef CALIBRATION_COMMON_ALGORITHMS_INTERACTIVE_CHECKERBOARD_FINDER_H_
 #define CALIBRATION_COMMON_ALGORITHMS_INTERACTIVE_CHECKERBOARD_FINDER_H_
 
-#include <opencv2/opencv.hpp>
 #include <calibration_common/objects/checkerboard.h>
+#include <opencv2/core/core.hpp>
+#include <vector>
 
 namespace calibration
 {
@@ -50,7 +51,7 @@ public:
             bool try_automatically = true);
 
   bool find(const Checkerboard & checkerboard,
-            Types::Point2Matrix & corners,
+            Cloud2 & corners,
             bool try_automatically = true);
 
   static void selectCornersCallback(int event,

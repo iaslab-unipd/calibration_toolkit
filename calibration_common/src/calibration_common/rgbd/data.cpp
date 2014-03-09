@@ -33,13 +33,13 @@
 namespace calibration
 {
 
-void RGBDData::setDepthData(const Types::PCLCloud & depth_data)
+void RGBDData::setDepthData(const PCLCloud3 & depth_data)
 {
   assert(depth_sensor_);
-  depth_data_ = boost::make_shared<Types::PCLCloud>(depth_data);
+  depth_data_ = boost::make_shared<PCLCloud3>(depth_data);
   depth_data_->header.frame_id = depth_sensor_->frameId();
 
-  fused_data_ = boost::make_shared<Types::PCLCloudRGB>();
+  fused_data_ = boost::make_shared<PCLCloudRGB>();
   fused_data_->width = depth_data_->width;
   fused_data_->height = depth_data_->height;
   fused_data_->is_dense = depth_data_->is_dense;
@@ -47,9 +47,9 @@ void RGBDData::setDepthData(const Types::PCLCloud & depth_data)
 
   for (size_t p_index = 0; p_index < depth_data_->points.size(); ++p_index)
   {
-    const Types::PCLPoint & point = depth_data_->points[p_index];
+    const PCLPoint3 & point = depth_data_->points[p_index];
 
-    Types::PCLPointRGB point_rgb;
+    PCLPointRGB point_rgb;
     point_rgb.x = point.x;
     point_rgb.y = point.y;
     point_rgb.z = point.z;
@@ -62,7 +62,7 @@ void RGBDData::setDepthData(const Types::PCLCloud & depth_data)
 
 }
 
-Types::PCLCloudRGB::Ptr RGBDData::fusedData() const
+PCLCloudRGB::Ptr RGBDData::fusedData() const
 {
   return fused_data_;
 }
@@ -72,7 +72,7 @@ void RGBDData::fuseData() const
   assert(depth_sensor_ and color_sensor_);
   fused_data_->header.stamp = depth_data_->header.stamp;
 
-  Types::Transform t = color_sensor_->pose().inverse();
+  Transform t = color_sensor_->pose().inverse();
 
   pcl::PointCloud<pcl::PointXYZ> depth_data_tmp(*depth_data_);
   depth_sensor_->undistortionModel()->undistort(depth_data_tmp);
@@ -80,15 +80,15 @@ void RGBDData::fuseData() const
 #pragma omp parallel for
   for (size_t i = 0; i < depth_data_tmp.size(); ++i)
   {
-    Types::PCLPointRGB & point_rgb = fused_data_->points[i];
-    Types::Point3 point_eigen(depth_data_tmp[i].x, depth_data_tmp[i].y, depth_data_tmp[i].z);
+    PCLPointRGB & point_rgb = fused_data_->points[i];
+    Point3 point_eigen(depth_data_tmp[i].x, depth_data_tmp[i].y, depth_data_tmp[i].z);
 
     point_rgb.x = point_eigen.x();
     point_rgb.y = point_eigen.y();
     point_rgb.z = point_eigen.z();
 
     point_eigen = t * point_eigen;
-    Types::Point2 point_image = color_sensor_->cameraModel()->project3dToPixel(point_eigen);
+    Point2 point_image = color_sensor_->cameraModel()->project3dToPixel(point_eigen);
 
     int x = static_cast<int>(point_image[0]);
     int y = static_cast<int>(point_image[1]);

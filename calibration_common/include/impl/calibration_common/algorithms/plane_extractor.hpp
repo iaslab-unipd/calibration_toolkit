@@ -29,13 +29,26 @@
 #ifndef IMPL_CALIBRATION_COMMON_ALGORITHMS_PLANE_EXTRACTOR_HPP_
 #define IMPL_CALIBRATION_COMMON_ALGORITHMS_PLANE_EXTRACTOR_HPP_
 
+#include <boost/smart_ptr/make_shared.hpp>
+
 #include <calibration_common/algorithms/plane_extractor.h>
+
+#include <Eigen/Geometry>
+#include <Eigen/StdVector>
+
+#include <pcl/impl/point_types.hpp>
+#include <pcl/PCLHeader.h>
+#include <pcl/PointIndices.h>
+#include <pcl/segmentation/extract_clusters.h>
+#include <pcl/visualization/keyboard_event.h>
+
+#include <vector>
 
 namespace calibration
 {
 
-template <typename PointT>
-  PointPlaneExtractor<PointT>::PointPlaneExtractor()
+template <typename PointT_>
+  PointPlaneExtractor<PointT_>::PointPlaneExtractor()
     : cloud_normals_(new pcl::PointCloud<pcl::Normal>()),
       cloud_tree_(new KdTree()),
       radius_(0.1)
@@ -43,20 +56,20 @@ template <typename PointT>
     // Do nothing
   }
 
-template <typename PointT>
-  PointPlaneExtractor<PointT>::~PointPlaneExtractor()
+template <typename PointT_>
+  PointPlaneExtractor<PointT_>::~PointPlaneExtractor()
   {
     // Do nothing
   }
 
-template <typename PointT>
-  void PointPlaneExtractor<PointT>::setRadius(Types::Scalar radius)
+template <typename PointT_>
+  void PointPlaneExtractor<PointT_>::setRadius(Scalar radius)
   {
     radius_ = radius;
   }
 
-template <typename PointT>
-  void PointPlaneExtractor<PointT>::setInputCloud(const PointCloudConstPtr & cloud)
+template <typename PointT_>
+  void PointPlaneExtractor<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
   {
 
     cloud_ = cloud;
@@ -71,21 +84,21 @@ template <typename PointT>
 
   }
 
-template <typename PointT>
-  void PointPlaneExtractor<PointT>::setPoint(const PointT & point)
+template <typename PointT_>
+  void PointPlaneExtractor<PointT_>::setPoint(const PointT_ & point)
   {
     point_ = point;
   }
 
-template <typename PointT>
-  void PointPlaneExtractor<PointT>::setPoint(const PickingPoint & picking_point)
+template <typename PointT_>
+  void PointPlaneExtractor<PointT_>::setPoint(const PickingPoint & picking_point)
   {
     setRadius(picking_point.radius_);
     setPoint(picking_point.point_);
   }
 
-template <typename PointT>
-  bool PointPlaneExtractor<PointT>::extract(PlaneInfo & plane_info) const
+template <typename PointT_>
+  bool PointPlaneExtractor<PointT_>::extract(PlaneInfo & plane_info) const
   {
     if (not plane_info.indices_)
       plane_info.indices_ = boost::make_shared<std::vector<int> >();
@@ -102,18 +115,18 @@ template <typename PointT>
       return false;
     }
 
-//    Eigen::Vector4f eigen_centroid;
-//    pcl::compute3DCentroid(*cloud_, init_indices, eigen_centroid);
-//    PointT centroid(eigen_centroid[0], eigen_centroid[1], eigen_centroid[2]);
-//
-//    std::vector<int> nn_indices(1);
-//    std::vector<float> nn_sqr_distances(1);
-//    cloud_tree_->nearestKSearch(centroid, 1, nn_indices, nn_sqr_distances);
-//
-//    int nn_index = nn_indices[0];
-//    ROS_INFO_STREAM(
-//      "Seed point: (" << cloud_->points[nn_index].x << ", " << cloud_->points[nn_index].y << ", "
-//        << cloud_->points[nn_index].z << ")");
+    //    Eigen::Vector4f eigen_centroid;
+    //    pcl::compute3DCentroid(*cloud_, init_indices, eigen_centroid);
+    //    PointT_ centroid(eigen_centroid[0], eigen_centroid[1], eigen_centroid[2]);
+    //
+    //    std::vector<int> nn_indices(1);
+    //    std::vector<float> nn_sqr_distances(1);
+    //    cloud_tree_->nearestKSearch(centroid, 1, nn_indices, nn_sqr_distances);
+    //
+    //    int nn_index = nn_indices[0];
+    //    ROS_INFO_STREAM(
+    //      "Seed point: (" << cloud_->points[nn_index].x << ", " << cloud_->points[nn_index].y << ", "
+    //        << cloud_->points[nn_index].z << ")");
 
     Eigen::VectorXf coefficients(Eigen::VectorXf::Zero(4));
     ModelNormalPlane model(cloud_);
@@ -128,7 +141,7 @@ template <typename PointT>
     boost::shared_ptr<std::vector<int> > all_cloud_indices = model.getIndices();
 
     model.setIndices(init_indices.indices);
-    std::vector<Types::Scalar> distances;
+    std::vector<Scalar> distances;
     model.getDistancesToModel(coefficients, distances);
     Eigen::VectorXd v = Eigen::VectorXd::Map(&distances[0], distances.size());
     plane_info.std_dev_ = 0.0;
@@ -147,23 +160,23 @@ template <typename PointT>
     model.setNormalDistanceWeight(0.05);
     model.selectWithinDistance(coefficients, 5 * plane_info.std_dev_, *plane_info.indices_);
 
-//    pcl::RegionGrowing<PointT, pcl::Normal> region_grow;
-//    region_grow.setMinClusterSize(cloud_->size() / 10);
-//    region_grow.setMaxClusterSize(cloud_->size());
-//
-//    region_grow.setSearchMethod(cloud_tree_);
-//    region_grow.setNumberOfNeighbours(64);
-//    region_grow.setInputCloud(cloud_);
-//    //region_grow.setIndices(plane_indices);
-//    region_grow.setInputNormals(cloud_normals_);
-//    region_grow.setSmoothnessThreshold(10.0 / 180.0 * M_PI);
-//    region_grow.setCurvatureThreshold(0.07);
-//
-//    pcl::PointIndices cluster;
-//    region_grow.getSegmentFromPoint(nn_index, cluster);
+    //    pcl::RegionGrowing<PointT_, pcl::Normal> region_grow;
+    //    region_grow.setMinClusterSize(cloud_->size() / 10);
+    //    region_grow.setMaxClusterSize(cloud_->size());
+    //
+    //    region_grow.setSearchMethod(cloud_tree_);
+    //    region_grow.setNumberOfNeighbours(64);
+    //    region_grow.setInputCloud(cloud_);
+    //    //region_grow.setIndices(plane_indices);
+    //    region_grow.setInputNormals(cloud_normals_);
+    //    region_grow.setSmoothnessThreshold(10.0 / 180.0 * M_PI);
+    //    region_grow.setCurvatureThreshold(0.07);
+    //
+    //    pcl::PointIndices cluster;
+    //    region_grow.getSegmentFromPoint(nn_index, cluster);
 
     std::vector<pcl::PointIndices> cluster_indices;
-    pcl::EuclideanClusterExtraction<PointT> ec;
+    pcl::EuclideanClusterExtraction<PointT_> ec;
     ec.setClusterTolerance(radius_ / 8);
     ec.setMinClusterSize(plane_info.indices_->size() / 8);
     ec.setMaxClusterSize(plane_info.indices_->size());
@@ -188,47 +201,47 @@ template <typename PointT>
 
     *plane_info.indices_ = cluster_indices[max_index].indices;
 
-//    Eigen::VectorXf coefficients(4);
-//    ModelNormalPlane model(cloud_);
-//    model.setInputNormals(cloud_normals_);
-//    Eigen::VectorXf new_coefficients(4);
-//    model.optimizeModelCoefficients(cluster.indices, coefficients, new_coefficients);
-//    if (coefficients == new_coefficients)
-//      return false;
-//    coefficients = new_coefficients;
-//
-//    if (coefficients[3] > 0)
-//      coefficients *= -1.0f;
-//
-//    *plane_indices = cluster.indices;
+    //    Eigen::VectorXf coefficients(4);
+    //    ModelNormalPlane model(cloud_);
+    //    model.setInputNormals(cloud_normals_);
+    //    Eigen::VectorXf new_coefficients(4);
+    //    model.optimizeModelCoefficients(cluster.indices, coefficients, new_coefficients);
+    //    if (coefficients == new_coefficients)
+    //      return false;
+    //    coefficients = new_coefficients;
+    //
+    //    if (coefficients[3] > 0)
+    //      coefficients *= -1.0f;
+    //
+    //    *plane_indices = cluster.indices;
 
-    //Types::Plane plane;
+    //Plane plane;
     plane_info.plane_.normal()[0] = coefficients[0];
     plane_info.plane_.normal()[1] = coefficients[1];
     plane_info.plane_.normal()[2] = coefficients[2];
     plane_info.plane_.offset() = coefficients[3];
 
-    //planar_object = boost::make_shared<PointCloudPlanarObject<PointT> >(cloud_, plane_indices, plane);
+    //planar_object = boost::make_shared<PointCloudPlanarObject<PointT_> >(cloud_, plane_indices, plane);
 
     return true;
   }
 
-//template <typename PointT>
-//  bool SimpleCheckerboardPlaneExtractor<PointT>::extract(const RGBCheckerboard &rgb_checkerboard,
+//template <typename PointT_>
+//  bool SimpleCheckerboardPlaneExtractor<PointT_>::extract(const RGBCheckerboard &rgb_checkerboard,
 //                                                         pcl::IndicesPtr &plane_indices,
-//                                                         Types::Plane &plane,
+//                                                         Plane &plane,
 //                                                         double &std_dev)
 //  {
 //    Point3d center = rgb_to_d_transform_ * rgb_checkerboard.center();
-//    PointT p;
+//    PointT_ p;
 //    p.x = center[0];
 //    p.y = center[1];
 //    p.z = center[2];
 //    extractFromPoint(p, plane_indices, plane, std_dev);
 //  }
 
-template <typename PointT>
-  void PointPlaneExtractorGUI<PointT>::setInputCloud(const PointCloudConstPtr & cloud)
+template <typename PointT_>
+  void PointPlaneExtractorGUI<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
   {
     cloud_label_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZL> >();
 
@@ -257,13 +270,16 @@ template <typename PointT>
       if (not viewer_->updatePointCloud<pcl::PointXYZL>(cloud_label_, *color_handler_, cloud_name_))
         viewer_->addPointCloud<pcl::PointXYZL>(cloud_label_, *color_handler_, cloud_name_);
 
-    viewer_->addPointCloudNormals<pcl::PointXYZL, pcl::Normal>(cloud_label_, Base::cloud_normals_, 100, 0.1f,
+    viewer_->addPointCloudNormals<pcl::PointXYZL, pcl::Normal>(cloud_label_,
+                                                               Base::cloud_normals_,
+                                                               100,
+                                                               0.1f,
                                                                "Normals");
 
   }
 
-template <typename PointT>
-  PointPlaneExtractorGUI<PointT>::PointPlaneExtractorGUI()
+template <typename PointT_>
+  PointPlaneExtractorGUI<PointT_>::PointPlaneExtractorGUI()
     : cloud_name_("Cloud"),
       current_index_(1),
       next_plane_(false),
@@ -274,8 +290,8 @@ template <typename PointT>
     // Do nothing
   }
 
-template <typename PointT>
-  PointPlaneExtractorGUI<PointT>::~PointPlaneExtractorGUI()
+template <typename PointT_>
+  PointPlaneExtractorGUI<PointT_>::~PointPlaneExtractorGUI()
   {
     if (viewer_ and cloud_label_)
       viewer_->removePointCloud(cloud_name_);
@@ -284,8 +300,8 @@ template <typename PointT>
     pp_connection_.disconnect();
   }
 
-template <typename PointT>
-  bool PointPlaneExtractorGUI<PointT>::extract(PlaneInfo & plane_info) const
+template <typename PointT_>
+  bool PointPlaneExtractorGUI<PointT_>::extract(PlaneInfo & plane_info) const
   {
     if (not cloud_label_)
       throw std::runtime_error("Need to call setInputCloud(...) method first.");
@@ -306,9 +322,9 @@ template <typename PointT>
     return next_plane_;
   }
 
-template <typename PointT>
-  void PointPlaneExtractorGUI<PointT>::pointPickingCallback(const pcl_vis::PointPickingEvent & event,
-                                                            void * param)
+template <typename PointT_>
+  void PointPlaneExtractorGUI<PointT_>::pointPickingCallback(const pcl_vis::PointPickingEvent & event,
+                                                             void * param)
   {
     for (size_t i = 0; i < cloud_label_->points.size(); ++i)
     {
@@ -320,8 +336,8 @@ template <typename PointT>
     event.getPoint(p.x, p.y, p.z);
     last_clicked_point_ << p.x, p.y, p.z;
 
-    PointPlaneExtractor<PointT>::setPoint(p);
-    PointPlaneExtractor<PointT>::extract(last_plane_info_);
+    PointPlaneExtractor<PointT_>::setPoint(p);
+    PointPlaneExtractor<PointT_>::extract(last_plane_info_);
 
     const std::vector<int> & indices = *last_plane_info_.indices_;
     for (size_t i = 0; i < indices.size(); ++i)
@@ -336,9 +352,9 @@ template <typename PointT>
 
   }
 
-template <typename PointT>
-  inline void PointPlaneExtractorGUI<PointT>::keyboardCallback(const pcl_vis::KeyboardEvent & event,
-                                                               void * param)
+template <typename PointT_>
+  inline void PointPlaneExtractorGUI<PointT_>::keyboardCallback(const pcl_vis::KeyboardEvent & event,
+                                                                void * param)
   {
     if (event.getKeySym() == "space" and event.keyUp())
       next_plane_ = true;

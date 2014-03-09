@@ -184,37 +184,37 @@ namespace calibration
 //  }
 
 template <typename Scalar_>
-  typename Types_<Scalar_>::Plane PlaneFit<Scalar_>::fit(const typename Types_<Scalar_>::Point3Matrix & points)
+  typename Types<Scalar_>::Plane PlaneFit<Scalar_>::fit(const typename Types<Scalar_>::Cloud3 & points)
   {
 
-    typename Types_<Scalar_>::Point3 centroid = points.matrix().rowwise().mean();
-    typename Types_<Scalar_>::Point3Matrix::RawMatrix diff = points.matrix().colwise() - centroid;
+    typename Types<Scalar_>::Point3 centroid = points.matrix().rowwise().mean();
+    typename Types<Scalar_>::Cloud3::RawMatrix diff = points.matrix().colwise() - centroid;
     Eigen::Matrix<Scalar_, 3, 3> covariance_matrix = diff * diff.transpose() / Scalar_(points.size() - 1);
 
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<Scalar_, 3, 3> > solver(covariance_matrix, Eigen::ComputeEigenvectors);
-    typename Types_<Scalar_>::Point3 eigen_vector = solver.eigenvectors().col(0);
-    return typename Types_<Scalar_>::Plane(eigen_vector, -eigen_vector.dot(centroid));
+    typename Types<Scalar_>::Point3 eigen_vector = solver.eigenvectors().col(0);
+    return typename Types<Scalar_>::Plane(eigen_vector, -eigen_vector.dot(centroid));
 
   }
 
 template <typename Scalar_>
-  typename Types_<Scalar_>::Plane PlaneFit<Scalar_>::robustFit(const typename Types_<Scalar_>::Plane & initial_plane,
-                                                               const typename Types_<Scalar_>::Point3Matrix & points,
-                                                               Scalar_ scale)
+  typename Types<Scalar_>::Plane PlaneFit<Scalar_>::robustFit(const typename Types<Scalar_>::Plane & initial_plane,
+                                                              const typename Types<Scalar_>::Cloud3 & points,
+                                                              Scalar_ scale)
   {
     ceres::Problem problem;
-    typename Types_<Scalar_>::Plane plane(initial_plane);
+    typename Types<Scalar_>::Plane plane(initial_plane);
 
     for (int i = 0; i < points.size(); ++i)
     {
-      ceres::CostFunction * cost_function = new ceres::AutoDiffCostFunction<PlaneResidual<Scalar_>, 1, 4>(
-        new PlaneResidual<Scalar_>(points[i]));
+      ceres::CostFunction * cost_function =
+        new ceres::AutoDiffCostFunction<PlaneResidual<Scalar_>, 1, 4>(new PlaneResidual<Scalar_>(points[i]));
       problem.AddResidualBlock(cost_function, new ceres::CauchyLoss(scale), plane.coeffs().data());
     }
 
     ceres::Solver::Options options;
     options.linear_solver_type = ceres::DENSE_QR;
-//    options.minimizer_progress_to_stdout = true;
+    //    options.minimizer_progress_to_stdout = true;
 
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);

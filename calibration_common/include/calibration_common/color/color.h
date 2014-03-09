@@ -29,7 +29,7 @@
 #ifndef CALIBRATION_COMMON_COLOR_COLOR_H_
 #define CALIBRATION_COMMON_COLOR_COLOR_H_
 
-//#include "camera_model.h"
+#include "camera_model.h"
 #include "sensor.h"
 #include "view.h"
 

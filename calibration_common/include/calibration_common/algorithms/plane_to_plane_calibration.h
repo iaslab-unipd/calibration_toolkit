@@ -41,15 +41,15 @@ struct PlanePair
   {
   }
 
-  PlanePair(Types::Plane plane_1,
-            Types::Plane plane_2)
+  PlanePair(Plane plane_1,
+            Plane plane_2)
     : plane_1_(plane_1),
       plane_2_(plane_2)
   {
   }
 
-  Types::Plane plane_1_;
-  Types::Plane plane_2_;
+  Plane plane_1_;
+  Plane plane_2_;
 };
 
 /**
@@ -67,8 +67,8 @@ public:
     plane_pair_vec_.push_back(pair);
   }
 
-  void addPair(const Types::Plane & plane_1,
-               const Types::Plane & plane_2)
+  void addPair(const Plane & plane_1,
+               const Plane & plane_2)
   {
     addPair(PlanePair(plane_1, plane_2));
   }
@@ -78,12 +78,12 @@ public:
     return plane_pair_vec_.size();
   }
 
-  Types::Transform estimateTransform()
+  Transform estimateTransform()
   {
     return estimateTransform(plane_pair_vec_);
   }
 
-  static Types::Transform estimateTransform(const std::vector<PlanePair> & plane_pair_vec);
+  static Transform estimateTransform(const std::vector<PlanePair> & plane_pair_vec);
 
 protected:
 

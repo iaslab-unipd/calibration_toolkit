@@ -43,18 +43,18 @@ public:
     // Do nothing
   }
 
-  virtual void transform(const Types::Transform & transform)
+  virtual void transform(const Transform & transform)
   {
     plane_.transform(transform);
     BaseObject::transform(transform);
   }
 
-  const Types::Plane & plane() const
+  const Plane & plane() const
   {
     return plane_;
   }
 
-  void setPlane(const Types::Plane & plane)
+  void setPlane(const Plane & plane)
   {
     BaseObject::transform(Util::plane3dTransform(plane_, plane)); // TODO make sense???
     plane_ = plane;
@@ -66,7 +66,7 @@ public:
 
 private:
 
-  Types::Plane plane_;
+  Plane plane_;
 
 };
 

@@ -36,24 +36,26 @@ namespace calibration
 {
 
 template <typename Polynomial_>
-  struct UndFunctionTraits
-  {
-    typedef Polynomial_ Poly;
+  class PolynomialUndistortionFunctionImpl;
 
-    typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef Polynomial_ Data;
+template <typename PolynomialT_>
+  struct ImplTraits<PolynomialUndistortionFunctionImpl<PolynomialT_> >
+  {
+    typedef PolynomialT_ Poly;
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef PolynomialT_ Data;
   };
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunctionImpl : public DepthUndistortionModelImpl<UndFunctionTraits<Polynomial_> >
+  class PolynomialUndistortionFunctionImpl : public DepthUndistortionModelImpl<PolynomialUndistortionFunctionImpl<Polynomial_> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionFunctionImpl> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionFunctionImpl> ConstPtr;
 
-    typedef UndFunctionTraits<Polynomial_> Traits;
-    typedef DepthUndistortionModelImpl<Traits> Base;
+    typedef ImplTraits<PolynomialUndistortionFunctionImpl> Traits;
+    typedef DepthUndistortionModelImpl<PolynomialUndistortionFunctionImpl> Base;
 
     typedef typename Traits::Poly Poly;
     typedef typename Traits::Scalar Scalar;
@@ -110,7 +112,7 @@ template <typename Polynomial_>
 
 template <typename Polynomial_>
   class PolynomialUndistortionFunctionEigen : public PolynomialUndistortionFunctionImpl<Polynomial_>,
-                                              public DepthUndistortionModel<UndTraitsEigen<typename MathTraits<Polynomial_>::Scalar> >
+                                              public DepthUndistortionModel<DepthEigen_<typename MathTraits<Polynomial_>::Scalar> >
   {
   public:
 
@@ -120,11 +122,11 @@ template <typename Polynomial_>
     typedef PolynomialUndistortionFunctionImpl<Polynomial_> Base;
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef typename UndTraitsEigen<Scalar>::Point Point;
-    typedef typename UndTraitsEigen<Scalar>::Cloud Cloud;
-    typedef typename UndFunctionTraits<Polynomial_>::Data Data;
+    typedef typename DepthTraits<DepthEigen_<Scalar> >::Point Point;
+    typedef typename DepthTraits<DepthEigen_<Scalar> >::Cloud Cloud;
+    typedef typename Base::Traits::Data Data;
 
-    typedef DepthUndistortionModel<UndTraitsEigen<Scalar> > Interface;
+    typedef DepthUndistortionModel<DepthEigen_<Scalar> > Interface;
 
     PolynomialUndistortionFunctionEigen()
       : Base()
@@ -171,7 +173,7 @@ template <typename Polynomial_>
 
 template <typename Polynomial_, typename PCLPoint_>
   class PolynomialUndistortionFunctionPCL : public PolynomialUndistortionFunctionImpl<Polynomial_>,
-                                            public DepthUndistortionModel<UndTraitsPCL<typename MathTraits<Polynomial_>::Scalar, PCLPoint_> >
+                                            public DepthUndistortionModel<DepthPCL_<PCLPoint_> >
   {
   public:
 
@@ -181,11 +183,11 @@ template <typename Polynomial_, typename PCLPoint_>
     typedef PolynomialUndistortionFunctionImpl<Polynomial_> Base;
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef typename UndTraitsPCL<Scalar, PCLPoint_>::Point Point;
-    typedef typename UndTraitsPCL<Scalar, PCLPoint_>::Cloud Cloud;
-    typedef typename UndFunctionTraits<Polynomial_>::Data Data;
+    typedef typename DepthTraits<DepthPCL_<PCLPoint_> >::Point Point;
+    typedef typename DepthTraits<DepthPCL_<PCLPoint_> >::Cloud Cloud;
+    typedef typename Base::Traits::Data Data;
 
-    typedef DepthUndistortionModel<UndTraitsPCL<Scalar, PCLPoint_> > Interface;
+    typedef DepthUndistortionModel<DepthPCL_<PCLPoint_> > Interface;
 
     PolynomialUndistortionFunctionPCL()
       : Base()

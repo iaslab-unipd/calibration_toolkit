@@ -43,7 +43,7 @@ public:
   typedef boost::shared_ptr<const BaseObject> ConstPtr;
 
   BaseObject()
-    : pose_(Types::Pose::Identity())
+    : pose_(Pose::Identity())
   {
     // Do nothing
   }
@@ -53,12 +53,12 @@ public:
     // Do nothing
   }
 
-  virtual void transform(const Types::Transform & transform)
+  virtual void transform(const Transform & transform)
   {
     pose_ = transform * pose_;
   }
 
-  const Types::Pose & pose() const
+  const Pose & pose() const
   {
     return pose_;
   }
@@ -89,14 +89,14 @@ public:
 
 protected:
 
-  void setPose(const Types::Pose & pose)
+  void setPose(const Pose & pose)
   {
     pose_ = pose;
   }
 
 private:
 
-  Types::Pose pose_;
+  Pose pose_;
   std::string frame_id_;
   ConstPtr parent_;
 

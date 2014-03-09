@@ -36,7 +36,7 @@
 namespace calibration
 {
 
-template <typename ModelTraits_>
+template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::Scalar>
   class DepthUndistortionModelFit
   {
   public:
@@ -44,17 +44,17 @@ template <typename ModelTraits_>
     typedef boost::shared_ptr<DepthUndistortionModelFit> Ptr;
     typedef boost::shared_ptr<const DepthUndistortionModelFit> ConstPtr;
 
-    typedef typename ModelTraits_::Scalar Scalar;
-    typedef typename ModelTraits_::Point Point;
-    typedef typename ModelTraits_::Cloud Cloud;
-    typedef typename Types_<Scalar>::Plane Plane;
+    typedef ScalarT_ Scalar;
+    typedef typename DepthTraits<DepthT_>::Point Point;
+    typedef typename DepthTraits<DepthT_>::Cloud Cloud;
+    typedef typename Types<Scalar>::Plane Plane;
 
     virtual ~DepthUndistortionModelFit()
     {
       // Do nothing
     }
 
-    virtual const typename DepthUndistortionModel<ModelTraits_>::Ptr & model() const = 0;
+    virtual const typename DepthUndistortionModel<DepthT_>::Ptr & model() const = 0;
 
     virtual void accumulateCloud(const Cloud & cloud) = 0;
 
@@ -74,7 +74,7 @@ template <typename ModelTraits_>
 
   };
 
-template <typename ModelImpl_>
+template <typename ModelImplT_>
   class DepthUndistortionModelFitImpl
   {
   public:
@@ -82,7 +82,7 @@ template <typename ModelImpl_>
     typedef boost::shared_ptr<DepthUndistortionModelFitImpl> Ptr;
     typedef boost::shared_ptr<const DepthUndistortionModelFitImpl> ConstPtr;
 
-    typedef typename ModelImpl_::Scalar Scalar;
+    typedef typename ModelImplT_::Scalar Scalar;
 
     typedef std::vector<std::pair<Scalar, Scalar> > PointDistorsionBin;
 
@@ -90,7 +90,7 @@ template <typename ModelImpl_>
     {
     public:
 
-      typedef typename Types_<Scalar>::Point3 Point;
+      typedef typename Types<Scalar>::Point3 Point;
 
       AccumulationBin()
         : sum_(Point::Zero()),
@@ -136,7 +136,7 @@ template <typename ModelImpl_>
       // Do nothing
     }
 
-    virtual const typename ModelImpl_::Ptr & modelImpl() const = 0;
+    virtual const boost::shared_ptr<ModelImplT_> & modelImpl() const = 0;
 
   };
 

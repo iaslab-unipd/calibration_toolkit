@@ -35,11 +35,11 @@
 namespace ceres
 {
 
-template <typename Derived>
-  typename Eigen::DenseBase<Derived>::Scalar poly_eval(const Eigen::DenseBase<Derived> & polynomial,
-                                                       const typename Eigen::DenseBase<Derived>::Scalar & x)
+template <typename DerivedT_>
+  typename Eigen::DenseBase<DerivedT_>::Scalar poly_eval(const Eigen::DenseBase<DerivedT_> & polynomial,
+                                                         const typename Eigen::DenseBase<DerivedT_>::Scalar & x)
   {
-    typedef typename Eigen::DenseBase<Derived>::Scalar Scalar;
+    typedef typename Eigen::DenseBase<DerivedT_>::Scalar Scalar;
     typedef typename Eigen::NumTraits<Scalar>::Real Real;
 
     if (Eigen::numext::abs2(x) <= Real(1))
@@ -55,15 +55,15 @@ template <typename Derived>
     }
   }
 
-template <typename Scalar_, int Degree, int MinDegree = 0>
-  class Polynomial : public calibration::Polynomial<Scalar_, Degree, MinDegree>
+template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
+  class Polynomial : public calibration::Polynomial<ScalarT_, Degree_, MinDegree_>
   {
   public:
 
     typedef boost::shared_ptr<Polynomial> Ptr;
     typedef boost::shared_ptr<const Polynomial> ConstPtr;
 
-    typedef calibration::Polynomial<Scalar_, Degree, MinDegree> Base;
+    typedef calibration::Polynomial<ScalarT_, Degree_, MinDegree_> Base;
 
     typedef typename Base::Scalar Scalar;
     typedef typename Base::FunctionX FunctionX;
@@ -72,16 +72,16 @@ template <typename Scalar_, int Degree, int MinDegree = 0>
 
     Polynomial()
     {
-      EIGEN_STATIC_ASSERT(MinDegree >= 0, INVALID_MATRIX_TEMPLATE_PARAMETERS);
-      EIGEN_STATIC_ASSERT(Degree >= MinDegree, INVALID_MATRIX_TEMPLATE_PARAMETERS);
+      EIGEN_STATIC_ASSERT(MinDegree_ >= 0, INVALID_MATRIX_TEMPLATE_PARAMETERS);
+      EIGEN_STATIC_ASSERT(Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
     }
 
     template <typename OtherDerived>
       explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients)
         : Base(coefficients)
       {
-        EIGEN_STATIC_ASSERT(MinDegree >= 0, INVALID_MATRIX_TEMPLATE_PARAMETERS);
-        EIGEN_STATIC_ASSERT(Degree >= MinDegree, INVALID_MATRIX_TEMPLATE_PARAMETERS);
+        EIGEN_STATIC_ASSERT(MinDegree_ >= 0, INVALID_MATRIX_TEMPLATE_PARAMETERS);
+        EIGEN_STATIC_ASSERT(Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       }
 
     FunctionY evaluate(const FunctionX & x) const
@@ -96,9 +96,9 @@ template <typename Scalar_, int Degree, int MinDegree = 0>
 
     static const Coefficients IdentityCoefficients()
     {
-      EIGEN_STATIC_ASSERT(MinDegree <= 1 and Degree >= 1, INVALID_MATRIX_TEMPLATE_PARAMETERS);
+      EIGEN_STATIC_ASSERT(MinDegree_ <= 1 and Degree_ >= 1, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       Coefficients coeffs(Coefficients::Zero());
-      coeffs[1 - MinDegree] = Scalar(1);
+      coeffs[1 - MinDegree_] = Scalar(1);
       return coeffs;
     }
 
@@ -107,7 +107,7 @@ template <typename Scalar_, int Degree, int MinDegree = 0>
                                 const FunctionX & x)
       {
         FunctionY y = poly_eval(coefficients, x);
-        for (int i = 0; i < MinDegree; ++i)
+        for (int i = 0; i < MinDegree_; ++i)
           y *= x;
         return y;
       }
@@ -118,14 +118,14 @@ template <typename Scalar_, int Degree, int MinDegree = 0>
 
 namespace calibration
 {
-template <typename Scalar_, int Degree_, int MinDegree_>
-  struct MathTraits<ceres::Polynomial<Scalar_, Degree_, MinDegree_> >
+template <typename ScalarT_, int Degree_, int MinDegree_>
+  struct MathTraits<ceres::Polynomial<ScalarT_, Degree_, MinDegree_> >
   {
     static const int Size = (Degree_ == Eigen::Dynamic ? Eigen::Dynamic : Degree_ + 1 - MinDegree_);
     static const int MinDegree = MinDegree_;
     static const int Degree = Degree_;
 
-    typedef Scalar_ Scalar;
+    typedef ScalarT_ Scalar;
     typedef Scalar FunctionX;
     typedef Scalar FunctionY;
     typedef Eigen::Array<Scalar, Size, 1, Eigen::DontAlign> Coefficients;

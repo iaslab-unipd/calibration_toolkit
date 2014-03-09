@@ -33,68 +33,25 @@
 #include <calibration_common/base/math.h>
 #include <calibration_common/depth/undistortion_model.h>
 #include <calibration_common/objects/sensor.h>
+#include <calibration_common/depth/traits.h>
 
 namespace calibration
 {
 
-class DepthSensor : public Sensor
-{
-public:
-
-  typedef boost::shared_ptr<DepthSensor> Ptr;
-  typedef boost::shared_ptr<const DepthSensor> ConstPtr;
-
-  typedef DepthUndistortionModel<UndTraitsEigen<Types::Scalar> > UndistortionModel;
-
-  DepthSensor()
-    : Sensor(),
-      undistortion_model_(boost::make_shared<NoUndistortionEigen<Types::Scalar> >()),
-      depth_error_function_(Types::Vector3::Zero())
-  {
-    // Do nothing
-  }
-
-  const typename UndistortionModel::ConstPtr undistortionModel() const
-  {
-    return undistortion_model_;
-  }
-
-  void setUndistortionModel(const typename UndistortionModel::ConstPtr & undistortion_model)
-  {
-    undistortion_model_ = undistortion_model;
-  }
-
-  const Polynomial<Types::Scalar, 2> depthErrorFunction() const
-  {
-    return depth_error_function_;
-  }
-
-  void setDepthErrorFunction(const Polynomial<Types::Scalar, 2> & depth_error_function)
-  {
-    depth_error_function_ = depth_error_function;
-  }
-
-private:
-
-  typename UndistortionModel::ConstPtr undistortion_model_;
-  Polynomial<Types::Scalar, 2> depth_error_function_;
-
-};
-
-template <typename PCLPoint_>
-  class DepthSensorPCL : public Sensor
+template <typename DepthT_>
+  class DepthSensor : public Sensor
   {
   public:
 
-    typedef boost::shared_ptr<DepthSensorPCL> Ptr;
-    typedef boost::shared_ptr<const DepthSensorPCL> ConstPtr;
+    typedef boost::shared_ptr<DepthSensor> Ptr;
+    typedef boost::shared_ptr<const DepthSensor> ConstPtr;
 
-    typedef DepthUndistortionModel<UndTraitsPCL<Types::Scalar, PCLPoint_> > UndistortionModel;
+    typedef DepthUndistortionModel<DepthT_> UndistortionModel;
 
-    DepthSensorPCL()
+    DepthSensor()
       : Sensor(),
-        undistortion_model_(boost::make_shared<NoUndistortionPCL<Types::Scalar, PCLPoint_> >()),
-        depth_error_function_(Types::Vector3::Zero())
+        undistortion_model_(boost::make_shared<NoUndistortion_<DepthT_> >()),
+        depth_error_function_(Vector3::Zero())
     {
       // Do nothing
     }
@@ -109,12 +66,12 @@ template <typename PCLPoint_>
       undistortion_model_ = undistortion_model;
     }
 
-    const Polynomial<Types::Scalar, 2> depthErrorFunction() const
+    const Polynomial<Scalar, 2> depthErrorFunction() const
     {
       return depth_error_function_;
     }
 
-    void setDepthErrorFunction(const Polynomial<Types::Scalar, 2> & depth_error_function)
+    void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
     {
       depth_error_function_ = depth_error_function;
     }
@@ -122,9 +79,115 @@ template <typename PCLPoint_>
   private:
 
     typename UndistortionModel::ConstPtr undistortion_model_;
-    Polynomial<Types::Scalar, 2> depth_error_function_;
+    Polynomial<Scalar, 2> depth_error_function_;
 
   };
+
+template <typename ScalarT_>
+  struct DepthSensorEigen_ : public DepthSensor<DepthEigen_<ScalarT_> >
+  {
+    typedef boost::shared_ptr<DepthSensorEigen_> Ptr;
+    typedef boost::shared_ptr<const DepthSensorEigen_> ConstPtr;
+  };
+
+template <typename PCLPointT_>
+  struct DepthSensorPCL_ : public DepthSensor<DepthPCL_<PCLPointT_> >
+  {
+    typedef boost::shared_ptr<DepthSensorPCL_> Ptr;
+    typedef boost::shared_ptr<const DepthSensorPCL_> ConstPtr;
+  };
+
+typedef DepthSensor<DepthEigen> DepthSensorEigen;
+typedef DepthSensor<DepthPCL> DepthSensorPCL;
+
+//class DepthSensorEigen : public Sensor
+//{
+//public:
+//
+//  typedef boost::shared_ptr<DepthSensorEigen> Ptr;
+//  typedef boost::shared_ptr<const DepthSensorEigen> ConstPtr;
+//
+//  typedef DepthUndistortionModel<UndTraitsEigen<Scalar> > UndistortionModel;
+//
+//  DepthSensorEigen()
+//    : Sensor(),
+//      undistortion_model_(boost::make_shared<NoUndistortionEigen<Scalar> >()),
+//      depth_error_function_(Vector3::Zero())
+//  {
+//    // Do nothing
+//  }
+//
+//  const typename UndistortionModel::ConstPtr undistortionModel() const
+//  {
+//    return undistortion_model_;
+//  }
+//
+//  void setUndistortionModel(const typename UndistortionModel::ConstPtr & undistortion_model)
+//  {
+//    undistortion_model_ = undistortion_model;
+//  }
+//
+//  const Polynomial<Scalar, 2> depthErrorFunction() const
+//  {
+//    return depth_error_function_;
+//  }
+//
+//  void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
+//  {
+//    depth_error_function_ = depth_error_function;
+//  }
+//
+//private:
+//
+//  typename UndistortionModel::ConstPtr undistortion_model_;
+//  Polynomial<Scalar, 2> depth_error_function_;
+//
+//};
+//
+//template <typename PCLPoint_>
+//  class DepthSensorPCL : public Sensor
+//  {
+//  public:
+//
+//    typedef boost::shared_ptr<DepthSensorPCL> Ptr;
+//    typedef boost::shared_ptr<const DepthSensorPCL> ConstPtr;
+//
+//    typedef DepthUndistortionModel<UndTraitsPCL<Scalar, PCLPoint_> > UndistortionModel;
+//
+//    DepthSensorPCL()
+//      : Sensor(),
+//        undistortion_model_(boost::make_shared<NoUndistortionPCL<Scalar, PCLPoint_> >()),
+//        depth_error_function_(Vector3::Zero())
+//    {
+//      // Do nothing
+//    }
+//
+//    const typename UndistortionModel::ConstPtr undistortionModel() const
+//    {
+//      return undistortion_model_;
+//    }
+//
+//    void setUndistortionModel(const typename UndistortionModel::ConstPtr & undistortion_model)
+//    {
+//      undistortion_model_ = undistortion_model;
+//    }
+//
+//    const Polynomial<Scalar, 2> depthErrorFunction() const
+//    {
+//      return depth_error_function_;
+//    }
+//
+//    void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
+//    {
+//      depth_error_function_ = depth_error_function;
+//    }
+//
+//  private:
+//
+//    typename UndistortionModel::ConstPtr undistortion_model_;
+//    Polynomial<Scalar, 2> depth_error_function_;
+//
+//  };
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_SENSOR_H_ */

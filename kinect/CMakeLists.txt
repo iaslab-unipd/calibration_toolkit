@@ -60,12 +60,38 @@ catkin_package(
 ## Build ##
 ###########
 
+set(INCLUDE_FILES
+include/kinect/depth/polynomial_undistortion_function.h
+include/kinect/depth/undistortion_model.h
+include/kinect/depth/polynomial_undistortion_matrix_io.h
+include/kinect/depth/depth.h
+include/kinect/depth/polynomial_undistortion_matrix.h
+include/kinect/depth/camera_model.h
+include/kinect/depth/sensor.h
+include/kinect/depth/polynomial_undistortion_function_fit.h
+include/kinect/depth/polynomial_undistortion_matrix_fit.h
+include/impl/kinect/depth/polynomial_undistortion_matrix_io.hpp
+include/impl/kinect/depth/polynomial_undistortion_matrix_fit.hpp
+include/impl/kinect/depth/polynomial_undistortion_function_fit.hpp
+)
+
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN_INCLUDE_DIRS}
   ${PCL_INCLUDE_DIRS}
   ${CERES_INCLUDE_DIRS}
+)
+
+add_executable(mainfile
+  test/read_write_test.cpp
+  ${INCLUDE_FILES}
+)
+
+target_link_libraries(mainfile
+  ${catkin_LIBRARIES}
+  ${PCL_LIBRARIES}
+  ${CERES_LIBRARIES}
 )
 
 #############
