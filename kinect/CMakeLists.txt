@@ -83,16 +83,16 @@ include_directories(
   ${CERES_INCLUDE_DIRS}
 )
 
-add_executable(mainfile
-  test/read_write_test.cpp
-  ${INCLUDE_FILES}
-)
+#add_executable(mainfile
+#  test/read_write_test.cpp
+#  ${INCLUDE_FILES}
+#)
 
-target_link_libraries(mainfile
-  ${catkin_LIBRARIES}
-  ${PCL_LIBRARIES}
-  ${CERES_LIBRARIES}
-)
+#target_link_libraries(mainfile
+#  ${catkin_LIBRARIES}
+#  ${PCL_LIBRARIES}
+#  ${CERES_LIBRARIES}
+#)
 
 #############
 ## Install ##
