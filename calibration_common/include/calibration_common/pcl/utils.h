@@ -36,12 +36,12 @@ namespace calibration
 {
 
 template <typename T>
-  struct DepthTraits
+  struct SensorDepthTraits
   {
   };
 
 template <>
-  struct DepthTraits<uint16_t>
+  struct SensorDepthTraits<uint16_t>
   {
     static inline bool valid(uint16_t depth)
     {
@@ -61,7 +61,7 @@ template <>
   };
 
 template <>
-  struct DepthTraits<float>
+  struct SensorDepthTraits<float>
   {
     static inline bool valid(float depth)
     {

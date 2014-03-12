@@ -53,7 +53,7 @@ template <typename Scalar_, typename PCLPoint_>
     cloud->points.resize(cloud->height * cloud->width);
 
     // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
-    double unit_scaling = DepthTraits<Scalar_>::toMeters(Scalar_(1));
+    double unit_scaling = SensorDepthTraits<Scalar_>::toMeters(Scalar_(1));
     float constant_x = unit_scaling / camera_model.fx();
     float constant_y = unit_scaling / camera_model.fy();
     float bad_point = std::numeric_limits<float>::quiet_NaN();
@@ -71,7 +71,7 @@ template <typename Scalar_, typename PCLPoint_>
         Scalar_ depth = depth_row[u];
 
         // Missing points denoted by NaNs
-        if (!DepthTraits<Scalar_>::valid(depth))
+        if (not SensorDepthTraits<Scalar_>::valid(depth))
         {
           pt.x = pt.y = pt.z = bad_point;
           continue;
@@ -80,7 +80,7 @@ template <typename Scalar_, typename PCLPoint_>
         // Fill in XYZ
         pt.x = (u - camera_model.cx()) * depth * constant_x;
         pt.y = (v - camera_model.cy()) * depth * constant_y;
-        pt.z = DepthTraits<Scalar_>::toMeters(depth);
+        pt.z = SensorDepthTraits<Scalar_>::toMeters(depth);
       }
     }
   }
