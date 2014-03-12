@@ -26,16 +26,9 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_CALIBRATION_COMMON_H_
-#define CALIBRATION_COMMON_CALIBRATION_COMMON_H_
+#ifndef CALIBRATION_COMMON_PCL_PCL_H_
+#define CALIBRATION_COMMON_PCL_PCL_H_
 
-#include <calibration_common/algorithms/algorithms.h>
-#include <calibration_common/base/base.h>
-#include <calibration_common/ceres/ceres.h>
-#include <calibration_common/color/color.h>
-#include <calibration_common/depth/depth.h>
-#include <calibration_common/objects/objects.h>
-#include <calibration_common/pcl/pcl.h>
-#include <calibration_common/pinhole/pinhole.h>
+#include "utils.h"
 
-#endif /* CALIBRATION_COMMON_CALIBRATION_COMMON_H_ */
+#endif /* CALIBRATION_COMMON_PCL_PCL_H_ */
