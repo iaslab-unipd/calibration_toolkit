@@ -26,10 +26,10 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_IO_H_
-#define KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_IO_H_
+#ifndef KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_H_
+#define KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_H_
 
-#include <kinect/depth/polynomial_undistortion_matrix.h>
+#include <kinect/depth/polynomial_matrix.h>
 #include <opencv2/opencv.hpp>
 
 namespace calibration
@@ -41,15 +41,15 @@ template <class Polynomial_>
   public:
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef typename PolynomialUndistortionMatrixImpl<Polynomial_>::Data Data;
+    typedef typename PolynomialMatrixModel<Polynomial_>::Data Data;
 
-    bool write(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+    bool write(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                const std::string & file_name) const
     {
       return write(*undistortion_matrix.data(), file_name);
     }
 
-    bool write(const PolynomialUndistortionMatrixSphere<Polynomial_> & undistortion_matrix,
+    bool write(const PolynomialMatrixProjectedModel<Polynomial_> & undistortion_matrix,
                const std::string & file_name) const
     {
       return write(*undistortion_matrix.data(),
@@ -58,7 +58,7 @@ template <class Polynomial_>
                    undistortion_matrix.fieldOfViewY());
     }
 
-    bool read(typename PolynomialUndistortionMatrixImpl<Polynomial_>::Ptr & undistortion_matrix,
+    bool read(typename PolynomialMatrixModel<Polynomial_>::Ptr & undistortion_matrix,
               const std::string & file_name) const
     {
       assert(undistortion_matrix);
@@ -71,7 +71,7 @@ template <class Polynomial_>
       return true;
     }
 
-    bool read(typename PolynomialUndistortionMatrixSphere<Polynomial_>::Ptr & undistortion_matrix,
+    bool read(typename PolynomialMatrixProjectedModel<Polynomial_>::Ptr & undistortion_matrix,
               const std::string & file_name) const
     {
       assert(undistortion_matrix);
@@ -85,17 +85,17 @@ template <class Polynomial_>
       return true;
     }
 
-    void toImage(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+    void toImage(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                  const Scalar z,
                  cv::Mat & image,
                  const Scalar max) const;
 
-    void toImageAuto(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+    void toImageAuto(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                      const Scalar z,
                      cv::Mat & image,
                      Scalar & max) const;
 
-    bool writeImage(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+    bool writeImage(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                     Scalar z,
                     const std::string & file_name,
                     const Scalar max) const
@@ -105,7 +105,7 @@ template <class Polynomial_>
       return cv::imwrite(file_name, image);
     }
 
-    bool writeImageAuto(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+    bool writeImageAuto(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                         Scalar z,
                         const std::string & file_name,
                         Scalar & max) const
@@ -135,6 +135,6 @@ template <class Polynomial_>
 
 } /* namespace calibration */
 
-#include <impl/kinect/depth/polynomial_undistortion_matrix_io.hpp>
+#include <impl/kinect/depth/polynomial_matrix_io.hpp>
 
-#endif /* KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_IO_H_ */
+#endif /* KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_H_ */

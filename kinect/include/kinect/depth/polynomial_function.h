@@ -26,8 +26,8 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_FUNCTION_H_
-#define KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_FUNCTION_H_
+#ifndef KINECT_DEPTH_POLYNOMIAL_FUNCTION_H_
+#define KINECT_DEPTH_POLYNOMIAL_FUNCTION_H_
 
 #include <calibration_common/base/math.h>
 #include <calibration_common/depth/undistortion_model.h>
@@ -36,10 +36,10 @@ namespace calibration
 {
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunctionImpl;
+  class PolynomialUndistortionFunctionModel;
 
 template <typename PolynomialT_>
-  struct ImplTraits<PolynomialUndistortionFunctionImpl<PolynomialT_> >
+  struct ModelTraits<PolynomialUndistortionFunctionModel<PolynomialT_> >
   {
     typedef PolynomialT_ Poly;
     typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
@@ -47,32 +47,32 @@ template <typename PolynomialT_>
   };
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunctionImpl : public DepthUndistortionModelImpl<PolynomialUndistortionFunctionImpl<Polynomial_> >
+  class PolynomialUndistortionFunctionModel : public DepthUndistortionModel<PolynomialUndistortionFunctionModel<Polynomial_> >
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialUndistortionFunctionImpl> Ptr;
-    typedef boost::shared_ptr<const PolynomialUndistortionFunctionImpl> ConstPtr;
+    typedef boost::shared_ptr<PolynomialUndistortionFunctionModel> Ptr;
+    typedef boost::shared_ptr<const PolynomialUndistortionFunctionModel> ConstPtr;
 
-    typedef ImplTraits<PolynomialUndistortionFunctionImpl> Traits;
-    typedef DepthUndistortionModelImpl<PolynomialUndistortionFunctionImpl> Base;
+    typedef ModelTraits<PolynomialUndistortionFunctionModel> Traits;
+    typedef DepthUndistortionModel<PolynomialUndistortionFunctionModel> Base;
 
     typedef typename Traits::Poly Poly;
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Data Data;
 
-    PolynomialUndistortionFunctionImpl()
+    PolynomialUndistortionFunctionModel()
     {
       // Do nothing
     }
 
-    explicit PolynomialUndistortionFunctionImpl(const boost::shared_ptr<Data> & polynomial)
+    explicit PolynomialUndistortionFunctionModel(const boost::shared_ptr<Data> & polynomial)
       : polynomial_(polynomial)
     {
       // Do nothing
     }
 
-    virtual ~PolynomialUndistortionFunctionImpl()
+    virtual ~PolynomialUndistortionFunctionModel()
     {
       // Do nothing
     }
@@ -111,22 +111,22 @@ template <typename Polynomial_>
   };
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunctionEigen : public PolynomialUndistortionFunctionImpl<Polynomial_>,
-                                              public DepthUndistortionModel<DepthEigen_<typename MathTraits<Polynomial_>::Scalar> >
+  class PolynomialUndistortionFunctionEigen : public PolynomialUndistortionFunctionModel<Polynomial_>,
+                                              public DepthUndistortion<DepthEigen_<typename MathTraits<Polynomial_>::Scalar> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionFunctionEigen> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionFunctionEigen> ConstPtr;
 
-    typedef PolynomialUndistortionFunctionImpl<Polynomial_> Base;
+    typedef PolynomialUndistortionFunctionModel<Polynomial_> Base;
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
     typedef typename DepthTraits<DepthEigen_<Scalar> >::Point Point;
     typedef typename DepthTraits<DepthEigen_<Scalar> >::Cloud Cloud;
     typedef typename Base::Traits::Data Data;
 
-    typedef DepthUndistortionModel<DepthEigen_<Scalar> > Interface;
+    typedef DepthUndistortion<DepthEigen_<Scalar> > Interface;
 
     PolynomialUndistortionFunctionEigen()
       : Base()
@@ -172,22 +172,22 @@ template <typename Polynomial_>
   };
 
 template <typename Polynomial_, typename PCLPoint_>
-  class PolynomialUndistortionFunctionPCL : public PolynomialUndistortionFunctionImpl<Polynomial_>,
-                                            public DepthUndistortionModel<DepthPCL_<PCLPoint_> >
+  class PolynomialUndistortionFunctionPCL : public PolynomialUndistortionFunctionModel<Polynomial_>,
+                                            public DepthUndistortion<DepthPCL_<PCLPoint_> >
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionFunctionPCL> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionFunctionPCL> ConstPtr;
 
-    typedef PolynomialUndistortionFunctionImpl<Polynomial_> Base;
+    typedef PolynomialUndistortionFunctionModel<Polynomial_> Base;
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
     typedef typename DepthTraits<DepthPCL_<PCLPoint_> >::Point Point;
     typedef typename DepthTraits<DepthPCL_<PCLPoint_> >::Cloud Cloud;
     typedef typename Base::Traits::Data Data;
 
-    typedef DepthUndistortionModel<DepthPCL_<PCLPoint_> > Interface;
+    typedef DepthUndistortion<DepthPCL_<PCLPoint_> > Interface;
 
     PolynomialUndistortionFunctionPCL()
       : Base()
@@ -235,4 +235,4 @@ template <typename Polynomial_, typename PCLPoint_>
   };
 
 } /* namespace calibration */
-#endif /* KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_FUNCTION_H_ */
+#endif /* KINECT_DEPTH_POLYNOMIAL_FUNCTION_H_ */

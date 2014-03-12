@@ -26,10 +26,10 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_IO_H_
-#define IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_IO_H_
+#ifndef IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_HPP_
+#define IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_HPP_
 
-#include <kinect/depth/polynomial_undistortion_matrix_io.h>
+#include <kinect/depth/polynomial_matrix_io.h>
 #include <sstream>
 #include <boost/lexical_cast.hpp>
 
@@ -203,7 +203,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                                                             const Scalar z,
                                                             cv::Mat & image,
                                                             Scalar max) const
@@ -227,7 +227,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialUndistortionMatrixImpl<Polynomial_> & undistortion_matrix,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
                                                                 const Scalar z,
                                                                 cv::Mat & image,
                                                                 Scalar & max) const
@@ -253,4 +253,4 @@ template <class Polynomial_>
   }
 
 } /* namespace calibration */
-#endif /* IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_IO_H_ */
+#endif /* IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_HPP_ */

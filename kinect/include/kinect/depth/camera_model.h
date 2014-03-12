@@ -26,43 +26,43 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATON_COMMON_DEPTH_VIEW_H_
-#define CALIBRATON_COMMON_DEPTH_VIEW_H_
+#ifndef KINECT_DEPTH_CAMERA_MODEL_H_
+#define KINECT_DEPTH_CAMERA_MODEL_H_
 
-#include <calibration_common/depth/sensor.h>
-#include <calibration_common/objects/view.h>
-#include <visualization_msgs/Marker.h>
+#include <calibration_common/pinhole/camera_model.h>
 
 namespace calibration
 {
 
-template <typename SensorT_, typename DataT_, typename ObjectT_>
-  struct DepthView_ : public View_<SensorT_, DataT_, ObjectT_, 3>
+class KinectDepthCameraModel : public PinholeCameraModel
+{
+public:
+
+  typedef boost::shared_ptr<KinectDepthCameraModel> Ptr;
+  typedef boost::shared_ptr<const KinectDepthCameraModel> ConstPtr;
+
+  typedef PinholeCameraModel Base;
+
+  KinectDepthCameraModel()
+    : Base()
   {
-    typedef boost::shared_ptr<DepthView_> Ptr;
-    typedef boost::shared_ptr<const DepthView_> ConstPtr;
+    // Do nothing
+  }
 
-    typedef View_<SensorT_, DataT_, ObjectT_, 3> Base;
-
-    void toMarker(visualization_msgs::Marker & marker) const;
-  };
-
-template <typename ObjectT_>
-  struct DepthViewEigen : public DepthView_<DepthSensor, Cloud3::ConstPtr, ObjectT_>
+  KinectDepthCameraModel(const sensor_msgs::CameraInfo & msg)
+    : Base(msg)
   {
-    typedef boost::shared_ptr<DepthViewEigen> Ptr;
-    typedef boost::shared_ptr<const DepthViewEigen> ConstPtr;
-  };
+    // Do nothing
+  }
 
-template <typename ObjectT_>
-  struct DepthViewPCL : public DepthView_<DepthSensor, PCLCloud3::ConstPtr, ObjectT_>
+  KinectDepthCameraModel(const KinectDepthCameraModel & other)
+    : Base(other)
   {
-    typedef boost::shared_ptr<DepthViewPCL> Ptr;
-    typedef boost::shared_ptr<const DepthViewPCL> ConstPtr;
-  };
+    // Do nothing
+  }
+
+};
 
 } /* namespace calibration */
 
-#include <impl/calibration_common/depth/view.hpp>
-
-#endif /* CALIBRATON_COMMON_DEPTH_VIEW_H_ */
+#endif /* KINECT_DEPTH_CAMERA_MODEL_H_ */

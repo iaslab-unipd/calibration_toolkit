@@ -29,7 +29,7 @@
 #ifndef IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MAP_FIT_HPP_
 #define IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MAP_FIT_HPP_
 
-#include <kinect/depth/polynomial_undistortion_function_fit.h>
+#include <kinect/depth/polynomial_function_fit.h>
 #include <calibration_common/ceres/polynomial_fit.h>
 #include <ceres/ceres.h>
 

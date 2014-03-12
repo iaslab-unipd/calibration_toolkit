@@ -38,67 +38,76 @@
 namespace calibration
 {
 
-template <typename DepthT_>
-  class DepthSensor : public Sensor
-  {
-  public:
+class DepthSensor : public Sensor
+{
+public:
 
-    typedef boost::shared_ptr<DepthSensor> Ptr;
-    typedef boost::shared_ptr<const DepthSensor> ConstPtr;
+  typedef boost::shared_ptr<DepthSensor> Ptr;
+  typedef boost::shared_ptr<const DepthSensor> ConstPtr;
 
-    typedef DepthUndistortionModel<DepthT_> UndistortionModel;
-
-    DepthSensor()
-      : Sensor(),
-        undistortion_model_(boost::make_shared<NoUndistortion_<DepthT_> >()),
-        depth_error_function_(Vector3::Zero())
-    {
-      // Do nothing
-    }
-
-    const typename UndistortionModel::ConstPtr undistortionModel() const
-    {
-      return undistortion_model_;
-    }
-
-    void setUndistortionModel(const typename UndistortionModel::ConstPtr & undistortion_model)
-    {
-      undistortion_model_ = undistortion_model;
-    }
-
-    const Polynomial<Scalar, 2> depthErrorFunction() const
-    {
-      return depth_error_function_;
-    }
-
-    void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
-    {
-      depth_error_function_ = depth_error_function;
-    }
-
-  private:
-
-    typename UndistortionModel::ConstPtr undistortion_model_;
-    Polynomial<Scalar, 2> depth_error_function_;
-
-  };
-
-template <typename ScalarT_>
-  struct DepthSensorEigen_ : public DepthSensor<DepthEigen_<ScalarT_> >
-  {
-    typedef boost::shared_ptr<DepthSensorEigen_> Ptr;
-    typedef boost::shared_ptr<const DepthSensorEigen_> ConstPtr;
-  };
-
-template <typename PCLPointT_>
-  struct DepthSensorPCL_ : public DepthSensor<DepthPCL_<PCLPointT_> >
-  {
-    typedef boost::shared_ptr<DepthSensorPCL_> Ptr;
-    typedef boost::shared_ptr<const DepthSensorPCL_> ConstPtr;
-  };
-
-typedef DepthSensor<DepthEigen> DepthSensorEigen;
-typedef DepthSensor<DepthPCL> DepthSensorPCL;
+};
+//
+//template <typename DepthT_>
+//  class DepthSensor : public Sensor
+//  {
+//  public:
+//
+//    typedef boost::shared_ptr<DepthSensor> Ptr;
+//    typedef boost::shared_ptr<const DepthSensor> ConstPtr;
+//
+//    typedef DepthUndistortion<DepthT_> Undistortion;
+//
+//    DepthSensor()
+//      : Sensor(),
+//        undistortion_model_(boost::make_shared<NoUndistortion_<DepthT_> >()),
+//        depth_error_function_(Vector3::Zero())
+//    {
+//      // Do nothing
+//    }
+//
+//    const typename Undistortion::ConstPtr undistortion() const
+//    {
+//      return undistortion_model_;
+//    }
+//
+//    void setUndistortion(const typename Undistortion::ConstPtr & undistortion_model)
+//    {
+//      undistortion_model_ = undistortion_model;
+//    }
+//
+//    const Polynomial<Scalar, 2> depthErrorFunction() const
+//    {
+//      return depth_error_function_;
+//    }
+//
+//    void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
+//    {
+//      depth_error_function_ = depth_error_function;
+//    }
+//
+//  private:
+//
+//    typename Undistortion::ConstPtr undistortion_model_;
+//    Polynomial<Scalar, 2> depth_error_function_;
+//
+//  };
+//
+//template <typename ScalarT_>
+//  struct DepthSensorEigen_ : public DepthSensor<DepthEigen_<ScalarT_> >
+//  {
+//    typedef boost::shared_ptr<DepthSensorEigen_> Ptr;
+//    typedef boost::shared_ptr<const DepthSensorEigen_> ConstPtr;
+//  };
+//
+//template <typename PCLPointT_>
+//  struct DepthSensorPCL_ : public DepthSensor<DepthPCL_<PCLPointT_> >
+//  {
+//    typedef boost::shared_ptr<DepthSensorPCL_> Ptr;
+//    typedef boost::shared_ptr<const DepthSensorPCL_> ConstPtr;
+//  };
+//
+//typedef DepthSensor<DepthEigen> DepthSensorEigen;
+//typedef DepthSensor<DepthPCL> DepthSensorPCL;
 
 //class DepthSensorEigen : public Sensor
 //{

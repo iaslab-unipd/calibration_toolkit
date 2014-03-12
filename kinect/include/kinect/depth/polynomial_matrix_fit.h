@@ -26,30 +26,30 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_FIT_H_
-#define KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_FIT_H_
+#ifndef KINECT_DEPTH_POLYNOMIAL_MATRIX_FIT_H_
+#define KINECT_DEPTH_POLYNOMIAL_MATRIX_FIT_H_
 
 #include <Eigen/Dense>
 #include <pcl/common/point_tests.h>
 #include <calibration_common/ceres/polynomial_fit.h>
 #include <calibration_common/depth/undistortion_model_fit.h>
-#include <kinect/depth/polynomial_undistortion_matrix.h>
+#include <kinect/depth/polynomial_matrix.h>
 
 namespace calibration
 {
 
-template <typename ModelImplT_>
-  class PolynomialUndistortionMatrixFitImpl : public DepthUndistortionModelFitImpl<ModelImplT_>
+template <typename UndistortionT_>
+  class PolynomialUndistortionMatrixFit_ : public DepthUndistortionModelFitImpl<UndistortionT_>
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialUndistortionMatrixFitImpl> Ptr;
-    typedef boost::shared_ptr<const PolynomialUndistortionMatrixFitImpl> ConstPtr;
+    typedef boost::shared_ptr<PolynomialUndistortionMatrixFit_> Ptr;
+    typedef boost::shared_ptr<const PolynomialUndistortionMatrixFit_> ConstPtr;
 
-    typedef DepthUndistortionModelFitImpl<ModelImplT_> Base;
+    typedef DepthUndistortionModelFitImpl<UndistortionT_> Base;
 
-    typedef typename ModelImplT_::Poly Poly;
-    typedef typename ModelImplT_::Scalar Scalar;
+    typedef typename UndistortionT_::Model::Poly Poly;
+    typedef typename UndistortionT_::Model::Scalar Scalar;
 
     static const int Size = MathTraits<Poly>::Size;
     static const int MinDegree = MathTraits<Poly>::MinDegree;
@@ -59,34 +59,34 @@ template <typename ModelImplT_>
     typedef typename Base::PointDistorsionBin PointDistorsionBin;
     typedef typename Base::AccumulationBin AccumulationBin;
 
-    PolynomialUndistortionMatrixFitImpl()
+    PolynomialUndistortionMatrixFit_()
     {
       // Do nothing
     }
 
-    explicit PolynomialUndistortionMatrixFitImpl(const typename ModelImplT_::Ptr & model_impl)
+    explicit PolynomialUndistortionMatrixFit_(const typename UndistortionT_::Ptr & model_impl)
       : model_impl_(model_impl),
-        distorsion_bins_(model_impl->data()->xSize(), model_impl->data()->ySize()),
-        accumulation_bins_(model_impl->data()->xSize(), model_impl->data()->ySize())
+        distorsion_bins_(model_impl->model()->data()->xSize(), model_impl->model()->data()->ySize()),
+        accumulation_bins_(model_impl->model()->data()->xSize(), model_impl->model()->data()->ySize())
     {
       // Do nothing
     }
 
-    virtual ~PolynomialUndistortionMatrixFitImpl()
+    virtual ~PolynomialUndistortionMatrixFit_()
     {
       // Do nothing
     }
 
-    virtual void setModelImpl(const typename ModelImplT_::Ptr & model_impl)
+    virtual void setModelImpl(const typename UndistortionT_::Ptr & model_impl)
     {
       model_impl_ = model_impl;
-      distorsion_bins_ = Matrix<typename Base::PointDistorsionBin>(model_impl->data()->xSize(),
-                                                                   model_impl->data()->ySize());
-      accumulation_bins_ = Matrix<typename Base::AccumulationBin>(model_impl->data()->xSize(),
-                                                                  model_impl->data()->ySize());
+      distorsion_bins_ = Matrix<typename Base::PointDistorsionBin>(model_impl->model()->data()->xSize(),
+                                                                   model_impl->model()->data()->ySize());
+      accumulation_bins_ = Matrix<typename Base::AccumulationBin>(model_impl->model()->data()->xSize(),
+                                                                  model_impl->model()->data()->ySize());
     }
 
-    virtual const typename ModelImplT_::Ptr & modelImpl() const
+    virtual const typename UndistortionT_::Ptr & modelImpl() const
     {
       return model_impl_;
     }
@@ -106,13 +106,13 @@ template <typename ModelImplT_>
     Matrix<PointDistorsionBin> distorsion_bins_;
     Matrix<AccumulationBin> accumulation_bins_;
 
-    typename ModelImplT_::Ptr model_impl_;
+    typename UndistortionT_::Ptr model_impl_;
 
   };
 
-template <typename PolynomialT_>
-  class PolynomialUndistortionMatrixFitEigen : public PolynomialUndistortionMatrixFitImpl<PolynomialUndistortionMatrixEigen<PolynomialT_> >,
-                                               public DepthUndistortionModelFit<DepthEigen_<typename MathTraits<PolynomialT_>::Scalar> >
+template <typename PolynomialT_, typename ScalarT_ = typename MathTraits<PolynomialT_>::Scalar>
+  class PolynomialUndistortionMatrixFitEigen : public PolynomialUndistortionMatrixFit_<DepthUndistortionImpl<PolynomialMatrixProjectedModel<PolynomialT_>, DepthEigen_<ScalarT_> > >,
+                                               public DepthUndistortionModelFit<DepthEigen_<ScalarT_> >
   {
   public:
 
@@ -121,9 +121,9 @@ template <typename PolynomialT_>
 
     typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
 
-    typedef PolynomialUndistortionMatrixEigen<PolynomialT_> UndistortionModel;
+    typedef DepthUndistortionImpl<PolynomialMatrixProjectedModel<PolynomialT_>, DepthEigen_<ScalarT_> > UndistortionModel;
 
-    typedef PolynomialUndistortionMatrixFitImpl<UndistortionModel> Base;
+    typedef PolynomialUndistortionMatrixFit_<UndistortionModel> Base;
     typedef typename Base::PointDistorsionBin PointDistorsionBin;
     typedef typename Base::AccumulationBin AccumulationBin;
 
@@ -156,7 +156,7 @@ template <typename PolynomialT_>
       model_ = model;
     }
 
-    virtual const typename DepthUndistortionModel<DepthEigen_<Scalar> >::Ptr & model() const
+    virtual const typename DepthUndistortion<DepthEigen_<Scalar> >::Ptr & model() const
     {
       return model_;
     }
@@ -195,34 +195,26 @@ template <typename PolynomialT_>
       Base::update();
     }
 
-    virtual typename Interface::Ptr clone() const
-    {
-      assert(Base::model_impl_);
-      PolynomialUndistortionMatrixFitEigen::Ptr clone = boost::make_shared<PolynomialUndistortionMatrixFitEigen>(*this);
-      clone->setModel(boost::shared_static_cast<UndistortionModel>(Base::model_impl_->clone()));
-      return clone;
-    }
-
   protected:
 
-    typename DepthUndistortionModel<DepthEigen_<Scalar> >::Ptr model_;
+    typename DepthUndistortion<DepthEigen_<Scalar> >::Ptr model_;
 
   };
 
-template <typename PolynomialT_, typename PCLPointT_>
-  class PolynomialUndistortionMatrixFitPCL : public PolynomialUndistortionMatrixFitImpl<PolynomialUndistortionMatrixPCL<PolynomialT_, PCLPointT_> >,
-                                             public DepthUndistortionModelFit<DepthPCL_<PCLPointT_>, typename MathTraits<PolynomialT_>::Scalar>
+template <typename PolynomialT_, typename PCLPointT_, typename ScalarT_ = typename MathTraits<PolynomialT_>::Scalar>
+  class PolynomialUndistortionMatrixFitPCL : public PolynomialUndistortionMatrixFit_<DepthUndistortionImpl<PolynomialMatrixProjectedModel<PolynomialT_>, DepthPCL_<PCLPointT_> > >,
+                                             public DepthUndistortionModelFit<DepthPCL_<PCLPointT_>, ScalarT_>
   {
   public:
 
     typedef boost::shared_ptr<PolynomialUndistortionMatrixFitPCL> Ptr;
     typedef boost::shared_ptr<const PolynomialUndistortionMatrixFitPCL> ConstPtr;
 
-    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef ScalarT_ Scalar;
 
-    typedef PolynomialUndistortionMatrixPCL<PolynomialT_, PCLPointT_> UndistortionModel;
+    typedef DepthUndistortionImpl<PolynomialMatrixProjectedModel<PolynomialT_>, DepthPCL_<PCLPointT_> > UndistortionModel;
 
-    typedef PolynomialUndistortionMatrixFitImpl<UndistortionModel> Base;
+    typedef PolynomialUndistortionMatrixFit_<UndistortionModel> Base;
     typedef typename Base::PointDistorsionBin PointDistorsionBin;
     typedef typename Base::AccumulationBin AccumulationBin;
 
@@ -255,7 +247,7 @@ template <typename PolynomialT_, typename PCLPointT_>
       model_ = model;
     }
 
-    virtual const typename DepthUndistortionModel<DepthPCL_<PCLPointT_> >::Ptr & model() const
+    virtual const typename DepthUndistortion<DepthPCL_<PCLPointT_> >::Ptr & model() const
     {
       return model_;
     }
@@ -280,7 +272,7 @@ template <typename PolynomialT_, typename PCLPointT_>
         return;
 
       size_t x_index, y_index;
-      Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
+      Base::model_impl_->model()->getIndex(UndistortionModel::project(point), x_index, y_index);
       Base::accumulation_bins_.at(x_index, y_index) += typename Types<Scalar>::Point3(point.x, point.y, point.z);
     }
 
@@ -297,22 +289,14 @@ template <typename PolynomialT_, typename PCLPointT_>
       Base::update();
     }
 
-    virtual typename Interface::Ptr clone() const
-    {
-      assert(Base::model_impl_);
-      PolynomialUndistortionMatrixFitPCL::Ptr clone = boost::make_shared<PolynomialUndistortionMatrixFitPCL>(*this);
-      clone->setModel(boost::shared_static_cast<UndistortionModel>(Base::model_impl_->clone()));
-      return clone;
-    }
-
   protected:
 
-    typename DepthUndistortionModel<DepthPCL_<Point> >::Ptr model_;
+    typename DepthUndistortion<DepthPCL_<Point> >::Ptr model_;
 
   };
 
 } /* namespace calibration */
 
-#include <impl/kinect/depth/polynomial_undistortion_matrix_fit.hpp>
+#include <impl/kinect/depth/polynomial_matrix_fit.hpp>
 
-#endif /* KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_FIT_H_ */
+#endif /* KINECT_DEPTH_POLYNOMIAL_MATRIX_FIT_H_ */

@@ -54,7 +54,7 @@ template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::S
       // Do nothing
     }
 
-    virtual const typename DepthUndistortionModel<DepthT_>::Ptr & model() const = 0;
+    virtual const typename DepthUndistortion<DepthT_>::Ptr & model() const = 0;
 
     virtual void accumulateCloud(const Cloud & cloud) = 0;
 
@@ -69,8 +69,6 @@ template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::S
     virtual void addAccumulatedPoints(const Plane & plane) = 0;
 
     virtual void update() = 0;
-
-    virtual Ptr clone() const = 0;
 
   };
 

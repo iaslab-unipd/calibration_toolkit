@@ -30,12 +30,17 @@
 #define KINECT_DEPTH_DEPTH_H_
 
 #include "camera_model.h"
-#include "undistortion_model.h"
+#include "sensor.h"
 
-#include "polynomial_undistortion_function.h"
-#include "polynomial_undistortion_function_fit.h"
-#include "polynomial_undistortion_matrix.h"
-#include "polynomial_undistortion_matrix_fit.h"
-#include "polynomial_undistortion_matrix_io.h"
+#include "two_steps_model.h"
+#include "two_steps_undistortion.h"
+
+#include "polynomial_function.h"
+#include "polynomial_function_fit.h"
+
+#include "polynomial_matrix.h"
+#include "polynomial_matrix_fit.h"
+#include "polynomial_matrix_io.h"
+#include "polynomial_matrix_model.h"
 
 #endif /* KINECT_DEPTH_DEPTH_H_ */

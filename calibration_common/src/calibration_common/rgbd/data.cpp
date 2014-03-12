@@ -74,14 +74,14 @@ void RGBDData::fuseData() const
 
   Transform t = color_sensor_->pose().inverse();
 
-  pcl::PointCloud<pcl::PointXYZ> depth_data_tmp(*depth_data_);
-  depth_sensor_->undistortionModel()->undistort(depth_data_tmp);
+//  pcl::PointCloud<pcl::PointXYZ> depth_data_tmp(*depth_data_);
+//  depth_sensor_->undistortion()->undistort(depth_data_tmp);
 
 #pragma omp parallel for
-  for (size_t i = 0; i < depth_data_tmp.size(); ++i)
+  for (size_t i = 0; i < depth_data_->size(); ++i)
   {
     PCLPointRGB & point_rgb = fused_data_->points[i];
-    Point3 point_eigen(depth_data_tmp[i].x, depth_data_tmp[i].y, depth_data_tmp[i].z);
+    Point3 point_eigen((*depth_data_)[i].x, (*depth_data_)[i].y, (*depth_data_)[i].z);
 
     point_rgb.x = point_eigen.x();
     point_rgb.y = point_eigen.y();

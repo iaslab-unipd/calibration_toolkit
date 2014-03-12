@@ -57,7 +57,9 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     typedef boost::shared_ptr<const View_> ConstPtr;
 
     View_()
-      : points_std_dev_(Scalar(1.0))
+      : points_std_dev_(Scalar(1.0)),
+        centroid_(Point3::Zero()),
+        centroid_need_recompute_(false)
     {
 
     }
@@ -65,6 +67,7 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     void setPoints(const PointMatrix<Scalar, Dimension_> & points)
     {
       points_ = points;
+      centroid_need_recompute_ = true;
     }
 
     void setPoints(const PointMatrix<Scalar, Dimension_> & points,
@@ -73,6 +76,7 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
       points_.resize(indices.size(), 1);
       for (size_t i = 0; i < indices.size(); ++i)
         points_[i] << points[indices[i]];
+      centroid_need_recompute_ = true;
     }
 
     const PointMatrix<Scalar, Dimension_> & points() const
@@ -120,6 +124,16 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
       return points_std_dev_;
     }
 
+    Point3 centroid() const
+    {
+      if (centroid_need_recompute_)
+      {
+        centroid_ = points_.matrix().rowwise().sum();
+        centroid_need_recompute_ = false;
+      }
+      return centroid_;
+    }
+
   protected:
 
     typename SensorT_::ConstPtr sensor_;
@@ -127,6 +141,9 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     typename ObjectT_::ConstPtr object_;
     PointMatrix<Scalar, Dimension_> points_;
     Scalar points_std_dev_;
+
+    mutable Point3 centroid_;
+    mutable bool centroid_need_recompute_;
 
   };
 

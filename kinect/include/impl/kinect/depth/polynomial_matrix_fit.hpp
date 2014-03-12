@@ -26,17 +26,17 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_FIT_HPP_
-#define IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_FIT_HPP_
+#ifndef IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_FIT_HPP_
+#define IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_FIT_HPP_
 
-#include <kinect/depth/polynomial_undistortion_matrix_fit.h>
+#include <kinect/depth/polynomial_matrix_fit.h>
 #include <ceres/ceres.h>
 
 namespace calibration
 {
 
 template <typename ModelImpl_>
-  void PolynomialUndistortionMatrixFitImpl<ModelImpl_>::addAccumulatedPoints(const Plane & plane)
+  void PolynomialUndistortionMatrixFit_<ModelImpl_>::addAccumulatedPoints(const Plane & plane)
   {
     for (size_t i = 0; i < accumulation_bins_.size(); ++i)
     {
@@ -52,7 +52,7 @@ template <typename ModelImpl_>
   }
 
 template <typename ModelImpl_>
-  void PolynomialUndistortionMatrixFitImpl<ModelImpl_>::update()
+  void PolynomialUndistortionMatrixFit_<ModelImpl_>::update()
   {
     assert(model_impl_);
 
@@ -74,7 +74,7 @@ template <typename ModelImpl_>
                                                                              distorsion_bin[i].second);
           problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual<Poly>, 1, Size>(residual),
                                    NULL,
-                                   model_impl_->polynomialAt(x_index, y_index).data());
+                                   model_impl_->model()->polynomial(x_index, y_index).data());
         }
 
         ceres::Solver::Options options;
@@ -88,21 +88,21 @@ template <typename ModelImpl_>
     }
   }
 
-template <typename Polynomial_>
-  void PolynomialUndistortionMatrixFitEigen<Polynomial_>::addPoint(const Point & point,
-                                                                   const Plane & plane)
+template <typename Polynomial_, typename ScalarT_>
+  void PolynomialUndistortionMatrixFitEigen<Polynomial_, ScalarT_>::addPoint(const Point & point,
+                                                                             const Plane & plane)
   {
     assert(Base::model_impl_);
     typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
-    Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
+    Base::model_impl_->model()->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
   }
 
-template <typename Polynomial_, typename PCLPoint_>
-  void PolynomialUndistortionMatrixFitPCL<Polynomial_, PCLPoint_>::addPoint(const Point & point,
-                                                                            const Plane & plane)
+template <typename Polynomial_, typename PCLPoint_, typename ScalarT_>
+  void PolynomialUndistortionMatrixFitPCL<Polynomial_, PCLPoint_, ScalarT_>::addPoint(const Point & point,
+                                                                                      const Plane & plane)
   {
     assert(Base::model_impl_);
     if (not pcl::isFinite(point))
@@ -112,10 +112,10 @@ template <typename Polynomial_, typename PCLPoint_>
     typename Types<Scalar>::Line line(eigen_point, Types<Scalar>::Vector3::UnitZ());
 
     size_t x_index, y_index;
-    Base::model_impl_->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
+    Base::model_impl_->model()->getIndex(UndistortionModel::project(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(eigen_point.z(),
                                                                       line.intersectionPoint(plane).z()));
   }
 
 } /* namespace calibration */
-#endif /* IMPL_KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MATRIX_FIT_HPP_ */
+#endif /* IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_FIT_HPP_ */

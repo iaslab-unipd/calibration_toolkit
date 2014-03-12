@@ -26,12 +26,12 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MAP_FIT_H_
-#define KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MAP_FIT_H_
+#ifndef KINECT_DEPTH_POLYNOMIAL_MAP_FIT_H_
+#define KINECT_DEPTH_POLYNOMIAL_MAP_FIT_H_
 
 #include <Eigen/Dense>
 #include <calibration_common/depth/undistortion_model_fit.h>
-#include <kinect/depth/polynomial_undistortion_function.h>
+#include <kinect/depth/polynomial_function.h>
 #include <pcl/point_types.h>
 #include <pcl/common/point_tests.h>
 
@@ -143,7 +143,7 @@ template <typename PolynomialT_>
       model_ = model;
     }
 
-    virtual const typename DepthUndistortionModel<DepthEigen_<Scalar> >::Ptr & model() const
+    virtual const typename DepthUndistortion<DepthEigen_<Scalar> >::Ptr & model() const
     {
       return model_;
     }
@@ -189,7 +189,7 @@ template <typename PolynomialT_>
 
   protected:
 
-    typename DepthUndistortionModel<DepthEigen_<Scalar> >::Ptr model_;
+    typename DepthUndistortion<DepthEigen_<Scalar> >::Ptr model_;
 
   };
 
@@ -239,7 +239,7 @@ template <typename PolynomialT_, typename PCLPointT_>
       model_ = model;
     }
 
-    virtual const typename DepthUndistortionModel<DepthPCL_<PCLPointT_> >::Ptr & model() const
+    virtual const typename DepthUndistortion<DepthPCL_<PCLPointT_> >::Ptr & model() const
     {
       return model_;
     }
@@ -287,12 +287,12 @@ template <typename PolynomialT_, typename PCLPointT_>
 
   protected:
 
-    typename DepthUndistortionModel<DepthPCL_<Point> >::Ptr model_;
+    typename DepthUndistortion<DepthPCL_<Point> >::Ptr model_;
 
   };
 
 } /* namespace calibration */
 
-#include <impl/kinect/depth/polynomial_undistortion_function_fit.hpp>
+#include <impl/kinect/depth/polynomial_function_fit.hpp>
 
-#endif /* KINECT_DEPTH_POLYNOMIAL_UNDISTORTION_MAP_FIT_H_ */
+#endif /* KINECT_DEPTH_POLYNOMIAL_MAP_FIT_H_ */

@@ -26,43 +26,59 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATON_COMMON_DEPTH_VIEW_H_
-#define CALIBRATON_COMMON_DEPTH_VIEW_H_
+#ifndef CALIBRATION_COMMON_DEPTH_CAMERA_MODEL_H_
+#define CALIBRATION_COMMON_DEPTH_CAMERA_MODEL_H_
 
-#include <calibration_common/depth/sensor.h>
-#include <calibration_common/objects/view.h>
-#include <visualization_msgs/Marker.h>
+#include <calibration_common/pinhole/camera_model.h>
 
 namespace calibration
 {
 
-template <typename SensorT_, typename DataT_, typename ObjectT_>
-  struct DepthView_ : public View_<SensorT_, DataT_, ObjectT_, 3>
+template <typename ImplT_>
+  class DepthCameraModel : public PinholeCameraModel
   {
-    typedef boost::shared_ptr<DepthView_> Ptr;
-    typedef boost::shared_ptr<const DepthView_> ConstPtr;
+  public:
 
-    typedef View_<SensorT_, DataT_, ObjectT_, 3> Base;
+    typedef boost::shared_ptr<DepthCameraModel> Ptr;
+    typedef boost::shared_ptr<const DepthCameraModel> ConstPtr;
 
-    void toMarker(visualization_msgs::Marker & marker) const;
-  };
+    typedef PinholeCameraModel Base;
+    typedef DepthUndistortionModel<ImplT_> UndistortionModelImplImpl;
 
-template <typename ObjectT_>
-  struct DepthViewEigen : public DepthView_<DepthSensor, Cloud3::ConstPtr, ObjectT_>
-  {
-    typedef boost::shared_ptr<DepthViewEigen> Ptr;
-    typedef boost::shared_ptr<const DepthViewEigen> ConstPtr;
-  };
+    DepthCameraModel()
+      : Base()
+    {
+      // Do nothing
+    }
 
-template <typename ObjectT_>
-  struct DepthViewPCL : public DepthView_<DepthSensor, PCLCloud3::ConstPtr, ObjectT_>
-  {
-    typedef boost::shared_ptr<DepthViewPCL> Ptr;
-    typedef boost::shared_ptr<const DepthViewPCL> ConstPtr;
+    DepthCameraModel(const sensor_msgs::CameraInfo & msg)
+      : Base(msg)
+    {
+      // Do nothing
+    }
+
+    DepthCameraModel(const KinectDepthCameraModel & other)
+      : Base(other)
+    {
+      // Do nothing
+    }
+
+    const typenUndistortionModelImplodelImpl::ConstPtr undistortionModel() const
+    {
+      return undistortion_model_;
+    }
+
+    void setUndistortionModel(const tUndistortionModelImplionModelImpl::ConstPtr & undistortion_model)
+    {
+      undistortion_model_ = undistortion_model;
+    }
+
+  private:
+
+ UndistortionModelImpltortionModelImpl::ConstPtr undistortion_model_;
+
   };
 
 } /* namespace calibration */
 
-#include <impl/calibration_common/depth/view.hpp>
-
-#endif /* CALIBRATON_COMMON_DEPTH_VIEW_H_ */
+#endif /* KINECT_DEPTH_CAMERA_MODEL_H_ */
