@@ -31,6 +31,7 @@
 
 #include <omp.h>
 #include <calibration_common/pcl/utils.h>
+#include <image_geometry/pinhole_camera_model.h>
 
 namespace calibration
 {
