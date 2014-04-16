@@ -61,18 +61,21 @@ catkin_package(
 ###########
 
 set(INCLUDE_FILES
-include/kinect/depth/polynomial_undistortion_function.h
-include/kinect/depth/undistortion_model.h
-include/kinect/depth/polynomial_undistortion_matrix_io.h
-include/kinect/depth/depth.h
-include/kinect/depth/polynomial_undistortion_matrix.h
-include/kinect/depth/camera_model.h
-include/kinect/depth/sensor.h
-include/kinect/depth/polynomial_undistortion_function_fit.h
-include/kinect/depth/polynomial_undistortion_matrix_fit.h
-include/impl/kinect/depth/polynomial_undistortion_matrix_io.hpp
-include/impl/kinect/depth/polynomial_undistortion_matrix_fit.hpp
-include/impl/kinect/depth/polynomial_undistortion_function_fit.hpp
+  include/kinect/depth/camera_model.h
+  include/kinect/depth/depth.h
+  include/kinect/depth/polynomial_function.h
+  include/kinect/depth/polynomial_function_fit.h
+  include/kinect/depth/polynomial_matrix.h
+  include/kinect/depth/polynomial_matrix_fit.h
+  include/kinect/depth/polynomial_matrix_io.h
+  include/kinect/depth/polynomial_matrix_model.h
+  include/kinect/depth/sensor.h
+  include/kinect/depth/two_steps_model.h
+  include/kinect/depth/two_steps_undistortion.h
+
+  include/impl/kinect/depth/polynomial_matrix_io.hpp
+  include/impl/kinect/depth/polynomial_matrix_fit.hpp
+  include/impl/kinect/depth/polynomial_function_fit.hpp
 )
 
 include_directories(
@@ -130,13 +133,19 @@ include_directories(
 ## Testing ##
 #############
 
-## Add gtest based cpp test target and link libraries
-#catkin_add_gtest(${PROJECT_NAME}-test test/test.cpp)
-#if(TARGET ${PROJECT_NAME}-test)
-#  target_link_libraries(${PROJECT_NAME}-test
-#    ${catkin_LIBRARIES}
-#  )
-#endif()
+# Add gtest based cpp test target and link libraries
+catkin_add_gtest(polynomial_matrix_io-test
+  test/polynomial_matrix_io-test.cpp
+  ${INCLUDE_FILES}
+)
+
+if(TARGET polynomial_matrix_io-test)
+  target_link_libraries(polynomial_matrix_io-test
+    ${catkin_LIBRARIES}
+    ${PCL_LIBRARIES}
+    ${CERES_LIBRARIES}
+  )
+endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

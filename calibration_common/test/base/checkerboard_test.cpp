@@ -31,7 +31,7 @@
 #include <calibration_common/objects/checkerboard.h>
 
 using calibration::Checkerboard;
-using namespace calibration::Types;
+using namespace calibration;
 
 #define ERROR 1e-6
 

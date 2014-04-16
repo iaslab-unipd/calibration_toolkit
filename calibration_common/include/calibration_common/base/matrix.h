@@ -1,18 +1,29 @@
 /*
- *  Copyright (C) 2013 - Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  All rights reserved.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *     1. Redistributions of source code must retain the above copyright
+ *        notice, this list of conditions and the following disclaimer.
+ *     2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ *     3. Neither the name of the copyright holder(s) nor the
+ *        names of its contributors may be used to endorse or promote products
+ *        derived from this software without specific prior written permission.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *  DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ *  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef CALIBRATION_COMMON_BASE_MATRIX_H_
@@ -180,7 +191,28 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
 #define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
 
-template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic>
+template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic, bool UseArray_ = true>
+  class EigenMatrix;
+
+template <typename EigenMatrixT_, bool UseArray_>
+  struct ContainerTraits
+  {
+
+  };
+
+template <typename EigenMatrixT_>
+  struct ContainerTraits<EigenMatrixT_, true>
+  {
+    typedef Eigen::Array<typename EigenMatrixT_::Scalar, EigenMatrixT_::TSize, EigenMatrixT_::Size, Eigen::ColMajor> Container;
+  };
+
+template <typename EigenMatrixT_>
+  struct ContainerTraits<EigenMatrixT_, false>
+  {
+    typedef Eigen::Matrix<typename EigenMatrixT_::Scalar, EigenMatrixT_::TSize, EigenMatrixT_::Size, Eigen::ColMajor> Container;
+  };
+
+template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
   class EigenMatrix
   {
   public:
@@ -188,15 +220,15 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
     typedef boost::shared_ptr<EigenMatrix> Ptr;
     typedef boost::shared_ptr<const EigenMatrix> ConstPtr;
 
-    typedef typename EigenT_::Scalar T;
+    typedef typename EigenT_::Scalar Scalar;
 
     static const int TSize = MAX(EigenT_::RowsAtCompileTime, EigenT_::ColsAtCompileTime);
     static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
 
-    typedef Eigen::Array<T, TSize, Size, Eigen::ColMajor> DataMatrix;
+    typedef typename ContainerTraits<EigenMatrix, UseArray_>::Container Container;
 
-    typedef typename DataMatrix::ColXpr Element;
-    typedef const typename DataMatrix::ConstColXpr ConstElement;
+    typedef typename Container::ColXpr Element;
+    typedef const typename Container::ConstColXpr ConstElement;
 
     EigenMatrix()
       : x_size_(XSize_),
@@ -204,7 +236,7 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(DataMatrix);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container);
     }
 
     EigenMatrix(size_t x_size,
@@ -215,45 +247,45 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(DataMatrix);
+      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Container);
       assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
       assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
     }
 
     EigenMatrix(const EigenT_ & value)
-      : matrix_(DataMatrix::Zero()),
+      : matrix_(Container::Zero()),
         x_size_(XSize_),
         y_size_(YSize_)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(DataMatrix);
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container);
       matrix_.colwise() += value;
     }
 
     EigenMatrix(size_t x_size,
                 size_t y_size,
                 const EigenT_ & value)
-      : matrix_(DataMatrix::Zero(TSize, x_size * y_size)),
+      : matrix_(Container::Zero(TSize, x_size * y_size)),
         x_size_(x_size),
         y_size_(y_size)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(DataMatrix);
+      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Container);
       assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
       assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
       matrix_.colwise() += value;
     }
 
-    explicit EigenMatrix(const DataMatrix & data)
+    explicit EigenMatrix(const Container & data)
       : matrix_(data),
         x_size_(XSize_),
         y_size_(YSize_)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(DataMatrix); // TODO also for Dynamic size?
+      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container); // TODO also for Dynamic size?
       assert(data.size() == Size);
     }
 
@@ -282,7 +314,7 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
       y_size_ = y_size;
     }
 
-    void setData(const DataMatrix & data)
+    void setData(const Container & data)
     {
       assert(xSize() * ySize() == data.size());
       matrix_ = data;
@@ -326,12 +358,12 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
       return operator ()(x_index, y_index);
     }
 
-    DataMatrix & matrix()
+    Container & matrix()
     {
       return matrix_;
     }
 
-    const DataMatrix & matrix() const
+    const Container & matrix() const
     {
       return matrix_;
     }
@@ -340,7 +372,7 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
 
   private:
 
-    DataMatrix matrix_;
+    Container matrix_;
 
     size_t x_size_;
     size_t y_size_;
@@ -350,11 +382,11 @@ template <typename EigenT_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dyn
 template <typename T_, int XSize_, int YSize_, typename AllocatorT_>
   const int Matrix<T_, XSize_, YSize_, AllocatorT_>::Size;
 
-template <typename EigenT_, int XSize_, int YSize_>
-  const int EigenMatrix<EigenT_, XSize_, YSize_>::TSize;
+template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
+  const int EigenMatrix<EigenT_, XSize_, YSize_, UseArray_>::TSize;
 
-template <typename EigenT_, int XSize_, int YSize_>
-  const int EigenMatrix<EigenT_, XSize_, YSize_>::Size;
+template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
+  const int EigenMatrix<EigenT_, XSize_, YSize_, UseArray_>::Size;
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_BASE_MATRIX_H_ */

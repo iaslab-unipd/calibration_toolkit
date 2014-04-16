@@ -83,16 +83,14 @@ public:
     parent_ = parent;
   }
 
-  bool toTF(geometry_msgs::TransformStamped & transform_msg) const;
-
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-protected:
-
   void setPose(const Pose & pose)
   {
     pose_ = pose;
   }
+
+  bool toTF(geometry_msgs::TransformStamped & transform_msg) const;
+
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
 
