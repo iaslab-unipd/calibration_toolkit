@@ -4,7 +4,13 @@ project(calibration_common)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED COMPONENTS tf image_geometry eigen_conversions visualization_msgs calibration_msgs)
+find_package(catkin REQUIRED
+             COMPONENTS cmake_modules
+                        tf
+                        image_geometry
+                        eigen_conversions
+                        visualization_msgs
+                        calibration_msgs)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
