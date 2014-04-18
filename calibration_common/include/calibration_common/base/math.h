@@ -35,12 +35,33 @@
 namespace calibration
 {
 
+/**
+ * @brief Base class for math function traits.
+ * Subclasses of MathFunction must specialize this class:
+ * @code
+ * struct MathTraits<DerivedClass>
+ * {
+ *   typedef <Type1> Scalar;
+ *   typedef <Type2> FunctionX;
+ *   typedef <Type3> FunctionY;
+ * };
+ * @endcode
+ * @param DerivedT_ a subclass of MathFunction
+ */
 template <typename DerivedT_>
   struct MathTraits
   {
 
   };
 
+/**
+ * @brief Base class for math functions.
+ * Derived classes must implement:
+ * @code
+ *   typename MathTraits<DerivedClass>::FunctionY evaluate(const typename MathTraits<DerivedClass>::FunctionX & x) const;
+ * @endcode
+ * @param DerivedT_ the subclass of MathFunction, according to the [CRTP](http://en.wikipedia.org/wiki/Curiously_recurring_template_pattern) idiom
+ */
 template <typename DerivedT_>
   class MathFunction
   {
@@ -53,21 +74,34 @@ template <typename DerivedT_>
     typedef typename MathTraits<DerivedT_>::FunctionX FunctionX;
     typedef typename MathTraits<DerivedT_>::FunctionY FunctionY;
 
-    FunctionY operator ()(const FunctionX & x) const
+    /**
+     * @brief Evaluates the function in @b x
+     * @param x
+     * @return The function evaluated in @b x
+     */
+    inline FunctionY operator ()(const FunctionX & x) const
     {
       return DerivedT_::evaluate(x);
     }
 
   };
 
+/**
+ * Polynomial function. Coefficients are stored ordered by degree, from @c MinDegree_ to @c Degree_.
+ * @param ScalarT_ the polynomial coefficients type
+ * @param Degree_ the maximum degree of the polynomial
+ * @param MinDegree_ the minimum degree of the polynomial
+ */
 template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
   class Polynomial;
 
+/**
+ * Specialization of MathTraits for Polynomial class.
+ */
 template <typename ScalarT_, int Degree_, int MinDegree_>
   struct MathTraits<Polynomial<ScalarT_, Degree_, MinDegree_> >
   {
     static const int Size = (Degree_ == Eigen::Dynamic ? Eigen::Dynamic : Degree_ + 1 - MinDegree_);
-    //    static const int Size = Degree_ + 1 - MinDegree_;
     static const int MinDegree = MinDegree_;
     static const int Degree = Degree_;
 
@@ -92,12 +126,19 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
     typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
     typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
 
+    /**
+     * @brief Default constructor. Coefficients are not initialized.
+     */
     Polynomial()
     {
       EIGEN_STATIC_ASSERT(MinDegree_ >= 0, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       EIGEN_STATIC_ASSERT(Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
     }
 
+    /**
+     * @brief Polynomial
+     * @param coefficients The polynomial coefficients
+     */
     template <typename OtherDerived>
       explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients)
         : coefficients_(coefficients)
@@ -106,42 +147,75 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
         EIGEN_STATIC_ASSERT(Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       }
 
-    FunctionY evaluate(const FunctionX & x) const
+    /**
+     * @brief evaluate
+     * @param x
+     * @return
+     */
+    inline FunctionY evaluate(const FunctionX & x) const
     {
       return evaluate(coefficients_, x);
     }
 
-    const Coefficients & coefficients() const
+    /**
+     * @brief coefficients
+     * @return
+     */
+    inline const Coefficients & coefficients() const
     {
       return coefficients_;
     }
 
-    Coefficients & coefficients()
+    /**
+     * @brief coefficients
+     * @return
+     */
+    inline Coefficients & coefficients()
     {
       return coefficients_;
     }
 
-    Scalar * dataPtr()
+    /**
+     * @brief dataPtr
+     * @return
+     */
+    inline Scalar * dataPtr()
     {
       return coefficients_.data();
     }
 
-    const Scalar * dataPtr() const
+    /**
+     * @brief dataPtr
+     * @return
+     */
+    inline const Scalar * dataPtr() const
     {
       return coefficients_.data();
     }
 
-    static const Polynomial Identity()
+    /**
+     * @brief Identity
+     * @return
+     */
+    inline static const Polynomial Identity()
     {
       return Polynomial(IdentityCoefficients());
     }
 
-    size_t size() const
+    /**
+     * @brief size
+     * @return
+     */
+    inline size_t size() const
     {
       return MathTraits<Polynomial>::Size;
     }
 
-    static const Coefficients IdentityCoefficients()
+    /**
+     * @brief IdentityCoefficients
+     * @return
+     */
+    inline static const Coefficients IdentityCoefficients()
     {
       EIGEN_STATIC_ASSERT(MinDegree_ <= 1 and Degree_ >= 1, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       Coefficients coeffs(Coefficients::Zero());
@@ -149,9 +223,15 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
       return coeffs;
     }
 
+    /**
+     * @brief evaluate
+     * @param coefficients
+     * @param x
+     * @return
+     */
     template <typename OtherDerived>
-      static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
-                                const FunctionX & x)
+      inline static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
+                                       const FunctionX & x)
       {
         FunctionY y = Eigen::poly_eval(coefficients, x);
         for (int i = 0; i < MinDegree_; ++i)
@@ -163,10 +243,16 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
 
   protected:
 
+    /**
+     * @brief coefficients_
+     */
     Coefficients coefficients_;
 
   };
 
+/**
+ *
+ */
 template <typename ScalarT_>
   class Polynomial<ScalarT_, Eigen::Dynamic, 0> : public MathFunction<Polynomial<ScalarT_, Eigen::Dynamic, 0> >
   {
@@ -182,7 +268,7 @@ template <typename ScalarT_>
     typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
     typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
 
-    Polynomial(size_t degree)
+    explicit Polynomial(size_t degree)
       : coefficients_(degree + 1)
     {
       // Do nothing
@@ -195,63 +281,63 @@ template <typename ScalarT_>
         // Do nothing
       }
 
-    size_t degree() const
+    inline size_t degree() const
     {
       return coefficients_.size() - 1;
     }
 
-    size_t minDegree() const
+    inline size_t minDegree() const
     {
       return 0;
     }
 
-    size_t size() const
+    inline size_t size() const
     {
       return coefficients_.size();
     }
 
-    FunctionY evaluate(const FunctionX & x) const
+    inline FunctionY evaluate(const FunctionX & x) const
     {
       return evaluate(coefficients_, x);
     }
 
-    Scalar & operator [](size_t index)
+    inline Scalar & operator [](size_t index)
     {
       return coefficients_.coeffRef(index);
     }
 
-    const Scalar & operator [](size_t index) const
+    inline const Scalar & operator [](size_t index) const
     {
       return coefficients_.coeffRef(index);
     }
 
     template <typename OtherDerived>
-      void setCoefficients(const Eigen::DenseBase<OtherDerived> & coefficients)
+      inline void setCoefficients(const Eigen::DenseBase<OtherDerived> & coefficients)
       {
         coefficients_ = coefficients;
       }
 
-    const Coefficients & coefficients() const
+    inline const Coefficients & coefficients() const
     {
       return coefficients_;
     }
 
-    Scalar * data()
+    inline Scalar * dataPtr()
     {
       return coefficients_.data();
     }
 
-    const Scalar * data() const
+    inline const Scalar * dataPtr() const
     {
       return coefficients_.data();
     }
 
-    static const Polynomial Identity(int degree)
+    inline static const Polynomial Identity(int degree)
     {
       return Polynomial(IdentityCoefficients(degree));
     }
 
-    static const Coefficients IdentityCoefficients(int degree)
+    inline static const Coefficients IdentityCoefficients(int degree)
     {
       assert(degree >= 1);
       Coefficients coeffs(Coefficients::Zero(degree + 1));
@@ -260,7 +346,7 @@ template <typename ScalarT_>
     }
 
     template <typename OtherDerived>
-      static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
+      inline static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
                                 const FunctionX & x)
       {
         return Eigen::poly_eval(coefficients, x);
