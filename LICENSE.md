@@ -1,4 +1,4 @@
-Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+Copyright (c) 2013-2014, Filippo Basso \<bassofil@dei.unipd.it>
 
 All rights reserved.
 
