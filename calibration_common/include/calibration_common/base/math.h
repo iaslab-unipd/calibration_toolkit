@@ -250,9 +250,6 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
 
   };
 
-/**
- *
- */
 template <typename ScalarT_>
   class Polynomial<ScalarT_, Eigen::Dynamic, 0> : public MathFunction<Polynomial<ScalarT_, Eigen::Dynamic, 0> >
   {

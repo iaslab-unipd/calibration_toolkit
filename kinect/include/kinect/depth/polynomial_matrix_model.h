@@ -115,13 +115,13 @@ template <typename PolynomialT_>
     virtual Scalar * dataPtr()
     {
       assert(data_);
-      return data_->matrix().data();
+      return data_->container().data();
     }
 
     virtual const Scalar * dataPtr() const
     {
       assert(data_);
-      return data_->matrix().data();
+      return data_->container().data();
     }
 
   protected:

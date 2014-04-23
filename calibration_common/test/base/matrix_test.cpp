@@ -63,35 +63,35 @@ TEST(Matrix, Matrix_fixed_value)
 {
   std::vector<int> conf(10, 7);
   Matrix<int, 2, 5> matrix(7);
-  EXPECT_EQ(matrix.matrix(), conf);
+  EXPECT_EQ(matrix.container(), conf);
 }
 
 TEST(Matrix, Matrix_dynamic_value)
 {
   std::vector<int> conf(10, 7);
   Matrix<int> matrix(2, 5, 7);
-  EXPECT_EQ(matrix.matrix(), conf);
+  EXPECT_EQ(matrix.container(), conf);
 }
 
 TEST(Matrix, Matrix_dynamic_value_2)
 {
   std::vector<int> conf(10, 7);
   Matrix<int, 2> matrix(2, 5, 7);
-  EXPECT_EQ(matrix.matrix(), conf);
+  EXPECT_EQ(matrix.container(), conf);
 }
 
 TEST(Matrix, Matrix_dynamic_value_3)
 {
   std::vector<int> conf(10, 7);
   Matrix<int, Eigen::Dynamic, 5> matrix(2, 5, 7);
-  EXPECT_EQ(matrix.matrix(), conf);
+  EXPECT_EQ(matrix.container(), conf);
 }
 
 TEST(Matrix, Matrix_data)
 {
   std::vector<int> data(10, 7);
   Matrix<int, 2, 5> matrix(data);
-  EXPECT_EQ(matrix.matrix(), data);
+  EXPECT_EQ(matrix.container(), data);
 }
 
 TEST(Matrix, reshape)
@@ -99,5 +99,5 @@ TEST(Matrix, reshape)
   std::vector<int> conf(10, 7);
   Matrix<int> matrix(2, 5, 7);
   matrix.reshape(5, 2);
-  EXPECT_EQ(matrix.matrix(), conf);
+  EXPECT_EQ(matrix.container(), conf);
 }

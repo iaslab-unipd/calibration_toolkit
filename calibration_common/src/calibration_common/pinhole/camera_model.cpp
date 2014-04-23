@@ -71,9 +71,9 @@ void PinholeCameraModel::projectPixelTo3dRay(const Cloud2 & pixel_points,
   Eigen::Array<Scalar, 2, 1> sub(-cx() - Tx(), -cy() - Ty());
   Eigen::Array<Scalar, 2, 1> div(fx(), fy());
 
-  world_points.matrix().topRows<2>() = (pixel_points.matrix().array().colwise() + sub).colwise() / div;
-  world_points.matrix().bottomRows<1>().setOnes();
-  world_points.matrix().array().rowwise() /= world_points.matrix().colwise().norm().array();
+  world_points.container().topRows<2>() = (pixel_points.container().array().colwise() + sub).colwise() / div;
+  world_points.container().bottomRows<1>().setOnes();
+  world_points.container().array().rowwise() /= world_points.container().colwise().norm().array();
 
 }
 
@@ -95,11 +95,11 @@ void PinholeCameraModel::project3dToPixel(const Cloud3 & world_points,
   Point2 sum(Tx(), Ty());
   Point2 sum_final(cx(), cy());
 
-  pixel_points.matrix() = world_points.matrix().topRows<2>();
-  pixel_points.matrix().array().colwise() *= prod;
-  pixel_points.matrix().colwise() += sum;
-  pixel_points.matrix().array().rowwise() /= world_points.matrix().array().bottomRows<1>();
-  pixel_points.matrix().colwise() += sum_final;
+  pixel_points.container() = world_points.container().topRows<2>();
+  pixel_points.container().array().colwise() *= prod;
+  pixel_points.container().colwise() += sum;
+  pixel_points.container().array().rowwise() /= world_points.container().array().bottomRows<1>();
+  pixel_points.container().colwise() += sum_final;
 
 }
 
@@ -117,8 +117,8 @@ Pose PinholeCameraModel::estimatePose(const Cloud2 & points_image,
 
   cv::Mat_<cv::Vec<Scalar, 2> > cv_points_image;
   cv::Mat_<cv::Vec<Scalar, 3> > cv_points_object;
-  OpenCVConversion<Scalar>::toOpenCV(points_image.matrix(), cv_points_image);
-  OpenCVConversion<Scalar>::toOpenCV(points_object.matrix(), cv_points_object);
+  OpenCVConversion<Scalar>::toOpenCV(points_image.container(), cv_points_image);
+  OpenCVConversion<Scalar>::toOpenCV(points_object.container(), cv_points_object);
 
   cv::Vec<Scalar, 3> cv_r;
   cv::Vec<Scalar, 3> cv_t;

@@ -34,6 +34,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The ColorSensor class
+ */
 class ColorSensor : public Sensor
 {
 public:

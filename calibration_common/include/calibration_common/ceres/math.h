@@ -35,6 +35,12 @@
 namespace ceres
 {
 
+/**
+ * @brief poly_eval
+ * @param polynomial
+ * @param x
+ * @return
+ */
 template <typename DerivedT_>
   typename Eigen::DenseBase<DerivedT_>::Scalar poly_eval(const Eigen::DenseBase<DerivedT_> & polynomial,
                                                          const typename Eigen::DenseBase<DerivedT_>::Scalar & x)
@@ -55,6 +61,12 @@ template <typename DerivedT_>
     }
   }
 
+/**
+ * @brief The Polynomial class
+ * @param ScalarT_
+ * @param Degree_
+ * @param MinDegree_
+ */
 template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
   class Polynomial : public calibration::Polynomial<ScalarT_, Degree_, MinDegree_>
   {
@@ -70,12 +82,19 @@ template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
     typedef typename Base::FunctionY FunctionY;
     typedef typename Base::Coefficients Coefficients;
 
+    /**
+     * @brief Polynomial
+     */
     Polynomial()
     {
       EIGEN_STATIC_ASSERT(MinDegree_ >= 0, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       EIGEN_STATIC_ASSERT(Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
     }
 
+    /**
+     * @brief Polynomial
+     * @param coefficients
+     */
     template <typename OtherDerived>
       explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients)
         : Base(coefficients)
@@ -84,17 +103,30 @@ template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
         EIGEN_STATIC_ASSERT(Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       }
 
-    FunctionY evaluate(const FunctionX & x) const
+    /**
+     * @brief evaluate
+     * @param x
+     * @return
+     */
+    inline FunctionY evaluate(const FunctionX & x) const
     {
       return evaluate(Base::coefficients_, x);
     }
 
-    static const Polynomial Identity()
+    /**
+     * @brief Identity
+     * @return
+     */
+    inline static const Polynomial Identity()
     {
       return Polynomial(IdentityCoefficients());
     }
 
-    static const Coefficients IdentityCoefficients()
+    /**
+     * @brief IdentityCoefficients
+     * @return
+     */
+    inline static const Coefficients IdentityCoefficients()
     {
       EIGEN_STATIC_ASSERT(MinDegree_ <= 1 and Degree_ >= 1, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       Coefficients coeffs(Coefficients::Zero());
@@ -102,9 +134,15 @@ template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
       return coeffs;
     }
 
+    /**
+     * @brief evaluate
+     * @param coefficients
+     * @param x
+     * @return
+     */
     template <typename OtherDerived>
-      static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
-                                const FunctionX & x)
+      inline static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
+                                       const FunctionX & x)
       {
         FunctionY y = poly_eval(coefficients, x);
         for (int i = 0; i < MinDegree_; ++i)

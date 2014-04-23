@@ -36,6 +36,12 @@
 namespace calibration
 {
 
+/**
+ * @brief The DepthView_ struct
+ * @param SensorT_
+ * @param DataT_
+ * @param ObjectT_
+ */
 template <typename SensorT_, typename DataT_, typename ObjectT_>
   struct DepthView_ : public View_<SensorT_, DataT_, ObjectT_, 3>
   {
@@ -47,6 +53,10 @@ template <typename SensorT_, typename DataT_, typename ObjectT_>
     void toMarker(visualization_msgs::Marker & marker) const;
   };
 
+/**
+ * @brief The DepthViewEigen struct
+ * @param ObjectT_
+ */
 template <typename ObjectT_>
   struct DepthViewEigen : public DepthView_<DepthSensor, Cloud3::ConstPtr, ObjectT_>
   {
@@ -54,6 +64,10 @@ template <typename ObjectT_>
     typedef boost::shared_ptr<const DepthViewEigen> ConstPtr;
   };
 
+/**
+ * @brief The DepthViewPCL struct
+ * @param ObjectT_
+ */
 template <typename ObjectT_>
   struct DepthViewPCL : public DepthView_<DepthSensor, PCLCloud3::ConstPtr, ObjectT_>
   {

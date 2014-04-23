@@ -35,6 +35,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The BaseObject class
+ */
 class BaseObject
 {
 public:
@@ -42,52 +45,91 @@ public:
   typedef boost::shared_ptr<BaseObject> Ptr;
   typedef boost::shared_ptr<const BaseObject> ConstPtr;
 
+  /**
+   * @brief BaseObject
+   */
   BaseObject()
     : pose_(Pose::Identity())
   {
     // Do nothing
   }
 
+  /**
+   * @brief ~BaseObject
+   */
   virtual ~BaseObject()
   {
     // Do nothing
   }
 
-  virtual void transform(const Transform & transform)
+  /**
+   * @brief transform
+   * @param transform
+   */
+  inline virtual void transform(const Transform & transform)
   {
     pose_ = transform * pose_;
   }
 
-  const Pose & pose() const
+  /**
+   * @brief pose
+   * @return
+   */
+  inline const Pose & pose() const
   {
     return pose_;
   }
 
-  const std::string & frameId() const
+  /**
+   * @brief frameId
+   * @return
+   */
+  inline const std::string & frameId() const
   {
     return frame_id_;
   }
 
-  const ConstPtr & parent() const
+  /**
+   * @brief parent
+   * @return
+   */
+  inline const ConstPtr & parent() const
   {
     return parent_;
   }
 
-  void setFrameId(const std::string & frame_id)
+  /**
+   * @brief setFrameId
+   * @param frame_id
+   */
+  inline void setFrameId(const std::string & frame_id)
   {
     frame_id_ = frame_id;
   }
 
-  void setParent(const ConstPtr & parent)
+  /**
+   * @brief setParent
+   * @param parent
+   */
+  inline void setParent(const ConstPtr & parent)
   {
     parent_ = parent;
   }
 
-  void setPose(const Pose & pose)
+  /**
+   * @brief setPose
+   * @param pose
+   */
+  inline void setPose(const Pose & pose)
   {
     pose_ = pose;
   }
 
+  /**
+   * @brief toTF
+   * @param transform_msg
+   * @return
+   */
   bool toTF(geometry_msgs::TransformStamped & transform_msg) const;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

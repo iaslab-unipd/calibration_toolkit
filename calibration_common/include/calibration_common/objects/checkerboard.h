@@ -35,6 +35,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The Checkerboard class
+ */
 class Checkerboard : public PlanarObject
 {
 public:
@@ -45,6 +48,13 @@ public:
   typedef Cloud3::Element Element;
   typedef Cloud3::ConstElement ConstElement;
 
+  /**
+   * @brief Checkerboard
+   * @param cols
+   * @param rows
+   * @param cell_width
+   * @param cell_height
+   */
   Checkerboard(size_t cols,
                size_t rows,
                Scalar cell_width,
@@ -63,129 +73,226 @@ public:
         corners_(c, r) << c * cell_width, r * cell_height, Scalar(0);
   }
 
+  /**
+   * @brief Checkerboard
+   * @param view
+   */
   template <typename ColorSensor>
-  Checkerboard(const ColorView<ColorSensor, Checkerboard> & view)
-    : PlanarObject(),
-      corners_(view.object()->corners()),
-      cell_width_(view.object()->cellWidth()),
-      cell_height_(view.object()->cellHeight())
+    Checkerboard(const ColorView<ColorSensor, Checkerboard> & view)
+      : PlanarObject(),
+        corners_(view.object()->corners()),
+        cell_width_(view.object()->cellWidth()),
+        cell_height_(view.object()->cellHeight())
 
-  {
-    setParent(view.sensor());
-    setPlane(view.object()->plane());
+    {
+      setParent(view.sensor());
+      setPlane(view.object()->plane());
 
-    std::stringstream ss;
-    ss << view.object()->frameId() << "_" << view.id();
-    setFrameId(ss.str());
+      std::stringstream ss;
+      ss << view.object()->frameId() << "_" << view.id();
+      setFrameId(ss.str());
 
-    transform(view.sensor()->cameraModel()->estimatePose(view.points(), view.object()->corners()));
-  }
+      transform(view.sensor()->cameraModel()->estimatePose(view.points(), view.object()->corners()));
+    }
 
+  /**
+   * @brief ~Checkerboard
+   */
   virtual ~Checkerboard()
   {
     // Do nothing
   }
 
-  virtual void transform(const Transform & transform)
+  /**
+   * @brief transform
+   * @param transform
+   */
+  inline virtual void transform(const Transform & transform)
   {
     PlanarObject::transform(transform);
     corners_.transform(transform);
   }
 
-  virtual const Cloud3 & points() const
+  /**
+   * @brief points
+   * @return
+   */
+  inline virtual const Cloud3 & points() const
   {
     return corners();
   }
 
-  Point3 center() const
+  /**
+   * @brief center
+   * @return
+   */
+  inline Point3 center() const
   {
     return Point3((corners_(0, 0) + corners_(cols() - 1, rows() - 1)) / 2);
   }
 
-  Cloud3 & corners()
+  /**
+   * @brief corners
+   * @return
+   */
+  inline Cloud3 & corners()
   {
     return corners_;
   }
 
-  const Cloud3 & corners() const
+  /**
+   * @brief corners
+   * @return
+   */
+  inline const Cloud3 & corners() const
   {
     return corners_;
   }
 
-  size_t size() const
+  /**
+   * @brief size
+   * @return
+   */
+  inline size_t size() const
   {
     return corners_.size();
   }
 
-  size_t rows() const
+  /**
+   * @brief rows
+   * @return
+   */
+  inline size_t rows() const
   {
     return corners_.ySize();
   }
 
-  size_t cols() const
+  /**
+   * @brief cols
+   * @return
+   */
+  inline size_t cols() const
   {
     return corners_.xSize();
   }
 
-  Scalar cellWidth() const
+  /**
+   * @brief cellWidth
+   * @return
+   */
+  inline Scalar cellWidth() const
   {
     return cell_width_;
   }
 
-  Scalar cellHeight() const
+  /**
+   * @brief cellHeight
+   * @return
+   */
+  inline Scalar cellHeight() const
   {
     return cell_height_;
   }
 
-  Scalar area() const
+  /**
+   * @brief area
+   * @return
+   */
+  inline Scalar area() const
   {
     return width() * height();
   }
 
-  Scalar width() const
+  /**
+   * @brief width
+   * @return
+   */
+  inline Scalar width() const
   {
     return cellWidth() * (cols() + 1);
   }
 
-  Scalar height() const
+  /**
+   * @brief height
+   * @return
+   */
+  inline Scalar height() const
   {
     return cellHeight() * (rows() + 1);
   }
 
-  Element operator [](size_t index)
+  /**
+   * @brief operator []
+   * @param index
+   * @return
+   */
+  inline Element operator [](size_t index)
   {
     return corners_[index];
   }
 
-  const ConstElement operator [](size_t index) const
+  /**
+   * @brief operator []
+   * @param index
+   * @return
+   */
+  inline const ConstElement operator [](size_t index) const
   {
     return corners_[index];
   }
 
-  const ConstElement at(size_t col,
+  /**
+   * @brief at
+   * @param col
+   * @param row
+   * @return
+   */
+  inline const ConstElement at(size_t col,
                         size_t row) const
   {
     return corners_.at(col, row);
   }
 
-  Element at(size_t col,
-             size_t row)
+  /**
+   * @brief at
+   * @param col
+   * @param row
+   * @return
+   */
+  inline Element at(size_t col,
+                    size_t row)
   {
     return corners_.at(col, row);
   }
 
-  const ConstElement operator ()(size_t col,
-                                 size_t row) const
+  /**
+   * @brief operator ()
+   * @param col
+   * @param row
+   * @return
+   */
+  inline const ConstElement operator ()(size_t col,
+                                        size_t row) const
   {
     return corners_(col, row);
   }
 
-  Element operator ()(size_t col,
-                      size_t row)
+  /**
+   * @brief operator ()
+   * @param col
+   * @param row
+   * @return
+   */
+  inline Element operator ()(size_t col,
+                             size_t row)
   {
     return corners_(col, row);
   }
 
+  /**
+   * @brief toMarker
+   * @param marker
+   */
   void toMarker(visualization_msgs::Marker & marker) const;
 
 private:

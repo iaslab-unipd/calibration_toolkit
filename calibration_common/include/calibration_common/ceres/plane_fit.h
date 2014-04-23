@@ -35,25 +35,6 @@
 namespace calibration
 {
 
-//template <typename Matrix_, typename RootsT_>
-//void computeRoots(const Matrix_ & m,
-//                  RootsT_ & roots);
-
-//template <typename ScalarT_, typename RootsT_>
-//void computeRoots2(const ScalarT_ & b,
-//                   const ScalarT_ & c,
-//                   RootsT_ & roots);
-
-//template <typename Matrix_, typename VectorT_>
-//void eigen33(const Matrix_ & mat,
-//             typename Matrix_::Scalar & eigenvalue,
-//             VectorT_ & eigenvector);
-
-//template <typename ScalarT_>
-//void computeMeanAndCovarianceMatrix(const typename Types<ScalarT_>::Point3Matrix & cloud,
-//                                    Eigen::Matrix<ScalarT_, 3, 3> & covariance_matrix,
-//                                    typename Types<ScalarT_>::Point3 & centroid);
-
 template <typename ScalarT_>
   class PlaneResidual
   {
@@ -83,42 +64,83 @@ template <typename ScalarT_>
 
   };
 
+/**
+ * @brief The PlaneFit class
+ */
 template <typename ScalarT_>
   class PlaneFit
   {
+
     typedef Types<ScalarT_> T;
 
   public:
 
-    void setCloud(const typename T::Cloud3::ConstPtr & cloud)
+    /**
+     * @brief setCloud
+     * @param cloud
+     */
+    inline void setCloud(const typename T::Cloud3::ConstPtr & cloud)
     {
       cloud_ = cloud;
     }
 
-    typename T::Plane fit()
+    /**
+     * @brief fit
+     * @return
+     */
+    inline typename T::Plane fit()
     {
       return fit(*cloud_);
     }
 
-    typename T::Plane robustFit(ScalarT_ scale = ScalarT_(1.0))
+    /**
+     * @brief robustFit
+     * @param scale
+     * @return
+     */
+    inline typename T::Plane robustFit(ScalarT_ scale = ScalarT_(1.0))
     {
       return robustFit(*cloud_, scale);
     }
 
-    typename T::Plane robustFit(const typename T::Plane & initial_plane,
-                                ScalarT_ scale = ScalarT_(1.0))
+    /**
+     * @brief robustFit
+     * @param initial_plane
+     * @param scale
+     * @return
+     */
+    inline typename T::Plane robustFit(const typename T::Plane & initial_plane,
+                                       ScalarT_ scale = ScalarT_(1.0))
     {
       return robustFit(initial_plane, *cloud_, scale);
     }
 
-    static typename T::Plane robustFit(const typename T::Cloud3 & points,
-                                       ScalarT_ scale = ScalarT_(1.0))
+    /**
+     * @brief robustFit
+     * @param points
+     * @param scale
+     * @return
+     */
+    inline static typename T::Plane robustFit(const typename T::Cloud3 & points,
+                                              ScalarT_ scale = ScalarT_(1.0))
     {
       return robustFit(fit(points), points, scale);
     }
 
+    /**
+     * @brief fit
+     * @param points
+     * @return
+     */
     static typename T::Plane fit(const typename T::Cloud3 & points);
 
+    /**
+     * @brief robustFit
+     * @param initial_plane
+     * @param points
+     * @param scale
+     * @return
+     */
     static typename T::Plane robustFit(const typename T::Plane & initial_plane,
                                        const typename T::Cloud3 & points,
                                        ScalarT_ scale = ScalarT_(1.0));

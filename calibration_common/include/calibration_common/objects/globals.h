@@ -101,10 +101,7 @@ typedef pcl::PointCloud<PCLPoint3> PCLCloud3;
 
 const Plane PLANE_XY = Plane(Vector3::UnitZ(), 0);
 
-// TODO move to another file ?  |
-//                             _|_
-//                             \ /
-//                              v
+// TODO move to another file?
 
 struct Util
 {

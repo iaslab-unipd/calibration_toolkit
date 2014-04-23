@@ -35,8 +35,12 @@
 namespace calibration
 {
 
-template <typename Object>
-  class PinholeView : public ColorView<PinholeSensor, Object>
+/**
+ * @brief The PinholeView class
+ * @param ObjectT_
+ */
+template <typename ObjectT_>
+  class PinholeView : public ColorView<PinholeSensor, ObjectT_>
   {
   public:
 

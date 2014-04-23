@@ -24,6 +24,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The PlanarObject class
+ */
 class PlanarObject : public BaseObject
 {
 public:
@@ -31,6 +34,9 @@ public:
   typedef boost::shared_ptr<PlanarObject> Ptr;
   typedef boost::shared_ptr<const PlanarObject> ConstPtr;
 
+  /**
+   * @brief PlanarObject
+   */
   explicit PlanarObject()
     : BaseObject(),
       plane_(PLANE_XY)
@@ -38,28 +44,47 @@ public:
     // Do nothing
   }
 
+  /**
+   * @brief ~PlanarObject
+   */
   virtual ~PlanarObject()
   {
     // Do nothing
   }
 
-  virtual void transform(const Transform & transform)
+  /**
+   * @brief transform
+   * @param transform
+   */
+  inline virtual void transform(const Transform & transform)
   {
     plane_.transform(transform);
     BaseObject::transform(transform);
   }
 
-  const Plane & plane() const
+  /**
+   * @brief plane
+   * @return
+   */
+  inline const Plane & plane() const
   {
     return plane_;
   }
 
-  void setPlane(const Plane & plane)
+  /**
+   * @brief setPlane
+   * @param plane
+   */
+  inline void setPlane(const Plane & plane)
   {
-    BaseObject::transform(Util::plane3dTransform(plane_, plane)); // TODO make sense???
+    BaseObject::transform(Util::plane3dTransform(plane_, plane));
     plane_ = plane;
   }
 
+  /**
+   * @brief toMarker
+   * @param marker
+   */
   void toMarker(visualization_msgs::Marker & marker) const;
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

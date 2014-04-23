@@ -37,11 +37,19 @@
 namespace calibration
 {
 
+/**
+ * @brief The ModelTraits struct
+ * @param ModelT_
+ */
 template <typename ModelT_>
   struct ModelTraits
   {
   };
 
+/**
+ * @brief The DepthUndistortionModel struct
+ * @param ModelT_
+ */
 template <typename ModelT_>
   struct DepthUndistortionModel
   {
@@ -51,17 +59,32 @@ template <typename ModelT_>
     typedef typename ModelTraits<ModelT_>::Scalar Scalar;
     typedef typename ModelTraits<ModelT_>::Data Data;
 
+    /**
+     * @brief ~DepthUndistortionModel
+     */
     virtual ~DepthUndistortionModel()
     {
       // Do nothing
     }
 
+    /**
+     * @brief setData
+     * @param data
+     */
     virtual void setData(const boost::shared_ptr<Data> & data) = 0;
 
+    /**
+     * @brief data
+     * @return
+     */
     virtual const boost::shared_ptr<Data> & data() const = 0;
 
   };
 
+/**
+ * @brief The DepthUndistortion struct
+ * @param DepthT_
+ */
 template <typename DepthT_>
   struct DepthUndistortion
   {
@@ -71,29 +94,43 @@ template <typename DepthT_>
     typedef typename DepthTraits<DepthT_>::Point Point;
     typedef typename DepthTraits<DepthT_>::Cloud Cloud;
 
+    /**
+     * @brief ~DepthUndistortion
+     */
     virtual ~DepthUndistortion()
     {
       // Do nothing
     }
 
+    /**
+     * @brief undistort
+     * @param point
+     */
     virtual void undistort(Point & point) const = 0;
 
+    /**
+     * @brief undistort
+     * @param cloud
+     */
     virtual void undistort(Cloud & cloud) const = 0;
 
   };
 
+/**
+ * @brief The DepthUndistortionImpl struct
+ * @param ModelT_
+ * @param DepthT_
+ */
 template <typename ModelT_, typename DepthT_>
   struct DepthUndistortionImpl
   {
 
-//    typedef ModelT_ Model;
-//
-//    void setModel(const boost::shared_ptr<Model> & model) = 0;
-//
-//    const boost::shared_ptr<Model> & model() const = 0;
-
   };
 
+/**
+ * @brief The NoUndistortion_ class
+ * @param DepthT_
+ */
 template <typename DepthT_>
   class NoUndistortion_ : public DepthUndistortion<DepthT_>
   {
@@ -107,16 +144,27 @@ template <typename DepthT_>
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
+    /**
+     * @brief ~NoUndistortion_
+     */
     virtual ~NoUndistortion_()
     {
       // Do nothing
     }
 
+    /**
+     * @brief undistort
+     * @param point
+     */
     virtual void undistort(Point & point) const
     {
       // Do nothing
     }
 
+    /**
+     * @brief undistort
+     * @param cloud
+     */
     virtual void undistort(Cloud & cloud) const
     {
       // Do nothing
@@ -124,13 +172,21 @@ template <typename DepthT_>
 
   };
 
-template <typename Scalar_>
-  struct NoUndistortionEigen_ : public NoUndistortion_<DepthEigen_<Scalar_> >
+/**
+ * @brief The NoUndistortionEigen_ struct
+ * @param ScalarT_
+ */
+template <typename ScalarT_>
+  struct NoUndistortionEigen_ : public NoUndistortion_<DepthEigen_<ScalarT_> >
   {
     typedef boost::shared_ptr<NoUndistortionEigen_> Ptr;
     typedef boost::shared_ptr<const NoUndistortionEigen_> ConstPtr;
   };
 
+/**
+ * @brief The NoUndistortionPCL_ struct
+ * @param PCLPointT_
+ */
 template <typename PCLPointT_>
   struct NoUndistortionPCL_ : public NoUndistortion_<DepthPCL_<PCLPointT_> >
   {
@@ -138,7 +194,14 @@ template <typename PCLPointT_>
     typedef boost::shared_ptr<const NoUndistortionPCL_> ConstPtr;
   };
 
+/**
+ * @brief NoUndistortionPCL
+ */
 typedef NoUndistortionPCL_<PCLPoint3> NoUndistortionPCL;
+
+/**
+ * @brief NoUndistortionEigen
+ */
 typedef NoUndistortionEigen_<Scalar> NoUndistortionEigen;
 
 } /* namespace calibration */
