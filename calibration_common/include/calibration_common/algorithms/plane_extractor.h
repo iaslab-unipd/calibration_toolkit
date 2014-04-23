@@ -54,6 +54,9 @@ using pcl_vis::PointCloudColorHandlerGenericField;
 namespace calibration
 {
 
+/**
+ * @brief The PlaneInfo struct
+ */
 struct PlaneInfo
 {
   Plane plane_;
@@ -63,6 +66,9 @@ struct PlaneInfo
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
+/**
+ * @brief The PlaneExtractor class
+ */
 template <typename PCLPointT_>
   class PlaneExtractor
   {
@@ -73,21 +79,40 @@ template <typename PCLPointT_>
 
     typedef typename pcl::PointCloud<PCLPointT_>::ConstPtr PointCloudConstPtr;
 
+    /**
+     * @brief ~PlaneExtractor
+     */
     virtual ~PlaneExtractor()
     {
     }
 
+    /**
+     * @brief setInputCloud
+     * @param cloud
+     */
     virtual void setInputCloud(const PointCloudConstPtr & cloud) = 0;
 
+    /**
+     * @brief extract
+     * @param plane_info
+     * @return
+     */
     virtual bool extract(PlaneInfo & plane_info) const = 0;
 
   };
 
+/**
+ * @brief The PointPlaneExtractor class
+ * @param PCLPointT_
+ */
 template <typename PCLPointT_>
   class PointPlaneExtractor : public PlaneExtractor<PCLPointT_>
   {
   public:
 
+    /**
+     * @brief The PickingPoint struct
+     */
     struct PickingPoint
     {
       PickingPoint(PCLPointT_ point,
@@ -112,18 +137,45 @@ template <typename PCLPointT_>
     typedef pcl::NormalEstimationOMP<PCLPointT_, pcl::Normal> NormalEstimator;
     typedef pcl::SampleConsensusModelNormalPlane<PCLPointT_, pcl::Normal> ModelNormalPlane;
 
+    /**
+     * @brief PointPlaneExtractor
+     */
     PointPlaneExtractor();
 
+    /**
+     * @brief ~PointPlaneExtractor
+     */
     virtual ~PointPlaneExtractor();
 
+    /**
+     * @brief setRadius
+     * @param radius
+     */
     void setRadius(Scalar radius);
 
+    /**
+     * @brief setInputCloud
+     * @param cloud
+     */
     virtual void setInputCloud(const PointCloudConstPtr & cloud);
 
+    /**
+     * @brief setPoint
+     * @param point
+     */
     virtual void setPoint(const PCLPointT_ & point);
 
+    /**
+     * @brief setPoint
+     * @param picking_point
+     */
     virtual void setPoint(const PickingPoint & picking_point);
 
+    /**
+     * @brief extract
+     * @param plane_info
+     * @return
+     */
     virtual bool extract(PlaneInfo & plane_info) const;
 
   protected:
@@ -138,6 +190,10 @@ template <typename PCLPointT_>
 
   };
 
+/**
+ * @brief The PointPlaneExtractorGUI class
+ * @param PCLPointT_
+ */
 template <typename PCLPointT_>
   class PointPlaneExtractorGUI : public PointPlaneExtractor<PCLPointT_>
   {
@@ -159,21 +215,46 @@ template <typename PCLPointT_>
 
     typedef PointPlaneExtractor<PCLPointT_> Base;
 
+    /**
+     * @brief PointPlaneExtractorGUI
+     */
     PointPlaneExtractorGUI();
 
+    /**
+     * @brief ~PointPlaneExtractorGUI
+     */
     virtual ~PointPlaneExtractorGUI();
 
+    /**
+     * @brief extract
+     * @param plane_info
+     * @return
+     */
     virtual bool extract(PlaneInfo & plane_info) const;
 
+    /**
+     * @brief setInputCloud
+     * @param cloud
+     */
     virtual void setInputCloud(const PointCloudConstPtr & cloud);
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
   protected:
 
+    /**
+     * @brief pointPickingCallback
+     * @param event
+     * @param param
+     */
     void pointPickingCallback(const pcl_vis::PointPickingEvent & event,
                               void * param);
 
+    /**
+     * @brief keyboardCallback
+     * @param event
+     * @param param
+     */
     void keyboardCallback(const pcl_vis::KeyboardEvent & event,
                           void * param);
 
