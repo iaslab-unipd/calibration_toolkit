@@ -25,6 +25,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The View class
+ */
 class View
 {
 public:
@@ -32,12 +35,20 @@ public:
   typedef boost::shared_ptr<View> Ptr;
   typedef boost::shared_ptr<const View> ConstPtr;
 
-  void setId(const std::string & id)
+  /**
+   * @brief setId
+   * @param id
+   */
+  inline void setId(const std::string & id)
   {
     id_ = id;
   }
 
-  const std::string & id() const
+  /**
+   * @brief id
+   * @return
+   */
+  inline const std::string & id() const
   {
     return id_;
   }
@@ -48,6 +59,13 @@ protected:
 
 };
 
+/**
+ * @brief The View_ class
+ * @param SensorT_
+ * @param DataT_
+ * @param ObjectT_
+ * @param Dimension_
+ */
 template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
   class View_ : public View
   {
@@ -56,6 +74,9 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     typedef boost::shared_ptr<View_> Ptr;
     typedef boost::shared_ptr<const View_> ConstPtr;
 
+    /**
+     * @brief View_
+     */
     View_()
       : points_std_dev_(Scalar(1.0)),
         centroid_(Point3::Zero()),
@@ -64,13 +85,22 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
 
     }
 
-    void setPoints(const PointMatrix<Scalar, Dimension_> & points)
+    /**
+     * @brief setPoints
+     * @param points
+     */
+    inline void setPoints(const PointMatrix<Scalar, Dimension_> & points)
     {
       points_ = points;
       centroid_need_recompute_ = true;
     }
 
-    void setPoints(const PointMatrix<Scalar, Dimension_> & points,
+    /**
+     * @brief setPoints
+     * @param points
+     * @param indices
+     */
+    inline void setPoints(const PointMatrix<Scalar, Dimension_> & points,
                    const std::vector<int> & indices)
     {
       points_.resize(indices.size(), 1);
@@ -79,56 +109,92 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
       centroid_need_recompute_ = true;
     }
 
-    const PointMatrix<Scalar, Dimension_> & points() const
+    /**
+     * @brief points
+     * @return
+     */
+    inline const PointMatrix<Scalar, Dimension_> & points() const
     {
       return points_;
     }
 
-    void setObject(const typename ObjectT_::ConstPtr & object)
+    /**
+     * @brief setObject
+     * @param object
+     */
+    inline void setObject(const typename ObjectT_::ConstPtr & object)
     {
       object_ = object;
     }
 
-    const typename ObjectT_::ConstPtr & object() const
+    /**
+     * @brief object
+     * @return
+     */
+    inline const typename ObjectT_::ConstPtr & object() const
     {
       return object_;
     }
 
-    void setSensor(const typename SensorT_::ConstPtr & sensor)
+    inline void setSensor(const typename SensorT_::ConstPtr & sensor)
     {
       sensor_ = sensor;
     }
 
-    const typename SensorT_::ConstPtr & sensor() const
+    /**
+     * @brief sensor
+     * @return
+     */
+    inline const typename SensorT_::ConstPtr & sensor() const
     {
       return sensor_;
     }
 
-    void setData(const DataT_ & data)
+    /**
+     * @brief setData
+     * @param data
+     */
+    inline void setData(const DataT_ & data)
     {
       data_ = data;
     }
 
-    const DataT_ & data() const
+    /**
+     * @brief data
+     * @return
+     */
+    inline const DataT_ & data() const
     {
       return data_;
     }
 
-    void setPointsStdDev(const Scalar & points_std_dev)
+    /**
+     * @brief setPointsStdDev
+     * @param points_std_dev
+     */
+    inline void setPointsStdDev(const Scalar & points_std_dev)
     {
       points_std_dev_ = points_std_dev;
     }
 
-    const Scalar & pointsStdDev() const
+    /**
+     * @brief pointsStdDev
+     * @return
+     */
+    inline const Scalar & pointsStdDev() const
     {
       return points_std_dev_;
     }
 
-    Point3 centroid() const
+    /**
+     * @brief centroid
+     * @return
+     */
+    inline Point3 centroid() const
     {
       if (centroid_need_recompute_)
       {
-        centroid_ = points_.matrix().rowwise().sum();
+        centroid_ = points_.container().rowwise().sum();
         centroid_need_recompute_ = false;
       }
       return centroid_;

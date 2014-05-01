@@ -187,8 +187,8 @@ template <typename Scalar_>
   typename Types<Scalar_>::Plane PlaneFit<Scalar_>::fit(const typename Types<Scalar_>::Cloud3 & points)
   {
 
-    typename Types<Scalar_>::Point3 centroid = points.matrix().rowwise().mean();
-    typename Types<Scalar_>::Cloud3::RawMatrix diff = points.matrix().colwise() - centroid;
+    typename Types<Scalar_>::Point3 centroid = points.container().rowwise().mean();
+    typename Types<Scalar_>::Cloud3::Container diff = points.container().colwise() - centroid;
     Eigen::Matrix<Scalar_, 3, 3> covariance_matrix = diff * diff.transpose() / Scalar_(points.size() - 1);
 
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<Scalar_, 3, 3> > solver(covariance_matrix, Eigen::ComputeEigenvectors);

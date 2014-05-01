@@ -23,14 +23,15 @@
 namespace calibration
 {
 
+/**
+ * @brief The Sensor class
+ */
 class Sensor : public BaseObject
 {
 public:
 
   typedef boost::shared_ptr<Sensor> Ptr;
   typedef boost::shared_ptr<const Sensor> ConstPtr;
-
-  using BaseObject::setPose;
 
 };
 

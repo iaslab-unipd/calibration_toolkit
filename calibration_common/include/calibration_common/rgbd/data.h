@@ -42,6 +42,9 @@ namespace calibration
 typedef pcl::PointXYZRGB PCLPointRGB;
 typedef pcl::PointCloud<PCLPointRGB> PCLCloudRGB;
 
+/**
+ * @brief The RGBDData class
+ */
 class RGBDData
 {
 public:
@@ -49,12 +52,20 @@ public:
   typedef boost::shared_ptr<RGBDData> Ptr;
   typedef boost::shared_ptr<const RGBDData> ConstPtr;
 
+  /**
+   * @brief RGBDData
+   * @param id
+   */
   RGBDData(int id)
     : id_(id)
   {
     // Do nothing
   }
 
+  /**
+   * @brief RGBDData
+   * @param other
+   */
   RGBDData(const RGBDData & other)
     : id_(other.id_),
       color_data_(other.color_data_.clone()),
@@ -66,53 +77,100 @@ public:
     // Do nothing
   }
 
-  int id() const
+  /**
+   * @brief id
+   * @return
+   */
+  inline int id() const
   {
     return id_;
   }
 
-  void setId(int id)
+  /**
+   * @brief setId
+   * @param id
+   */
+  inline void setId(int id)
   {
     id_ = id;
   }
 
-  const cv::Mat & colorData() const
+  /**
+   * @brief colorData
+   * @return
+   */
+  inline const cv::Mat & colorData() const
   {
     return color_data_;
   }
 
-  void setColorData(const cv::Mat & color_data)
+  /**
+   * @brief setColorData
+   * @param color_data
+   */
+  inline void setColorData(const cv::Mat & color_data)
   {
     color_data_ = color_data.clone();
   }
 
-  const PCLCloud3::Ptr & depthData() const
+  /**
+   * @brief depthData
+   * @return
+   */
+  inline const PCLCloud3::Ptr & depthData() const
   {
     return depth_data_;
   }
 
+  /**
+   * @brief setDepthData
+   * @param depth_data
+   */
   void setDepthData(const PCLCloud3 & depth_data);
 
+  /**
+   * @brief fuseData
+   */
   void fuseData() const;
 
+  /**
+   * @brief fusedData
+   * @return
+   */
   PCLCloudRGB::Ptr fusedData() const;
 
-  const PinholeSensor::ConstPtr & colorSensor() const
+  /**
+   * @brief colorSensor
+   * @return
+   */
+  inline const PinholeSensor::ConstPtr & colorSensor() const
   {
     return color_sensor_;
   }
 
-  void setColorSensor(const PinholeSensor::ConstPtr & color_sensor)
+  /**
+   * @brief setColorSensor
+   * @param color_sensor
+   */
+  inline void setColorSensor(const PinholeSensor::ConstPtr & color_sensor)
   {
     color_sensor_ = color_sensor;
   }
 
-  const DepthSensor::ConstPtr & depthSensor() const
+  /**
+   * @brief depthSensor
+   * @return
+   */
+  inline const DepthSensor::ConstPtr & depthSensor() const
   {
     return depth_sensor_;
   }
 
-  void setDepthSensor(const DepthSensor::ConstPtr & depth_sensor)
+  /**
+   * @brief setDepthSensor
+   * @param depth_sensor
+   */
+  inline void setDepthSensor(const DepthSensor::ConstPtr & depth_sensor)
   {
     depth_sensor_ = depth_sensor;
   }

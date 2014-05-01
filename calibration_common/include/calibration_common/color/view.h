@@ -35,6 +35,11 @@
 namespace calibration
 {
 
+/**
+ * @brief The ColorView class
+ * @param ColorSensorT_
+ * @param ObjectT_
+ */
 template <typename ColorSensorT_, typename ObjectT_>
   class ColorView : public View_<ColorSensorT_, cv::Mat, ObjectT_, 2>
   {

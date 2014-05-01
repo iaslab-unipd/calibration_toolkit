@@ -35,6 +35,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The PinholeCameraModel class
+ */
 class PinholeCameraModel : public image_geometry::PinholeCameraModel,
                            virtual public ColorCameraModel
 {
@@ -45,18 +48,29 @@ public:
 
   typedef image_geometry::PinholeCameraModel Base;
 
+  /**
+   * @brief PinholeCameraModel
+   */
   PinholeCameraModel()
     : Base()
   {
 
   }
 
+  /**
+   * @brief PinholeCameraModel
+   * @param msg
+   */
   PinholeCameraModel(const sensor_msgs::CameraInfo & msg)
     : Base()
   {
     Base::fromCameraInfo(msg);
   }
 
+  /**
+   * @brief PinholeCameraModel
+   * @param other
+   */
   PinholeCameraModel(const PinholeCameraModel & other)
     : Base(other)
   {
@@ -67,39 +81,75 @@ public:
 
   virtual Point2 project3dToPixel(const Point3 & world_point) const;
 
-  virtual void projectPixelTo3dRay(const Point2Matrix & pixel_points,
-                                   Point3Matrix & world_points) const;
+  virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
+                                   Cloud3 & world_points) const;
 
-  virtual Point3Matrix projectPixelTo3dRay(const Point2Matrix & pixel_points) const;
+  virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const;
 
-  virtual void project3dToPixel(const Point3Matrix & world_points,
-                                Point2Matrix & pixel_points) const;
+  virtual void project3dToPixel(const Cloud3 & world_points,
+                                Cloud2 & pixel_points) const;
 
-  virtual Point2Matrix project3dToPixel(const Point3Matrix & world_points) const;
+  virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const;
 
-  virtual Pose estimatePose(const Point2Matrix & points_image,
-                            const Point3Matrix & points_object) const;
+  virtual Pose estimatePose(const Cloud2 & points_image,
+                            const Cloud3 & points_object) const;
 
+  /**
+   * @brief projectPixelTo3dRay
+   * @param pixel_point
+   * @return
+   */
   template <typename Scalar>
     typename Types<Scalar>::Point3 projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const;
 
+  /**
+   * @brief project3dToPixel
+   * @param world_point
+   * @return
+   */
   template <typename Scalar>
     typename Types<Scalar>::Point2 project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const;
 
+  /**
+   * @brief projectPixelTo3dRay
+   * @param pixel_points
+   * @param world_points
+   */
   template <typename Scalar>
     void projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
                              typename Types<Scalar>::Cloud3 & world_points) const;
 
+  /**
+   * @brief projectPixelTo3dRay
+   * @param pixel_points
+   * @return
+   */
   template <typename Scalar>
     typename Types<Scalar>::Cloud3 projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const;
 
+  /**
+   * @brief project3dToPixel
+   * @param world_points
+   * @param pixel_points
+   */
   template <typename Scalar>
     void project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
                           typename Types<Scalar>::Cloud2 & pixel_points) const;
 
+  /**
+   * @brief project3dToPixel
+   * @param world_points
+   * @return
+   */
   template <typename Scalar>
     typename Types<Scalar>::Cloud2 project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const;
 
+  /**
+   * @brief estimatePose
+   * @param points_image
+   * @param points_object
+   * @return
+   */
   template <typename Scalar>
     typename Types<Scalar>::Pose estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
                                               const typename Types<Scalar>::Cloud3 & points_object) const;

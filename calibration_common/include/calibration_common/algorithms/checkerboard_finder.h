@@ -43,6 +43,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The CheckerboardFinder class
+ */
 class CheckerboardFinder
 {
 public:
@@ -50,22 +53,41 @@ public:
   typedef boost::shared_ptr<CheckerboardFinder> Ptr;
   typedef boost::shared_ptr<const CheckerboardFinder> ConstPtr;
 
+  /**
+   * @brief ~CheckerboardFinder
+   */
   virtual ~CheckerboardFinder()
   {
     // Do nothing
   }
 
-  void setImage(const cv::Mat & image)
+  /**
+   * @brief setImage
+   * @param image
+   */
+  inline void setImage(const cv::Mat & image)
   {
     image_ = image;
     cv::cvtColor(image_, gray_, CV_BGR2GRAY);
   }
 
+  /**
+   * @brief find
+   * @param checkerboard
+   * @param corners
+   * @return
+   */
   virtual bool find(const Checkerboard & checkerboard,
                     std::vector<cv::Point2f> & corners) const = 0;
 
-  virtual bool find(const Checkerboard & checkerboard,
-                    Cloud2 & corners) const
+  /**
+   * @brief find
+   * @param checkerboard
+   * @param corners
+   * @return
+   */
+  inline virtual bool find(const Checkerboard & checkerboard,
+                           Cloud2 & corners) const
   {
     std::vector<cv::Point2f> cv_corners;
     bool pattern_found = find(checkerboard, cv_corners);

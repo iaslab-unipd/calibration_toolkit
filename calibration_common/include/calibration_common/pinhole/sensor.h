@@ -35,6 +35,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The PinholeSensor class
+ */
 class PinholeSensor : public ColorSensor
 {
 public:
@@ -42,30 +45,53 @@ public:
   typedef boost::shared_ptr<PinholeSensor> Ptr;
   typedef boost::shared_ptr<const PinholeSensor> ConstPtr;
 
+  /**
+   * @brief PinholeSensor
+   */
   PinholeSensor()
     : ColorSensor()
   {
     // Do nothing
   }
 
-  const PinholeCameraModel::ConstPtr & cameraModel() const
+  /**
+   * @brief cameraModel
+   * @return
+   */
+  inline const PinholeCameraModel::ConstPtr & cameraModel() const
   {
     return camera_model_;
   }
 
-  void setCameraModel(const PinholeCameraModel::ConstPtr & camera_model)
+  /**
+   * @brief setCameraModel
+   * @param camera_model
+   */
+  inline void setCameraModel(const PinholeCameraModel::ConstPtr & camera_model)
   {
     camera_model_ = camera_model;
   }
 
-  Pose estimatePose(const Cloud2 & points_image,
-                    const Cloud3 & points_object) const
+  /**
+   * @brief estimatePose
+   * @param points_image
+   * @param points_object
+   * @return
+   */
+  inline Pose estimatePose(const Cloud2 & points_image,
+                           const Cloud3 & points_object) const
   {
     return camera_model_->estimatePose(points_image, points_object);
   }
 
+  /**
+   * @brief estimatePose
+   * @param points_image
+   * @param points_object
+   * @return
+   */
   template <typename ScalarT_>
-    typename Types<ScalarT_>::Pose estimatePose(const typename Types<ScalarT_>::Cloud2 & points_image,
+    inline typename Types<ScalarT_>::Pose estimatePose(const typename Types<ScalarT_>::Cloud2 & points_image,
                                                 const typename Types<ScalarT_>::Cloud3 & points_object) const
     {
       return camera_model_->estimatePose(points_image, points_object);

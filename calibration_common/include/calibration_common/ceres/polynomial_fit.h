@@ -36,6 +36,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The MathFunctionFit class
+ */
 template <typename ScalarT_>
   class MathFunctionFit
   {
@@ -44,18 +47,34 @@ template <typename ScalarT_>
     typedef boost::shared_ptr<MathFunctionFit> Ptr;
     typedef boost::shared_ptr<const MathFunctionFit> ConstPtr;
 
+    /**
+     * @brief ~MathFunctionFit
+     */
     virtual ~MathFunctionFit()
     {
       // Do nothing
     }
 
+    /**
+     * @brief addData
+     * @param x
+     * @param y
+     */
     virtual void addData(const ScalarT_ & x,
                          const ScalarT_ & y) = 0;
 
+    /**
+     * @brief update
+     * @return
+     */
     virtual bool update() = 0;
 
   };
 
+/**
+ * @brief The PolynomialResidual class
+ * @param PolynomialT_
+ */
 template <typename PolynomialT_>
   class PolynomialResidual
   {
@@ -67,6 +86,11 @@ template <typename PolynomialT_>
     static const int MinDegree = MathTraits<PolynomialT_>::MinDegree;
     static const int Degree = MathTraits<PolynomialT_>::Degree;
 
+    /**
+     * @brief PolynomialResidual
+     * @param x
+     * @param y
+     */
     PolynomialResidual(Scalar x,
                        Scalar y)
       : x_(x),
@@ -75,21 +99,27 @@ template <typename PolynomialT_>
       // Do nothing
     }
 
-    //    template <typename T, int N>
-    //      bool operator()(const ceres::Jet<T, N> * const coefficients,
-    //                      ceres::Jet<T, N> * residual) const
-    //      {
-    //        typedef typename Traits<Polynomial<ceres::Jet<T, N>, Degree, MinDegree> >::Coefficients Coefficients;
-    //        ceres::Jet<T, N> y = ceres::poly_eval(Eigen::Map<const Coefficients>(coefficients), ceres::Jet<T, N>(x_));
-    //        for (int i = 0; i < MinDegree; ++i)
-    //          y = y * x_;
-    //        residual[0] = ceres::Jet<T, N>(y_) - y;
-    //        return true;
-    //      }
+//    template <typename T, int N>
+//      bool operator()(const ceres::Jet<T, N> * const coefficients,
+//                      ceres::Jet<T, N> * residual) const
+//      {
+//        typedef typename Traits<Polynomial<ceres::Jet<T, N>, Degree, MinDegree> >::Coefficients Coefficients;
+//        ceres::Jet<T, N> y = ceres::poly_eval(Eigen::Map<const Coefficients>(coefficients), ceres::Jet<T, N>(x_));
+//        for (int i = 0; i < MinDegree; ++i)
+//          y = y * x_;
+//        residual[0] = ceres::Jet<T, N>(y_) - y;
+//        return true;
+//      }
 
+    /**
+     * @brief operator ()
+     * @param coefficients
+     * @param residual
+     * @return
+     */
     template <typename T>
-      bool operator()(const T * const coefficients,
-                      T * residual) const
+      inline bool operator()(const T * const coefficients,
+                             T * residual) const
       {
         typedef ceres::Polynomial<T, Degree, MinDegree> Polynomial_;
         typedef typename MathTraits<Polynomial_>::Coefficients Coefficients;
@@ -104,6 +134,10 @@ template <typename PolynomialT_>
 
   };
 
+/**
+ * @brief The PolynomialFit class
+ * @param PolynomialT_
+ */
 template <typename PolynomialT_>
   class PolynomialFit : public MathFunctionFit<typename MathTraits<PolynomialT_>::Scalar>
   {
@@ -121,28 +155,48 @@ template <typename PolynomialT_>
 
     typedef std::vector<std::pair<Scalar, Scalar> > DataBin;
 
+    /**
+     * @brief PolynomialFit
+     * @param polynomial
+     */
     PolynomialFit(const PolynomialPtr & polynomial)
       : polynomial_(polynomial)
     {
       // Do nothing
     }
 
+    /**
+     * @brief ~PolynomialFit
+     */
     virtual ~PolynomialFit()
     {
       // Do nothing
     }
 
-    virtual void addData(const Scalar & x,
+    /**
+     * @brief addData
+     * @param x
+     * @param y
+     */
+    inline virtual void addData(const Scalar & x,
                          const Scalar & y)
     {
       data_bin_.push_back(std::make_pair(x, y));
     }
 
-    const PolynomialT_ & polynomial()
+    /**
+     * @brief polynomial
+     * @return
+     */
+    inline const PolynomialT_ & polynomial()
     {
       return *polynomial_;
     }
 
+    /**
+     * @brief update
+     * @return
+     */
     virtual bool update();
 
   private:

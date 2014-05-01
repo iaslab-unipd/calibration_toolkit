@@ -34,7 +34,11 @@
 namespace calibration
 {
 
-template <typename Scalar>
+/**
+ * @brief The ColorCameraModel_ class
+ * @param
+ */
+template <typename ScalarT_>
   class ColorCameraModel_
   {
   public:
@@ -42,35 +46,77 @@ template <typename Scalar>
     typedef boost::shared_ptr<ColorCameraModel_> Ptr;
     typedef boost::shared_ptr<const ColorCameraModel_> ConstPtr;
 
-    typedef typename Types<Scalar>::Point2 Point2;
-    typedef typename Types<Scalar>::Point3 Point3;
-    typedef typename Types<Scalar>::Cloud2 Point2Matrix;
-    typedef typename Types<Scalar>::Cloud3 Point3Matrix;
-    typedef typename Types<Scalar>::Pose Pose;
+    typedef typename Types<ScalarT_>::Point2 Point2;
+    typedef typename Types<ScalarT_>::Point3 Point3;
+    typedef typename Types<ScalarT_>::Cloud2 Cloud2;
+    typedef typename Types<ScalarT_>::Cloud3 Cloud3;
+    typedef typename Types<ScalarT_>::Pose Pose;
 
+    /**
+     * @brief ~ColorCameraModel_
+     */
     virtual ~ColorCameraModel_()
     {
       // Do nothing
     }
 
+    /**
+     * @brief projectPixelTo3dRay
+     * @param pixel_point
+     * @return
+     */
     virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const = 0;
 
+    /**
+     * @brief project3dToPixel
+     * @param world_point
+     * @return
+     */
     virtual Point2 project3dToPixel(const Point3 & world_point) const = 0;
 
-    virtual void projectPixelTo3dRay(const Point2Matrix & pixel_points,
-                                     Point3Matrix & world_points) const = 0;
+    /**
+     * @brief projectPixelTo3dRay
+     * @param pixel_points
+     * @param world_points
+     */
+    virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
+                                     Cloud3 & world_points) const = 0;
 
-    virtual Point3Matrix projectPixelTo3dRay(const Point2Matrix & pixel_points) const = 0;
+    /**
+     * @brief projectPixelTo3dRay
+     * @param pixel_points
+     * @return
+     */
+    virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const = 0;
 
-    virtual void project3dToPixel(const Point3Matrix & world_points,
-                                  Point2Matrix & pixel_points) const = 0;
+    /**
+     * @brief project3dToPixel
+     * @param world_points
+     * @param pixel_points
+     */
+    virtual void project3dToPixel(const Cloud3 & world_points,
+                                  Cloud2 & pixel_points) const = 0;
 
-    virtual Point2Matrix project3dToPixel(const Point3Matrix & world_points) const = 0;
+    /**
+     * @brief project3dToPixel
+     * @param world_points
+     * @return
+     */
+    virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const = 0;
 
-    virtual Pose estimatePose(const Point2Matrix & points_image,
-                              const Point3Matrix & points_object) const = 0;
+    /**
+     * @brief estimatePose
+     * @param points_image
+     * @param points_object
+     * @return
+     */
+    virtual Pose estimatePose(const Cloud2 & points_image,
+                              const Cloud3 & points_object) const = 0;
   };
 
+/**
+ * @brief The ColorCameraModel class
+ */
 class ColorCameraModel : virtual public ColorCameraModel_<Scalar>
 {
 public:

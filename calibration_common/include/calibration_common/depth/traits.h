@@ -35,11 +35,19 @@
 namespace calibration
 {
 
+/**
+ * @brief The DepthTraits struct
+ * @param DepthT_
+ */
 template <typename DepthT_>
   struct DepthTraits
   {
   };
 
+/**
+ * @brief The DepthEigen_ struct
+ * @param ScalarT_
+ */
 template <typename ScalarT_>
   struct DepthEigen_
   {
@@ -53,6 +61,10 @@ template <typename ScalarT_>
     typedef typename Types<ScalarT_>::Cloud3 Cloud;
   };
 
+/**
+ * @brief The DepthPCL_ struct
+ * @param PCLPointT_
+ */
 template <typename PCLPointT_>
   struct DepthPCL_
   {

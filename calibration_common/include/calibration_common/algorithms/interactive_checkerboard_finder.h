@@ -36,30 +36,67 @@
 namespace calibration
 {
 
+/**
+ * @brief The InteractiveCheckerboardFinder class
+ */
 class InteractiveCheckerboardFinder // TODO create a superclass CheckerboardFinder
 {
 public:
 
+  /**
+   * @brief InteractiveCheckerboardFinder
+   * @param image
+   */
   InteractiveCheckerboardFinder(const cv::Mat & image)
     : image_(image)
   {
     // Do nothing
   }
 
+  /**
+   * @brief find
+   * @param checkerboard
+   * @param corners
+   * @param try_automatically
+   * @return
+   */
   bool find(const Checkerboard & checkerboard,
             std::vector<cv::Point2d> & corners,
             bool try_automatically = true);
 
+  /**
+   * @brief find
+   * @param checkerboard
+   * @param corners
+   * @param try_automatically
+   * @return
+   */
   bool find(const Checkerboard & checkerboard,
             Cloud2 & corners,
             bool try_automatically = true);
 
+  /**
+   * @brief selectCornersCallback
+   * @param event
+   * @param x
+   * @param y
+   * @param flags
+   * @param param
+   */
   static void selectCornersCallback(int event,
                                     int x,
                                     int y,
                                     int flags,
                                     void *param);
 
+  /**
+   * @brief selectSubImageCallback
+   * @param event
+   * @param x
+   * @param y
+   * @param flags
+   * @param param
+   */
   static void selectSubImageCallback(int event,
                                      int x,
                                      int y,

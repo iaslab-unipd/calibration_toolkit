@@ -72,13 +72,13 @@ template <typename Scalar>
     Eigen::Array<Scalar, 2, 1> sub(Scalar(-cx() - Tx()), Scalar(-cy() - Ty()));
     Eigen::Array<Scalar, 2, 1> div(Scalar(fx()), Scalar(fy()));
 
-    world_points.matrix().template topRows<2>() = (pixel_points.matrix().array().colwise() + sub).colwise() / div;
-    world_points.matrix().template bottomRows<1>().setOnes();
-    world_points.matrix().array().rowwise() /= world_points.matrix().colwise().norm().array();
+    world_points.container().template topRows<2>() = (pixel_points.container().array().colwise() + sub).colwise() / div;
+    world_points.container().template bottomRows<1>().setOnes();
+    world_points.container().array().rowwise() /= world_points.container().colwise().norm().array();
   }
 
 template <typename Scalar>
-  typename Types<Scalar>::Cloud3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const
+  inline typename Types<Scalar>::Cloud3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const
   {
     typename Types<Scalar>::Cloud3 world_points(pixel_points.xSize(), pixel_points.ySize());
     projectPixelTo3dRay<Scalar>(pixel_points, world_points);
@@ -97,15 +97,15 @@ template <typename Scalar>
     Types<double>::Point2 sum(Tx(), Ty());
     Types<double>::Point2 sum_final(cx(), cy());
 
-    pixel_points.matrix() = world_points.matrix().template topRows<2>();
-    pixel_points.matrix().array().colwise() *= prod.template cast<Scalar>();
-    pixel_points.matrix().colwise() += sum.template cast<Scalar>();
-    pixel_points.matrix().array().rowwise() /= world_points.matrix().array().template bottomRows<1>();
-    pixel_points.matrix().colwise() += sum_final.template cast<Scalar>();
+    pixel_points.container() = world_points.container().template topRows<2>();
+    pixel_points.container().array().colwise() *= prod.template cast<Scalar>();
+    pixel_points.container().colwise() += sum.template cast<Scalar>();
+    pixel_points.container().array().rowwise() /= world_points.container().array().template bottomRows<1>();
+    pixel_points.container().colwise() += sum_final.template cast<Scalar>();
   }
 
 template <typename Scalar>
-  typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const
+  inline typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const
   {
     typename Types<Scalar>::Cloud2 pixel_points(world_points.xSize(), world_points.ySize());
     project3dToPixel<Scalar>(world_points, pixel_points);
@@ -120,8 +120,8 @@ template <typename Scalar>
 
     cv::Mat_<cv::Vec<Scalar, 2> > cv_points_image;
     cv::Mat_<cv::Vec<Scalar, 3> > cv_points_object;
-    OpenCVConversion<Scalar>::toOpenCV(points_image.matrix(), cv_points_image);
-    OpenCVConversion<Scalar>::toOpenCV(points_object.matrix(), cv_points_object);
+    OpenCVConversion<Scalar>::toOpenCV(points_image.container(), cv_points_image);
+    OpenCVConversion<Scalar>::toOpenCV(points_object.container(), cv_points_object);
 
     cv::Vec<Scalar, 3> cv_r, cv_t;
     cv::solvePnP(cv_points_object, cv_points_image, intrinsicMatrix(), distortionCoeffs(), cv_r, cv_t);

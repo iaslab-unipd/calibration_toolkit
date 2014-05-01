@@ -35,12 +35,23 @@
 namespace calibration
 {
 
+/**
+ * @brief The PlanePair struct
+ */
 struct PlanePair
 {
+  /**
+   * @brief PlanePair
+   */
   PlanePair()
   {
   }
 
+  /**
+   * @brief PlanePair
+   * @param plane_1
+   * @param plane_2
+   */
   PlanePair(Plane plane_1,
             Plane plane_2)
     : plane_1_(plane_1),
@@ -53,6 +64,7 @@ struct PlanePair
 };
 
 /**
+ * @brief The PlaneToPlaneCalibration class
  * c++ implementation of [1].
  *
  * References:
@@ -62,27 +74,49 @@ class PlaneToPlaneCalibration
 {
 public:
 
-  void addPair(const PlanePair & pair)
+  /**
+   * @brief addPair
+   * @param pair
+   */
+  inline void addPair(const PlanePair & pair)
   {
     plane_pair_vec_.push_back(pair);
   }
 
-  void addPair(const Plane & plane_1,
+  /**
+   * @brief addPair
+   * @param plane_1
+   * @param plane_2
+   */
+  inline void addPair(const Plane & plane_1,
                const Plane & plane_2)
   {
     addPair(PlanePair(plane_1, plane_2));
   }
 
-  int getPairNumber()
+  /**
+   * @brief getPairNumber
+   * @return
+   */
+  inline int getPairNumber()
   {
     return plane_pair_vec_.size();
   }
 
-  Transform estimateTransform()
+  /**
+   * @brief estimateTransform
+   * @return
+   */
+  inline Transform estimateTransform()
   {
     return estimateTransform(plane_pair_vec_);
   }
 
+  /**
+   * @brief estimateTransform
+   * @param plane_pair_vec
+   * @return
+   */
   static Transform estimateTransform(const std::vector<PlanePair> & plane_pair_vec);
 
 protected:

@@ -34,6 +34,9 @@
 namespace calibration
 {
 
+/**
+ * @brief The AutomaticCheckerboardFinder class
+ */
 class AutomaticCheckerboardFinder : public CheckerboardFinder
 {
 public:
@@ -41,6 +44,9 @@ public:
   typedef boost::shared_ptr<AutomaticCheckerboardFinder> Ptr;
   typedef boost::shared_ptr<const AutomaticCheckerboardFinder> ConstPtr;
 
+  /**
+   * @brief ~AutomaticCheckerboardFinder
+   */
   virtual ~AutomaticCheckerboardFinder()
   {
     // Do nothing
@@ -48,6 +54,12 @@ public:
 
   using CheckerboardFinder::find;
 
+  /**
+   * @brief find
+   * @param checkerboard
+   * @param corners
+   * @return
+   */
   virtual bool find(const Checkerboard & checkerboard,
                     std::vector<cv::Point2f> & corners) const;
 

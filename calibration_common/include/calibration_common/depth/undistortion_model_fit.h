@@ -36,6 +36,11 @@
 namespace calibration
 {
 
+/**
+ * @brief The DepthUndistortionModelFit class
+ * @param DepthT_
+ * @param ScalarT_
+ */
 template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::Scalar>
   class DepthUndistortionModelFit
   {
@@ -49,29 +54,65 @@ template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::S
     typedef typename DepthTraits<DepthT_>::Cloud Cloud;
     typedef typename Types<Scalar>::Plane Plane;
 
+    /**
+     * @brief ~DepthUndistortionModelFit
+     */
     virtual ~DepthUndistortionModelFit()
     {
       // Do nothing
     }
 
+    /**
+     * @brief model
+     * @return
+     */
     virtual const typename DepthUndistortion<DepthT_>::Ptr & model() const = 0;
 
+    /**
+     * @brief accumulateCloud
+     * @param cloud
+     */
     virtual void accumulateCloud(const Cloud & cloud) = 0;
 
+    /**
+     * @brief accumulateCloud
+     * @param cloud
+     * @param indices
+     */
     virtual void accumulateCloud(const Cloud & cloud,
                                  const std::vector<int> & indices) = 0;
 
+    /**
+     * @brief accumulatePoint
+     * @param point
+     */
     virtual void accumulatePoint(const Point & point) = 0;
 
+    /**
+     * @brief addPoint
+     * @param point
+     * @param plane
+     */
     virtual void addPoint(const Point & point,
                           const Plane & plane) = 0;
 
+    /**
+     * @brief addAccumulatedPoints
+     * @param plane
+     */
     virtual void addAccumulatedPoints(const Plane & plane) = 0;
 
+    /**
+     * @brief update
+     */
     virtual void update() = 0;
 
   };
 
+/**
+ * @brief The DepthUndistortionModelFitImpl class
+ * @param ModelImplT_
+ */
 template <typename ModelImplT_>
   class DepthUndistortionModelFitImpl
   {
@@ -84,12 +125,18 @@ template <typename ModelImplT_>
 
     typedef std::vector<std::pair<Scalar, Scalar> > PointDistorsionBin;
 
+    /**
+     * @brief The AccumulationBin class
+     */
     class AccumulationBin
     {
     public:
 
       typedef typename Types<Scalar>::Point3 Point;
 
+      /**
+       * @brief AccumulationBin
+       */
       AccumulationBin()
         : sum_(Point::Zero()),
           n_(0)
@@ -97,12 +144,20 @@ template <typename ModelImplT_>
         // Do nothing
       }
 
+      /**
+       * @brief reset
+       */
       void reset()
       {
         sum_ = Point::Zero();
         n_ = 0;
       }
 
+      /**
+       * @brief operator +=
+       * @param point
+       * @return
+       */
       AccumulationBin & operator +=(const Point & point)
       {
         sum_ += point;
@@ -110,11 +165,19 @@ template <typename ModelImplT_>
         return *this;
       }
 
+      /**
+       * @brief isEmpty
+       * @return
+       */
       bool isEmpty()
       {
         return n_ == 0;
       }
 
+      /**
+       * @brief average
+       * @return
+       */
       Point average()
       {
         return sum_ / Scalar(n_);
@@ -129,11 +192,18 @@ template <typename ModelImplT_>
 
     };
 
+    /**
+     * @brief ~DepthUndistortionModelFitImpl
+     */
     virtual ~DepthUndistortionModelFitImpl()
     {
       // Do nothing
     }
 
+    /**
+     * @brief modelImpl
+     * @return
+     */
     virtual const boost::shared_ptr<ModelImplT_> & modelImpl() const = 0;
 
   };
