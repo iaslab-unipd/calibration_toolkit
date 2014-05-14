@@ -183,7 +183,7 @@ template <typename PolynomialT_>
     {
       PolynomialUndistortionFunctionFitEigen::Ptr clone =
         boost::make_shared<PolynomialUndistortionFunctionFitEigen>(*this);
-      clone->setModel(boost::shared_static_cast<UndistortionModel>(Base::model_impl_->clone()));
+      clone->setModel(boost::static_pointer_cast<UndistortionModel>(Base::model_impl_->clone()));
       return clone;
     }
 
@@ -281,7 +281,7 @@ template <typename PolynomialT_, typename PCLPointT_>
     virtual typename Interface::Ptr clone() const
     {
       PolynomialUndistortionFunctionFitPCL::Ptr clone = boost::make_shared<PolynomialUndistortionFunctionFitPCL>(*this);
-      clone->setModel(boost::shared_static_cast<UndistortionModel>(Base::model_impl_->clone()));
+      clone->setModel(boost::static_pointer_cast<UndistortionModel>(Base::model_impl_->clone()));
       return clone;
     }
 

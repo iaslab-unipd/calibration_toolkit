@@ -102,7 +102,7 @@ template <typename PolynomialT_>
                                   size_t y_index) const
     {
       assert(data_);
-      return (*boost::shared_static_cast<const Data>(data_))(x_index, y_index);
+      return (*boost::static_pointer_cast<const Data>(data_))(x_index, y_index);
     }
 
     virtual void undistort(size_t x_index,
