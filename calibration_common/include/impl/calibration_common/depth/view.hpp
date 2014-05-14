@@ -30,6 +30,7 @@
 #define CALIBRATON_COMMON_IMPL_DEPTH_VIEW_HPP_
 
 #include <calibration_common/depth/view.h>
+#include <visualization_msgs/Marker.h>
 
 namespace calibration
 {

@@ -27,10 +27,14 @@
  */
 
 #include <calibration_common/objects/base_object.h>
+
 #include <eigen_conversions/eigen_msg.h>
+#include <geometry_msgs/TransformStamped.h>
 
 namespace calibration
 {
+
+size_t BaseObject::count_ = 0;
 
 bool BaseObject::toTF(geometry_msgs::TransformStamped & transform_msg) const
 {

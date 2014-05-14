@@ -29,8 +29,16 @@
 #ifndef CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_
 #define CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_
 
+#include <sstream>
 #include <calibration_common/objects/globals.h>
-#include <geometry_msgs/TransformStamped.h>
+
+namespace geometry_msgs
+{
+template <class ContainerAllocator>
+  struct TransformStamped_;
+
+typedef TransformStamped_<std::allocator<void> > TransformStamped;
+}
 
 namespace calibration
 {
@@ -45,13 +53,29 @@ public:
   typedef boost::shared_ptr<BaseObject> Ptr;
   typedef boost::shared_ptr<const BaseObject> ConstPtr;
 
+  static size_t count_;
+
   /**
    * @brief BaseObject
    */
   BaseObject()
     : pose_(Pose::Identity())
   {
-    // Do nothing
+    ++count_;
+    std::stringstream ss;
+    ss << "object_" << count_;
+    frame_id_ = ss.str();
+  }
+
+  /**
+   * @brief BaseObject
+   * @param frame_id
+   */
+  explicit BaseObject(const std::string & frame_id)
+    : pose_(Pose::Identity()),
+      frame_id_(frame_id)
+  {
+    ++count_;
   }
 
   /**

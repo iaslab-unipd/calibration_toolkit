@@ -37,8 +37,15 @@ public:
   /**
    * @brief PlanarObject
    */
-  explicit PlanarObject()
+  PlanarObject()
     : BaseObject(),
+      plane_(PLANE_XY)
+  {
+    // Do nothing
+  }
+
+  explicit PlanarObject(const std::string & frame_id)
+    : BaseObject(frame_id),
       plane_(PLANE_XY)
   {
     // Do nothing
@@ -77,7 +84,7 @@ public:
    */
   inline void setPlane(const Plane & plane)
   {
-    BaseObject::transform(Util::plane3dTransform(plane_, plane));
+    BaseObject::setPose(Util::plane3dTransform(PLANE_XY, plane));
     plane_ = plane;
   }
 

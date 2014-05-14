@@ -31,7 +31,14 @@
 
 #include <calibration_common/depth/sensor.h>
 #include <calibration_common/objects/view.h>
-#include <visualization_msgs/Marker.h>
+
+namespace visualization_msgs
+{
+template <class ContainerAllocator>
+  struct Marker_;
+
+typedef Marker_<std::allocator<void> > Marker;
+}
 
 namespace calibration
 {
