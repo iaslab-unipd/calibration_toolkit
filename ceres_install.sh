@@ -41,6 +41,9 @@ cd ..
 wget http://ceres-solver.googlecode.com/files/ceres-solver-1.8.0.tar.gz
 tar zxf ceres-solver-1.8.0.tar.gz
 
+# Apply patch
+patch -p 0 -N -r ceres.rej -i ceres.patch
+
 # Install
 mkdir ceres-bin
 cd ceres-bin
