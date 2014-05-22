@@ -71,7 +71,7 @@ template <typename ModelT_>
       camera_model_ = camera_model;
     }
 
-    const Polynomial<Scalar, 2> depthErrorFunction() const
+    const Polynomial<Scalar, 2> & depthErrorFunction() const
     {
       return depth_error_function_;
     }

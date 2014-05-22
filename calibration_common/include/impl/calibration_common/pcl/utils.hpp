@@ -54,18 +54,17 @@ template <typename Scalar_, typename PCLPoint_>
     cloud->points.resize(cloud->height * cloud->width);
 
     // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
-    double unit_scaling = SensorDepthTraits<Scalar_>::toMeters(Scalar_(1));
+    float unit_scaling = SensorDepthTraits<Scalar_>::toMeters(Scalar_(1));
     float constant_x = unit_scaling / camera_model.fx();
     float constant_y = unit_scaling / camera_model.fy();
     float bad_point = std::numeric_limits<float>::quiet_NaN();
 
-    typename pcl::PointCloud<PCLPoint_>::iterator pt_iter = cloud->begin();
     const Scalar_ * depth_row = reinterpret_cast<const Scalar_ *>(&depth_msg.data[0]);
     int row_step = depth_msg.step / sizeof(Scalar_);
 
-#pragma omp parallel for
     for (int v = 0; v < (int)cloud->height; ++v, depth_row += row_step)
     {
+#pragma omp parallel for
       for (int u = 0; u < (int)cloud->width; ++u)
       {
         PCLPoint_ & pt = cloud->points[u + v * cloud->width];
