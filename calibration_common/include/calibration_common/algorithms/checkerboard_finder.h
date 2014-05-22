@@ -44,7 +44,7 @@ namespace calibration
 {
 
 /**
- * @brief The CheckerboardFinder class
+ * @brief Base class to extract checkerboard corners from an image.
  */
 class CheckerboardFinder
 {
@@ -53,17 +53,14 @@ public:
   typedef boost::shared_ptr<CheckerboardFinder> Ptr;
   typedef boost::shared_ptr<const CheckerboardFinder> ConstPtr;
 
-  /**
-   * @brief ~CheckerboardFinder
-   */
   virtual ~CheckerboardFinder()
   {
     // Do nothing
   }
 
   /**
-   * @brief setImage
-   * @param image
+   * @brief Set the image in which to search for the checkerboard.
+   * @param [in] image the image
    */
   inline void setImage(const cv::Mat & image)
   {
@@ -72,19 +69,19 @@ public:
   }
 
   /**
-   * @brief find
-   * @param checkerboard
-   * @param corners
-   * @return
+   * @brief Extract the corners of the given checkerboard.
+   * @param [in] checkerboard The checkerboard to look for in the image.
+   * @param [out] corners The extracted corners.
+   * @return @c true if the checkerboard is found in the image, @c false otherwise.
    */
   virtual bool find(const Checkerboard & checkerboard,
                     std::vector<cv::Point2f> & corners) const = 0;
 
   /**
-   * @brief find
-   * @param checkerboard
-   * @param corners
-   * @return
+   * @brief Extract the corners of the given checkerboard.
+   * @param [in] checkerboard The checkerboard to look for in the image.
+   * @param [out] corners The extracted corners.
+   * @return @c true if the checkerboard is found in the image, @c false otherwise.
    */
   inline virtual bool find(const Checkerboard & checkerboard,
                            Cloud2 & corners) const
@@ -98,8 +95,8 @@ public:
 
 protected:
 
-  cv::Mat image_;
-  cv::Mat gray_;
+  cv::Mat image_; ///< The image.
+  cv::Mat gray_;  ///< The grayscale image.
 
 };
 

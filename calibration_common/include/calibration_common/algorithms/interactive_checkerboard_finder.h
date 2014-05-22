@@ -37,77 +37,56 @@ namespace calibration
 {
 
 /**
- * @brief The InteractiveCheckerboardFinder class
+ * @brief Interactively extract checkerboard corners from an image.\n
+ * Firstly the user should draw a rectangle around the checkerboard and press any key to search for the checkerboard inside.
+ * If the corners are not found, the user is asked to click manually over them in row-major.
+ * @todo Make the class derive from CheckerboardFinder.
  */
-class InteractiveCheckerboardFinder // TODO create a superclass CheckerboardFinder
+class InteractiveCheckerboardFinder
 {
 public:
 
   /**
-   * @brief InteractiveCheckerboardFinder
-   * @param image
-   */
-  InteractiveCheckerboardFinder(const cv::Mat & image)
-    : image_(image)
-  {
-    // Do nothing
-  }
-
-  /**
-   * @brief find
-   * @param checkerboard
-   * @param corners
-   * @param try_automatically
-   * @return
+   * @brief Extract the corners of the given checkerboard.
+   * @param [in] checkerboard The checkerboard to look for in the image.
+   * @param [out] corners The extracted corners.
+   * @param [in] try_automatically Set whether the function should try to extract the corners automatically.
+   * @see AutomaticCheckerboardFinder
+   * @return @c true if the checkerboard is found in the image, @c false otherwise.
    */
   bool find(const Checkerboard & checkerboard,
             std::vector<cv::Point2d> & corners,
             bool try_automatically = true);
 
   /**
-   * @brief find
-   * @param checkerboard
-   * @param corners
-   * @param try_automatically
-   * @return
+   * @brief Extract the corners of the given checkerboard.
+   * @param [in] checkerboard The checkerboard to look for in the image.
+   * @param [out] corners The extracted corners.
+   * @param [in] try_automatically Set whether the function should try to extract the corners automatically.
+   * @see AutomaticCheckerboardFinder
+   * @return @c true if the checkerboard is found in the image, @c false otherwise.
    */
   bool find(const Checkerboard & checkerboard,
             Cloud2 & corners,
             bool try_automatically = true);
 
-  /**
-   * @brief selectCornersCallback
-   * @param event
-   * @param x
-   * @param y
-   * @param flags
-   * @param param
-   */
   static void selectCornersCallback(int event,
                                     int x,
                                     int y,
                                     int flags,
-                                    void *param);
+                                    void * param);
 
-  /**
-   * @brief selectSubImageCallback
-   * @param event
-   * @param x
-   * @param y
-   * @param flags
-   * @param param
-   */
   static void selectSubImageCallback(int event,
                                      int x,
                                      int y,
                                      int flags,
-                                     void *param);
+                                     void * param);
 
 protected:
 
-  cv::Mat image_;
-  cv::Rect sub_image_rect_;
-  std::vector<cv::Point2f> corners_float_;
+  cv::Mat image_;                          ///< The image.
+  cv::Rect sub_image_rect_;                ///< The selected ROI.
+  std::vector<cv::Point2f> corners_float_; ///< The selected corners.
 
 };
 

@@ -36,6 +36,11 @@ namespace calibration
 {
 
 /**
+ * @addtogroup Base
+ * @{
+ */
+
+/**
  * @brief Base class for math function traits.
  * Subclasses of MathFunction must specialize this class:
  * @code
@@ -96,7 +101,7 @@ template <typename ScalarT_, int Degree_, int MinDegree_ = 0>
   class Polynomial;
 
 /**
- * Specialization of MathTraits for Polynomial class.
+ * Specialization of MathTraits for the Polynomial class.
  */
 template <typename ScalarT_, int Degree_, int MinDegree_>
   struct MathTraits<Polynomial<ScalarT_, Degree_, MinDegree_> >
@@ -478,6 +483,8 @@ template <typename ScalarT_>
 //  size_t min_degree_;
 //
 //};
+
+/** @} */
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_BASE_MATH_H_ */

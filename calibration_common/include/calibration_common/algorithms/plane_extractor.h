@@ -55,19 +55,20 @@ namespace calibration
 {
 
 /**
- * @brief The PlaneInfo struct
+ * @brief Information about a plane extracted from a point cloud.
  */
 struct PlaneInfo
 {
-  Plane plane_;
-  pcl::IndicesPtr indices_;
-  Scalar std_dev_;
+  Plane plane_;             ///< The plane equation.
+  pcl::IndicesPtr indices_; ///< The indices of the points belong to the plane.
+  Scalar std_dev_;          ///< The standard deviation of the distance between the points and the plane.
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
 
 /**
- * @brief The PlaneExtractor class
+ * @brief Base class for the extraction of a well defined plane from a point cloud.
+ * @param PCLPoint_ The point
  */
 template <typename PCLPointT_>
   class PlaneExtractor
@@ -79,23 +80,20 @@ template <typename PCLPointT_>
 
     typedef typename pcl::PointCloud<PCLPointT_>::ConstPtr PointCloudConstPtr;
 
-    /**
-     * @brief ~PlaneExtractor
-     */
     virtual ~PlaneExtractor()
     {
     }
 
     /**
-     * @brief setInputCloud
-     * @param cloud
+     * @brief setInputCloud Provide a pointer to the input dataset.
+     * @param [in] cloud The const boost shared pointer to a PointCloud message.
      */
     virtual void setInputCloud(const PointCloudConstPtr & cloud) = 0;
 
     /**
-     * @brief extract
-     * @param plane_info
-     * @return
+     * @brief Extract the plane.
+     * @param [out] plane_info The PlaneInfo of the extracted plane.
+     * @return @c true if the plane is extracted from the point cloud, @c false otherwise.
      */
     virtual bool extract(PlaneInfo & plane_info) const = 0;
 
@@ -110,9 +108,6 @@ template <typename PCLPointT_>
   {
   public:
 
-    /**
-     * @brief The PickingPoint struct
-     */
     struct PickingPoint
     {
       PickingPoint(PCLPointT_ point,

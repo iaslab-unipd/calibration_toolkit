@@ -37,20 +37,26 @@ namespace calibration
 {
 
 /**
- * @brief The Matrix class
- * @param T_
- * @param XSize_
- * @param YSize_
- * @param AllocatorT_
+ * @addtogroup Base
+ * @{
+ */
+
+/**
+ * @brief A 2D matrix class
+ * @param T_ The object type.
+ * @param XSize_ The first dimension size. Can be @c Eigen::Dynamic for resizable matrices.
+ * @param YSize_ The second dimension size. Can be @c Eigen::Dynamic for resizable matrices.
+ * @param AllocatorT_ The @c std::vector allocator.
  */
 template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic, typename AllocatorT_ = std::allocator<T_> >
   class Matrix
   {
   public:
 
-    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
+    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_; ///< The container size
 
-    typedef std::vector<T_, AllocatorT_> Container;
+
+    typedef std::vector<T_, AllocatorT_> Container; ///< The data container
 
     typedef boost::shared_ptr<Matrix> Ptr;
     typedef boost::shared_ptr<const Matrix> ConstPtr;
@@ -59,7 +65,8 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     typedef const T_ & ConstElement;
 
     /**
-     * @brief Matrix
+     * @brief Creates a @c YSize_ @f$\times@f$ @c XSize_ matrix. Elements are created with the default constructor.
+     * @warning Fixed-size only.
      */
     Matrix()
       : container_(XSize_ * YSize_),
@@ -70,9 +77,10 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     }
 
     /**
-     * @brief Matrix
-     * @param x_size
-     * @param y_size
+     * @brief Creates a @c y_size @f$\times@f$ @c x_size matrix. Elements are created with the default constructor.
+     * @param x_size The first dimension size.
+     * @param y_size The second dimension size.
+     * @warning Dynamic-size only.
      */
     Matrix(size_t x_size,
            size_t y_size)
@@ -86,8 +94,9 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     }
 
     /**
-     * @brief Matrix
-     * @param value
+     * @brief Creates a @c YSize_ @f$\times@f$ @c XSize_ matrix. Elements are copies of @c value.
+     * @param value The element to insert in the matrix.
+     * @warning Fixed-size only.
      */
     Matrix(const T_ & value)
       : container_(XSize_ * YSize_, value),
@@ -98,10 +107,11 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     }
 
     /**
-     * @brief Matrix
-     * @param x_size
-     * @param y_size
-     * @param value
+     * @brief Creates a @c y_size @f$\times@f$ @c x_size matrix. Elements are copies of @c value.
+     * @param x_size The first dimension size.
+     * @param y_size The second dimension size.
+     * @param value The element to insert in the matrix.
+     * @warning Dynamic-size only.
      */
     Matrix(size_t x_size,
            size_t y_size,
@@ -116,8 +126,9 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     }
 
     /**
-     * @brief Matrix
-     * @param data
+     * @brief Creates a @c YSize_ @f$\times@f$ @c XSize_ matrix. Elements are those in @c data.
+     * @param data The data to be copied.
+     * @warning Fixed-size only.
      */
     explicit Matrix(const Container & data)
       : container_(data),
@@ -129,8 +140,9 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     }
 
     /**
-     * @brief size
-     * @return
+     * @brief Returns the actual size of the container.
+     * YSize_ @f$\times@f$ @c XSize_ if the matrix is of a fixed size. Otherwise the returned size is the one passed to the constructor.
+     * @return Teh actual size.
      */
     inline size_t size() const
     {
@@ -281,6 +293,8 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
 
 template <typename T_, int XSize_, int YSize_, typename AllocatorT_>
   const int Matrix<T_, XSize_, YSize_, AllocatorT_>::Size;
+
+/** @} */
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_BASE_MATRIX_H_ */

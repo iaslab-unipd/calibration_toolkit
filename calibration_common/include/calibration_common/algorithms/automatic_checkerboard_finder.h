@@ -31,11 +31,20 @@
 
 #include <calibration_common/algorithms/checkerboard_finder.h>
 
+
+/**
+ * @namespace calibration
+ */
 namespace calibration
 {
 
 /**
- * @brief The AutomaticCheckerboardFinder class
+ * @addtogroup Algorithms
+ * @{
+ */
+
+/**
+ * @brief Automatically extract checkerboard corners from an image.
  */
 class AutomaticCheckerboardFinder : public CheckerboardFinder
 {
@@ -44,9 +53,6 @@ public:
   typedef boost::shared_ptr<AutomaticCheckerboardFinder> Ptr;
   typedef boost::shared_ptr<const AutomaticCheckerboardFinder> ConstPtr;
 
-  /**
-   * @brief ~AutomaticCheckerboardFinder
-   */
   virtual ~AutomaticCheckerboardFinder()
   {
     // Do nothing
@@ -55,15 +61,19 @@ public:
   using CheckerboardFinder::find;
 
   /**
-   * @brief find
-   * @param checkerboard
-   * @param corners
-   * @return
+   * @brief Extract the corners of the given checkerboard.
+   * @param [in] checkerboard The checkerboard to look for in the image.
+   * @param [out] corners The extracted corners.
+   * @return @c true if the checkerboard is found in the image, @c false otherwise.
    */
   virtual bool find(const Checkerboard & checkerboard,
                     std::vector<cv::Point2f> & corners) const;
 
 };
+
+/**
+ * @}
+ */
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_ALGORITHMS_AUTOMATIC_CHECKERBOARD_FINDER_H_ */
