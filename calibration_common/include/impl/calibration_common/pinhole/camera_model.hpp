@@ -67,7 +67,7 @@ template <typename Scalar>
                                                typename Types<Scalar>::Cloud3 & world_points) const
   {
     assert(initialized());
-    assert(pixel_points.size() == world_points.size());
+    assert(((pixel_points.size() == world_points.size()).all()));
 
     Eigen::Array<Scalar, 2, 1> sub(Scalar(-cx() - Tx()), Scalar(-cy() - Ty()));
     Eigen::Array<Scalar, 2, 1> div(Scalar(fx()), Scalar(fy()));
@@ -91,7 +91,7 @@ template <typename Scalar>
   {
     assert(initialized());
     assert(P_(2, 3) == 0.0);
-    assert(pixel_points.size() == world_points.size());
+    assert((pixel_points.size() == world_points.size()).all());
 
     Eigen::Array<double, 2, 1> prod(fx(), fy());
     Types<double>::Point2 sum(Tx(), Ty());
@@ -107,7 +107,7 @@ template <typename Scalar>
 template <typename Scalar>
   inline typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const
   {
-    typename Types<Scalar>::Cloud2 pixel_points(world_points.xSize(), world_points.ySize());
+    typename Types<Scalar>::Cloud2 pixel_points(world_points.size());
     project3dToPixel<Scalar>(world_points, pixel_points);
     return pixel_points;
   }
@@ -116,7 +116,7 @@ template <typename Scalar>
   typename Types<Scalar>::Pose PinholeCameraModel::estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
                                                                 const typename Types<Scalar>::Cloud3 & points_object) const
   {
-    assert(points_image.size() == points_object.size());
+    assert((points_image.size() == points_object.size()).all());
 
     cv::Mat_<cv::Vec<Scalar, 2> > cv_points_image;
     cv::Mat_<cv::Vec<Scalar, 3> > cv_points_object;

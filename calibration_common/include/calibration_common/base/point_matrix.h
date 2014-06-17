@@ -34,7 +34,6 @@
 namespace calibration
 {
 
-
 #ifndef MAX
 #define MAX(a,b)  ((a) < (b) ? (b) : (a))
 #endif
@@ -93,8 +92,7 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      * @brief EigenMatrix
      */
     EigenMatrix()
-      : x_size_(XSize_ == Eigen::Dynamic ? 0 : XSize_),
-        y_size_(YSize_ == Eigen::Dynamic ? 0 : YSize_)
+      : size_(XSize_ == Eigen::Dynamic ? 0 : XSize_, YSize_ == Eigen::Dynamic ? 0 : YSize_)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
@@ -103,20 +101,17 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
 
     /**
      * @brief EigenMatrix
-     * @param x_size
-     * @param y_size
+     * @param size
      */
-    EigenMatrix(size_t x_size,
-                size_t y_size)
-      : container_(TSize, x_size * y_size),
-        x_size_(x_size),
-        y_size_(y_size)
+    explicit EigenMatrix(const Size2 & size)
+      : container_(TSize, size.x() * size.y()),
+        size_(size)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
       EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Container);
-      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
+      assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
+      assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
     }
 
     /**
@@ -125,8 +120,7 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      */
     explicit EigenMatrix(const EigenT_ & value)
       : container_(Container::Zero()),
-        x_size_(XSize_),
-        y_size_(YSize_)
+        size_(XSize_, YSize_)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
@@ -136,113 +130,94 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
 
     /**
      * @brief EigenMatrix
-     * @param x_size
-     * @param y_size
+     * @param size
      * @param value
      */
-    EigenMatrix(size_t x_size,
-                size_t y_size,
+    EigenMatrix(const Size2 & size,
                 const EigenT_ & value)
-      : container_(Container::Zero(TSize, x_size * y_size)),
-        x_size_(x_size),
-        y_size_(y_size)
+      : container_(Container::Zero(TSize, size.x() * size.y())),
+        size_(size)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
       EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Container);
-      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
+      assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
+      assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
       container_.colwise() += value;
     }
 
-    /**
-     * @brief EigenMatrix
-     * @param data
-     */
-    explicit EigenMatrix(const Container & container)
-      : container_(container),
-        x_size_(XSize_),
-        y_size_(YSize_)
-    {
-      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container); // TODO also for Dynamic size?
-      assert(container.size() == Size);
-    }
+//    /**
+//     * @brief EigenMatrix
+//     * @param data
+//     */
+//    explicit EigenMatrix(const Container & container)
+//      : container_(container),
+//        size_(XSize_, YSize_)
+//    {
+//      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
+//      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
+//      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container); // TODO also for Dynamic size?
+//      assert(container.size() == Size);
+//    }
 
     /**
      * @brief size
      * @return
      */
-    inline size_t size() const
+    inline const Size2 & size() const
     {
-      return xSize() * ySize();
-    }
-
-    /**
-     * @brief xSize
-     * @return
-     */
-    inline size_t xSize() const
-    {
-      return x_size_;
-    }
-
-    /**
-     * @brief ySize
-     * @return
-     */
-    inline size_t ySize() const
-    {
-      return y_size_;
+      return size_;
     }
 
     /**
      * @brief resize
-     * @param x_size
-     * @param y_size
+     * @param size
      */
-    void resize(size_t x_size,
-                size_t y_size)
+    inline void resize(const Size2 & size)
     {
-      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
-      container_.conservativeResize(TSize, x_size * y_size);
-      x_size_ = x_size;
-      y_size_ = y_size;
+      assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
+      assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
+      container_.conservativeResize(TSize,  size.x() * size.y());
+      size_ = size;
     }
 
     /**
      * @brief reshape
-     * @param x_size
-     * @param y_size
+     * @param size
      */
-    inline void reshape(size_t x_size,
-                        size_t y_size)
+    inline void reshape(const Size2 & size)
     {
       EIGEN_STATIC_ASSERT(XSize_ == Eigen::Dynamic and YSize_ == Eigen::Dynamic,
                           YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
-      assert(x_size * y_size == container_.size());
-      x_size_ = x_size;
-      y_size_ = y_size;
+      assert(size.x() * size.y() == container_.size());
+      size_ = size;
     }
 
     /**
-     * @brief setData
-     * @param data
+     * @brief elements
+     * @return
      */
-    inline void setData(const Container & data)
+    inline Size1 elements() const
     {
-      assert(xSize() * ySize() == data.size());
-      container_ = data;
+      return size_.prod();
     }
+    
+//    /**
+//     * @brief setData
+//     * @param data
+//     */
+//    inline void setData(const Container & data)
+//    {
+//      assert(size_.x() * size_.y() == data.size());
+//      container_ = data;
+//    }
 
     /**
      * @brief operator []
      * @param index
      * @return
      */
-    inline const ConstElement operator [](size_t index) const
+    inline const ConstElement operator [](Size1 index) const
     {
       return container_.col(index);
     }
@@ -252,33 +227,29 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      * @param index
      * @return
      */
-    inline Element operator [](size_t index)
+    inline Element operator [](Size1 index)
     {
       return container_.col(index);
     }
 
     /**
      * @brief operator ()
-     * @param x_index
-     * @param y_index
+     * @param index
      * @return
      */
-    inline const ConstElement operator ()(size_t x_index,
-                                   size_t y_index) const
+    inline const ConstElement operator ()(const Size2 & index) const
     {
-      return container_.col(y_index * x_size_ + x_index);
+      return operator ()(index.x(), index.y());
     }
 
     /**
      * @brief operator ()
-     * @param x_index
-     * @param y_index
+     * @param index
      * @return
      */
-    inline Element operator ()(size_t x_index,
-                               size_t y_index)
+    inline Element operator ()(const Size2 & index)
     {
-      return container_.col(y_index * x_size_ + x_index);
+      return operator ()(index.x(), index.y());
     }
 
     /**
@@ -287,11 +258,57 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      * @param y_index
      * @return
      */
-    inline const ConstElement at(size_t x_index,
-                                 size_t y_index) const
+    inline const ConstElement at(const Size2 & index) const
     {
-      assert(y_index >= 0 and y_index < y_size_);
-      assert(x_index >= 0 and x_index < x_size_);
+      return at(index.x(), index.y());
+    }
+
+    /**
+     * @brief at
+     * @param x_index
+     * @param y_index
+     * @return
+     */
+    inline Element at(const Size2 & index)
+    {
+      return at(index.x(), index.y());
+    }
+
+    /**
+     * @brief operator ()
+     * @param x_index
+     * @param y_index
+     * @return
+     */
+    inline const ConstElement operator ()(Size1 x_index,
+                                          Size1 y_index) const
+    {
+      return container_.col(y_index * size_.x() + x_index);
+    }
+
+    /**
+     * @brief operator ()
+     * @param x_index
+     * @param y_index
+     * @return
+     */
+    inline Element operator ()(Size1 x_index,
+                               Size1 y_index)
+    {
+      return container_.col(y_index * size_.x() + x_index);
+    }
+
+    /**
+     * @brief at
+     * @param x_index
+     * @param y_index
+     * @return
+     */
+    inline const ConstElement at(Size1 x_index,
+                                 Size1 y_index) const
+    {
+      assert(x_index >= 0 and x_index < size_.x());
+      assert(y_index >= 0 and y_index < size_.y());
       return operator ()(x_index, y_index);
     }
 
@@ -301,11 +318,11 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      * @param y_index
      * @return
      */
-    inline Element at(size_t x_index,
-               size_t y_index)
+    inline Element at(Size1 x_index,
+                      Size1 y_index)
     {
-      assert(y_index >= 0 and y_index < y_size_);
-      assert(x_index >= 0 and x_index < x_size_);
+      assert(x_index >= 0 and x_index < size_.x());
+      assert(y_index >= 0 and y_index < size_.y());
       return operator ()(x_index, y_index);
     }
 
@@ -332,9 +349,7 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
   protected:
 
     Container container_;
-
-    size_t x_size_;
-    size_t y_size_;
+    Size2 size_;
 
   };
 
@@ -372,9 +387,8 @@ template <typename ScalarT_, int Dimension_, int XSize_ = Eigen::Dynamic, int YS
      * @param x_size
      * @param y_size
      */
-    PointMatrix(size_t x_size,
-                size_t y_size)
-      : Base(x_size, y_size)
+    explicit PointMatrix(const Size2 & size)
+      : Base(size)
     {
       // Do nothing
     }
@@ -392,42 +406,26 @@ template <typename ScalarT_, int Dimension_, int XSize_ = Eigen::Dynamic, int YS
 
     /**
      * @brief PointMatrix
-     * @param x_size
-     * @param y_size
+     * @param size
      * @param value
      */
     template <typename OtherDerived>
-      PointMatrix(size_t x_size,
-                  size_t y_size,
+      PointMatrix(const Size2 & size,
                   const Eigen::DenseBase<OtherDerived> & value)
-        : Base(Point(value), x_size, y_size)
+        : Base(size, Point(value))
       {
         // Do nothing
       }
 
-    /**
-     * @brief PointMatrix
-     * @param container
-     */
-    explicit PointMatrix(const Container & container)
-      : Base(container)
-    {
-      // Do nothing
-    }
-
-    /**
-     * @brief PointMatrix
-     * @param x_size
-     * @param y_size
-     * @param container
-     */
-    PointMatrix(size_t x_size,
-                size_t y_size,
-                const Container & container)
-      : Base(x_size, y_size, container)
-    {
-      // Do nothing
-    }
+//    /**
+//     * @brief PointMatrix
+//     * @param container
+//     */
+//    explicit PointMatrix(const Container & container)
+//      : Base(container)
+//    {
+//      // Do nothing
+//    }
 
     /**
      * @brief transform
@@ -440,194 +438,6 @@ template <typename ScalarT_, int Dimension_, int XSize_ = Eigen::Dynamic, int YS
     }
 
   };
-
-//template <typename ScalarT_, int Dimension_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic>
-//  class PointMatrix
-//  {
-//  public:
-
-//    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
-//    static const int Options = (Dimension_ > 1) ? Eigen::ColMajor : Eigen::RowMajor;
-
-//    typedef boost::shared_ptr<PointMatrix> Ptr;
-//    typedef boost::shared_ptr<const PointMatrix> ConstPtr;
-
-//    typedef Eigen::Matrix<ScalarT_, Dimension_, Size, Options, Dimension_> Container;
-//    typedef Eigen::Transform<ScalarT_, 3, Eigen::Affine> Transform;
-
-//    typedef typename Container::ColXpr Element;
-//    typedef typename Container::ConstColXpr ConstElement;
-
-//    PointMatrix()
-//      : x_size_(XSize_ == Eigen::Dynamic ? 0 : XSize_),
-//        y_size_(YSize_ == Eigen::Dynamic ? 0 : YSize_)
-//    {
-//      //EIGEN_STATIC_ASSERT_FIXED_SIZE(Data);
-//    }
-
-//    PointMatrix(size_t x_size,
-//                size_t y_size)
-//      : container_(Dimension_, x_size * y_size),
-//        x_size_(x_size),
-//        y_size_(y_size)
-//    {
-//      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-//      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
-//    }
-
-//    template <typename OtherDerived>
-//      explicit PointMatrix(const Eigen::DenseBase<OtherDerived> & value)
-//        : x_size_(XSize_),
-//          y_size_(YSize_)
-//      {
-//        EIGEN_STATIC_ASSERT_FIXED_SIZE(Container);
-//        container_.colwise() = value;
-//      }
-
-//    template <typename OtherDerived>
-//      PointMatrix(size_t x_size,
-//                  size_t y_size,
-//                  const Eigen::DenseBase<OtherDerived> & value)
-//        : container_(Dimension_, x_size * y_size),
-//          x_size_(x_size),
-//          y_size_(y_size)
-//      {
-//        assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-//        assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
-//        container_.colwise() = value;
-//      }
-
-//    explicit PointMatrix(const Container & points)
-//      : container_(points),
-//        x_size_(XSize_),
-//        y_size_(YSize_)
-//    {
-//      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container);
-//    }
-
-//    PointMatrix(size_t x_size,
-//                size_t y_size,
-//                const Container & points)
-//      : container_(points),
-//        x_size_(x_size),
-//        y_size_(y_size)
-//    {
-//      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-//      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
-//      assert(x_size * y_size == points.cols());
-//    }
-
-//    size_t size() const
-//    {
-//      return size_t(container_.cols());
-//    }
-
-//    size_t xSize() const
-//    {
-//      return x_size_;
-//    }
-
-//    size_t ySize() const
-//    {
-//      return y_size_;
-//    }
-
-//    void setData(const Container & points)
-//    {
-//      assert(size() == points.cols());
-//      container_ = points;
-//    }
-
-//    void resize(size_t x_size,
-//                size_t y_size)
-//    {
-//      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-//      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
-//      container_.conservativeResize(Dimension_, x_size * y_size);
-//      x_size_ = x_size;
-//      y_size_ = y_size;
-//    }
-
-//    void reshape(size_t x_size,
-//                 size_t y_size)
-//    {
-//      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-//      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
-//      assert(x_size * y_size == size());
-//      x_size_ = x_size;
-//      y_size_ = y_size;
-//    }
-
-//    Element operator [](size_t index)
-//    {
-//      return container_.col(index);
-//    }
-
-//    const ConstElement operator [](size_t index) const
-//    {
-//      return container_.col(index);
-//    }
-
-//    const ConstElement at(size_t x_index,
-//                          size_t y_index) const
-//    {
-//      assert(y_index >= 0 && y_index < y_size_);
-//      assert(x_index >= 0 && x_index < x_size_);
-//      return operator ()(x_index, y_index);
-//    }
-
-//    Element at(size_t x_index,
-//               size_t y_index)
-//    {
-//      assert(y_index >= 0 && y_index < y_size_);
-//      assert(x_index >= 0 && x_index < x_size_);
-//      return operator ()(x_index, y_index);
-//    }
-
-//    const ConstElement operator ()(size_t x_index,
-//                                   size_t y_index) const
-//    {
-//      return operator [](y_index * x_size_ + x_index);
-//    }
-
-//    Element operator ()(size_t x_index,
-//                        size_t y_index)
-//    {
-//      return operator [](y_index * x_size_ + x_index);
-//    }
-
-//    void transform(const Eigen::Transform<ScalarT_, 3, Eigen::Affine> & transform)
-//    {
-//      EIGEN_STATIC_ASSERT(Dimension_ == 3, THIS_METHOD_IS_ONLY_FOR_OBJECTS_OF_A_SPECIFIC_SIZE);
-//      container_ = transform * container_;
-//    }
-
-//    Container & container()
-//    {
-//      return container_;
-//    }
-
-//    const Container & container() const
-//    {
-//      return container_;
-//    }
-
-//    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-//  private:
-
-//    Container container_;
-
-//    size_t x_size_;
-//    size_t y_size_;
-
-//  };
-
-//template <typename ScalarT_, int Dimension_, int XSize_, int YSize_>
-//  const int PointMatrix<ScalarT_, Dimension_, XSize_, YSize_>::Size;
-
-//template <typename ScalarT_, int Dimension_, int XSize_, int YSize_>
-//  const int PointMatrix<ScalarT_, Dimension_, XSize_, YSize_>::Options;
 
 } /* namespace calibration */
 

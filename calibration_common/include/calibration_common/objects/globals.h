@@ -77,8 +77,6 @@ struct Types
   typedef PointMatrix<Scalar, 3> Cloud3;                         ///< 3D Eigen PointCloud.
 };
 
-// Eigen
-
 typedef Types<double>::Scalar Scalar;               ///< Scalar type (@c float or @c double).
 
 typedef Types<Scalar>::Vector2 Vector2;             ///< 2D Eigen Vector.
@@ -143,15 +141,18 @@ struct Util
  * @param ObjectT_ The type for which to declare a constraint.
  */
 template <typename ObjectT_>
-  struct Constraint
-  {
-    typedef boost::shared_ptr<Constraint> Ptr;
-    typedef boost::shared_ptr<const Constraint> ConstPtr;
+struct Constraint
+{
+  typedef boost::shared_ptr<Constraint> Ptr;
+  typedef boost::shared_ptr<const Constraint> ConstPtr;
 
-    virtual ~Constraint()
-    {
-      // Do nothing
-    }
+  virtual ~Constraint()
+  {
+    // Do nothing
+  }
+
+  virtual bool isValid(const ObjectT_ & object) const = 0;
+};
 
     /**
      * @brief Test if the @c object satisfies the constraint.
@@ -166,21 +167,21 @@ template <typename ObjectT_>
  * @param ObjectT_ The type for which to declare a constraint.
  */
 template <typename ObjectT_>
-  struct NoConstraint : public Constraint<ObjectT_>
-  {
-    typedef boost::shared_ptr<NoConstraint> Ptr;
-    typedef boost::shared_ptr<const NoConstraint> ConstPtr;
+struct NoConstraint : public Constraint<ObjectT_>
+{
+  typedef boost::shared_ptr<NoConstraint> Ptr;
+  typedef boost::shared_ptr<const NoConstraint> ConstPtr;
 
-    /**
-     * @brief Test if the @c object satisfies the constraint.
-     * @param object The object.
-     * @return @c true
-     */
-    bool isValid(const ObjectT_ & object) const
-    {
-      return true;
-    }
-  };
+/**
+ * @brief Test if the @c object satisfies the constraint.
+ * @param object The object.
+ * @return @c true
+ */
+bool isValid(const ObjectT_ & object) const
+{
+  return true;
+}
+};
 
 /**
  * @}

@@ -29,13 +29,13 @@ template <typename PolynomialT_>
   {
     typedef PolynomialResidual<PolynomialT_> PolynomialResidualT;
 
-    const size_t bin_size = data_bin_.size();
+    const Size1 bin_size = data_bin_.size();
 
     if (bin_size < 5 * Degree)
       return false;
 
     ceres::Problem problem;
-    for (size_t i = 0; i < bin_size; ++i)
+    for (Size1 i = 0; i < bin_size; ++i)
     {
       problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidualT, 1, Size>(new PolynomialResidualT(data_bin_[i].first,
                                                                                                                      data_bin_[i].second)),

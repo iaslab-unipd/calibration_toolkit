@@ -45,7 +45,7 @@ void RGBDData::setDepthData(const PCLCloud3 & depth_data)
   fused_data_->is_dense = depth_data_->is_dense;
   fused_data_->header.frame_id = depth_data_->header.frame_id;
 
-  for (size_t p_index = 0; p_index < depth_data_->points.size(); ++p_index)
+  for (Size1 p_index = 0; p_index < depth_data_->points.size(); ++p_index)
   {
     const PCLPoint3 & point = depth_data_->points[p_index];
 
@@ -78,7 +78,7 @@ void RGBDData::fuseData() const
 //  depth_sensor_->undistortion()->undistort(depth_data_tmp);
 
 #pragma omp parallel for
-  for (size_t i = 0; i < depth_data_->size(); ++i)
+  for (Size1 i = 0; i < depth_data_->size(); ++i)
   {
     PCLPointRGB & point_rgb = fused_data_->points[i];
     Point3 point_eigen((*depth_data_)[i].x, (*depth_data_)[i].y, (*depth_data_)[i].z);

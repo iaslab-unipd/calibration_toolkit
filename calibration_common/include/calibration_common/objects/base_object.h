@@ -53,7 +53,7 @@ public:
   typedef boost::shared_ptr<BaseObject> Ptr;
   typedef boost::shared_ptr<const BaseObject> ConstPtr;
 
-  static size_t count_;
+  static Size1 count_;
 
   /**
    * @brief BaseObject

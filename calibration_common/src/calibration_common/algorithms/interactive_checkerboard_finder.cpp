@@ -94,7 +94,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
         cv::imshow("SELECT CORNERS", sub_image);
         cv::setMouseCallback("SELECT CORNERS", &InteractiveCheckerboardFinder::selectCornersCallback, this);
         cv::waitKey();
-        pattern_found = (static_cast<int>(corners_float_.size()) == checkerboard.corners().size());
+        pattern_found = (static_cast<int>(corners_float_.size()) == checkerboard.corners().size().prod());
       }
 
       if (pattern_found)
@@ -127,7 +127,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
   }
 
   corners.clear();
-  for (unsigned int j = 0; j < corners_float_.size(); ++j)
+  for (Size1 j = 0; j < corners_float_.size(); ++j)
   {
     corners.push_back(cv::Point2d(corners_float_[j].x, corners_float_[j].y));
   }

@@ -19,7 +19,7 @@ typedef PolynomialUndistortionMatrixIO<PolynomialT> MatrixIO;
 
 TEST(PolynomialUndistortionMatrixIO, write_read)
 {
-  DataT::Ptr data = boost::make_shared<DataT>(15, 10, PolynomialT::IdentityCoefficients());
+  DataT::Ptr data = boost::make_shared<DataT>(Size2(15, 10), PolynomialT::IdentityCoefficients());
 
   ModelT::Ptr model = boost::make_shared<ModelT>();
   model->setData(data);

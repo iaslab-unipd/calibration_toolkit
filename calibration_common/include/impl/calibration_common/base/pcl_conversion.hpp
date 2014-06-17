@@ -85,7 +85,7 @@ template <typename ScalarT_>
     PointMatrix<ScalarT_, 3> PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud,
                                                                     const std::vector<int> & indices)
     {
-      PointMatrix<ScalarT_, 3> point_matrix(indices.size(), 1);
+      PointMatrix<ScalarT_, 3> point_matrix(Size2(indices.size(), 1));
       toPointMatrix(point_cloud, indices, point_matrix);
       return point_matrix;
     }

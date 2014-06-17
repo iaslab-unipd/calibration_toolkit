@@ -126,7 +126,7 @@ template <typename PolynomialT_, typename ScalarT_>
     virtual void undistort(Cloud & cloud) const
     {
       assert(Base::model_);
-      for (size_t i = 0; i < cloud.size(); ++i)
+      for (Size1 i = 0; i < cloud.elements(); ++i)
       {
         Scalar z = cloud[i].z();
         Base::model_->undistort(project(cloud[i]), z);
@@ -194,7 +194,7 @@ template <typename PolynomialT_, typename PCLPointT_>
 
     virtual void undistort(Cloud & cloud) const
     {
-      for (size_t i = 0; i < cloud.size(); ++i)
+      for (Size1 i = 0; i < cloud.size(); ++i)
         undistort(cloud.points[i]);
     }
 

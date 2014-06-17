@@ -47,8 +47,8 @@ template <class Polynomial_>
     const int size = MathTraits<Polynomial_>::Size;
     assert(size > 0);
 
-    const int matrix_column_number = data.xSize();
-    const int matrix_row_number = data.ySize();
+    const int matrix_column_number = data.size().x();
+    const int matrix_row_number = data.size().y();
 
     std::ofstream output_file;
     std::stringstream output_stream;
@@ -93,8 +93,8 @@ template <class Polynomial_>
 
     int degree;
     int min_degree;
-    size_t matrix_column_number;
-    size_t matrix_row_number;
+    Size1 matrix_column_number;
+    Size1 matrix_row_number;
 
     input_file.open(file_name.c_str());
     if (input_file.is_open())
@@ -148,7 +148,7 @@ template <class Polynomial_>
     else
       return false;
 
-    data = boost::make_shared<Data>(matrix_column_number, matrix_row_number);
+    data = boost::make_shared<Data>(Size2(matrix_column_number, matrix_row_number));
 
     int coeff_count = 0;
     for (std::vector<std::vector<double> >::iterator ext_it = matrix.begin(); ext_it != matrix.end(); ++ext_it)
@@ -209,7 +209,7 @@ template <class Polynomial_>
                                                             Scalar max) const
   {
     assert(max > 0);
-    cv::Mat float_image(undistortion_matrix.data()->ySize(), undistortion_matrix.data()->xSize(), CV_32FC1);
+    cv::Mat float_image(undistortion_matrix.data()->size().y(), undistortion_matrix.data()->size().x(), CV_32FC1);
 
     for (int y = 0; y < float_image.rows; ++y)
     {
@@ -233,7 +233,7 @@ template <class Polynomial_>
                                                                 Scalar & max) const
   {
     max = 0;
-    cv::Mat float_image(undistortion_matrix.data()->ySize(), undistortion_matrix.data()->xSize(), CV_32FC1);
+    cv::Mat float_image(undistortion_matrix.data()->size().y(), undistortion_matrix.data()->size().x(), CV_32FC1);
 
     for (int y = 0; y < float_image.rows; ++y)
     {

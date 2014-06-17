@@ -150,14 +150,14 @@ template <typename PolynomialT_>
 
     virtual void accumulateCloud(const Cloud & cloud)
     {
-      for (size_t i = 0; i < cloud.size(); ++i)
+      for (Size1 i = 0; i < cloud.elements(); ++i)
         accumulatePoint(cloud[i]);
     }
 
     virtual void accumulateCloud(const Cloud & cloud,
                                  const std::vector<int> & indices)
     {
-      for (size_t i = 0; i < indices.size(); ++i)
+      for (Size1 i = 0; i < indices.size(); ++i)
         accumulatePoint(cloud[indices[i]]);
     }
 

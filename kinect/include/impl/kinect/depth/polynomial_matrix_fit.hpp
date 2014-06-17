@@ -38,7 +38,7 @@ namespace calibration
 template <typename ModelImpl_>
   void PolynomialUndistortionMatrixFit_<ModelImpl_>::addAccumulatedPoints(const Plane & plane)
   {
-    for (size_t i = 0; i < accumulation_bins_.size(); ++i)
+    for (Size1 i = 0; i < accumulation_bins_.elements(); ++i)
     {
       if (accumulation_bins_[i].isEmpty())
         continue;
@@ -57,18 +57,18 @@ template <typename ModelImpl_>
     assert(model_impl_);
 
 #pragma omp parallel for
-    for (size_t y_index = 0; y_index < distorsion_bins_.ySize(); ++y_index)
+    for (Size1 y_index = 0; y_index < distorsion_bins_.size().y(); ++y_index)
     {
-      for (size_t x_index = 0; x_index < distorsion_bins_.xSize(); ++x_index)
+      for (Size1 x_index = 0; x_index < distorsion_bins_.size().x(); ++x_index)
       {
         const PointDistorsionBin & distorsion_bin = distorsion_bins_(x_index, y_index);
-        const size_t bin_size = distorsion_bin.size();
+        const Size1 bin_size = distorsion_bin.size();
 
         if (bin_size < 5 * Degree)
           continue;
 
         ceres::Problem problem;
-        for (size_t i = 0; i < bin_size; ++i)
+        for (Size1 i = 0; i < bin_size; ++i)
         {
           PolynomialResidual<Poly> * residual = new PolynomialResidual<Poly>(distorsion_bin[i].first,
                                                                              distorsion_bin[i].second);
@@ -95,7 +95,7 @@ template <typename Polynomial_, typename ScalarT_>
     assert(Base::model_impl_);
     typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
-    size_t x_index, y_index;
+    Size1 x_index, y_index;
     Base::model_impl_->model()->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
   }
@@ -111,7 +111,7 @@ template <typename Polynomial_, typename PCLPoint_, typename ScalarT_>
     typename Types<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
     typename Types<Scalar>::Line line(eigen_point, Types<Scalar>::Vector3::UnitZ());
 
-    size_t x_index, y_index;
+    Size1 x_index, y_index;
     Base::model_impl_->model()->getIndex(UndistortionModel::project(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(eigen_point.z(),
                                                                       line.intersectionPoint(plane).z()));

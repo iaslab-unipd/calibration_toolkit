@@ -53,11 +53,11 @@ void Checkerboard::toMarker(visualization_msgs::Marker & marker) const
   std_msgs::ColorRGBA white;
   white.b = white.g = white.r = white.a = 1.0;
 
-  Eigen::Vector3d dc = (corners_(1, 1) - corners_(0, 0)) / 2.0;
-  Eigen::Vector3d dx = (corners_(1, 0) - corners_(0, 0));
-  Eigen::Vector3d dy = (corners_(0, 1) - corners_(0, 0));
+  Vector3 dc = (corners_(1, 1) - corners_(0, 0)) / 2.0;
+  Vector3 dx = (corners_(1, 0) - corners_(0, 0));
+  Vector3 dy = (corners_(0, 1) - corners_(0, 0));
 
-  Cloud3 centers(cols() + 1, rows() + 1);
+  Cloud3 centers(Size2(cols() + 1, rows() + 1));
 
   centers(0, 0) = corners_(0, 0) - dc;
   for (int x = 1; x < cols() + 1; ++x)

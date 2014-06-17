@@ -36,6 +36,11 @@
 namespace calibration
 {
 
+// TODO move away?
+typedef size_t Size1;
+typedef Eigen::Array<Size1, 2, 1> Size2;
+typedef Eigen::Array<Size1, 3, 1> Size3;
+
 /**
  * @addtogroup Base
  * @{
@@ -70,27 +75,23 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      */
     Matrix()
       : container_(XSize_ * YSize_),
-        x_size_(XSize_),
-        y_size_(YSize_)
+        size_(XSize_, YSize_)
     {
       EIGEN_STATIC_ASSERT(Size != Eigen::Dynamic, YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR);
     }
 
     /**
      * @brief Creates a @c y_size @f$\times@f$ @c x_size matrix. Elements are created with the default constructor.
-     * @param x_size The first dimension size.
-     * @param y_size The second dimension size.
+     * @param size The two-dimensional size
      * @warning Dynamic-size only.
      */
-    Matrix(size_t x_size,
-           size_t y_size)
-      : container_(x_size * y_size),
-        x_size_(x_size),
-        y_size_(y_size)
+    explicit Matrix(const Size2 & size)
+      : container_(size.x() * size.y()),
+        size_(size)
     {
       EIGEN_STATIC_ASSERT(Size == Eigen::Dynamic, YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
-      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
+      assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
+      assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
     }
 
     /**
@@ -98,31 +99,27 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      * @param value The element to insert in the matrix.
      * @warning Fixed-size only.
      */
-    Matrix(const T_ & value)
+    explicit Matrix(const T_ & value)
       : container_(XSize_ * YSize_, value),
-        x_size_(XSize_),
-        y_size_(YSize_)
+        size_(XSize_, YSize_)
     {
       EIGEN_STATIC_ASSERT(Size != Eigen::Dynamic, YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR);
     }
 
     /**
-     * @brief Creates a @c y_size @f$\times@f$ @c x_size matrix. Elements are copies of @c value.
-     * @param x_size The first dimension size.
-     * @param y_size The second dimension size.
+     * @brief Creates a @c size.y() @f$\times@f$ @c size.x() matrix. Elements are copies of @c value.
+     * @param size The two-dimensional size.
      * @param value The element to insert in the matrix.
      * @warning Dynamic-size only.
      */
-    Matrix(size_t x_size,
-           size_t y_size,
+    Matrix(const Size2 & size,
            const T_ & value)
-      : container_(x_size * y_size, value),
-        x_size_(x_size),
-        y_size_(y_size)
+      : container_(size.x() * size.y(), value),
+        size_(size)
     {
       EIGEN_STATIC_ASSERT(Size == Eigen::Dynamic, YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
-      assert(XSize_ == Eigen::Dynamic || x_size == XSize_);
-      assert(YSize_ == Eigen::Dynamic || y_size == YSize_);
+      assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
+      assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
     }
 
     /**
@@ -132,8 +129,7 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      */
     explicit Matrix(const Container & data)
       : container_(data),
-        x_size_(XSize_),
-        y_size_(YSize_)
+        size_(XSize_, YSize_)
     {
       EIGEN_STATIC_ASSERT(Size != Eigen::Dynamic, YOU_CALLED_A_FIXED_SIZE_METHOD_ON_A_DYNAMIC_SIZE_MATRIX_OR_VECTOR); // TODO also for Dynamic size?
       assert(data.size() == Size);
@@ -142,44 +138,32 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
     /**
      * @brief Returns the actual size of the container.
      * YSize_ @f$\times@f$ @c XSize_ if the matrix is of a fixed size. Otherwise the returned size is the one passed to the constructor.
-     * @return Teh actual size.
+     * @return The actual size.
      */
-    inline size_t size() const
+    inline const Size2 & size() const
     {
-      return container_.size();
+      return size_;
     }
 
     /**
-     * @brief xSize
+     * @brief elements
      * @return
      */
-    inline size_t xSize() const
+    inline Size1 elements() const
     {
-      return x_size_;
-    }
-
-    /**
-     * @brief ySize
-     * @return
-     */
-    inline size_t ySize() const
-    {
-      return y_size_;
+      return size_.prod();
     }
 
     /**
      * @brief reshape
-     * @param x_size
-     * @param y_size
+     * @param size
      */
-    inline void reshape(size_t x_size,
-                        size_t y_size)
+    inline void reshape(const Size2 & size)
     {
       EIGEN_STATIC_ASSERT(XSize_ == Eigen::Dynamic && YSize_ == Eigen::Dynamic,
                           YOU_CALLED_A_DYNAMIC_SIZE_METHOD_ON_A_FIXED_SIZE_MATRIX_OR_VECTOR);
-      assert(x_size * y_size == container_.size());
-      x_size_ = x_size;
-      y_size_ = y_size;
+      assert(size.x() * size.y() == container_.size());
+      size_ = size;
     }
 
     /**
@@ -188,7 +172,7 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      */
     inline void setData(const Container & data)
     {
-      assert(xSize() * ySize() == data.size());
+      assert(size_.x() * size_.y() == data.size());
       container_ = data;
     }
 
@@ -197,7 +181,7 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      * @param index
      * @return
      */
-    inline const ConstElement operator [](size_t index) const
+    inline const ConstElement operator [](Size1 index) const
     {
       return container_[index];
     }
@@ -207,21 +191,49 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      * @param index
      * @return
      */
-    inline Element operator [](size_t index)
+    inline Element operator [](Size1 index)
     {
       return container_[index];
     }
 
     /**
      * @brief operator ()
-     * @param x_index
-     * @param y_index
+     * @param index
      * @return
      */
-    inline const ConstElement operator ()(size_t x_index,
-                                   size_t y_index) const
+    inline const ConstElement operator ()(const Size2 & index) const
     {
-      return container_[y_index * x_size_ + x_index];
+      return operator ()(index.x(), index.y());
+    }
+
+    /**
+     * @brief operator ()
+     * @param index
+     * @return
+     */
+    inline Element operator ()(const Size2 & index)
+    {
+      return operator ()(index.x(), index.y());
+    }
+
+    /**
+     * @brief at
+     * @param index
+     * @return
+     */
+    inline const ConstElement at(const Size2 & index) const
+    {
+      return at(index.x(), index.y());
+    }
+
+    /**
+     * @brief at
+     * @param index
+     * @return
+     */
+    inline Element at(const Size2 & index)
+    {
+      return at(index.x(), index.y());
     }
 
     /**
@@ -230,10 +242,22 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      * @param y_index
      * @return
      */
-    inline Element operator ()(size_t x_index,
-                        size_t y_index)
+    inline const ConstElement operator ()(Size1 x_index,
+                                          Size1 y_index) const
     {
-      return container_[y_index * x_size_ + x_index];
+      return container_[y_index * size_.x() + x_index];
+    }
+
+    /**
+     * @brief operator ()
+     * @param x_index
+     * @param y_index
+     * @return
+     */
+    inline Element operator ()(Size1 x_index,
+                               Size1 y_index)
+    {
+      return container_[y_index * size_.x() + x_index];
     }
 
     /**
@@ -242,11 +266,11 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      * @param y_index
      * @return
      */
-    inline const ConstElement at(size_t x_index,
-                                 size_t y_index) const
+    inline const ConstElement at(Size1 x_index,
+                                 Size1 y_index) const
     {
-      assert(y_index >= 0 and y_index < y_size_);
-      assert(x_index >= 0 and x_index < x_size_);
+      assert(y_index >= 0 and y_index < size_.y());
+      assert(x_index >= 0 and x_index < size_.x());
       return operator ()(x_index, y_index);
     }
 
@@ -256,11 +280,11 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      * @param y_index
      * @return
      */
-    inline Element at(size_t x_index,
-                      size_t y_index)
+    inline Element at(Size1 x_index,
+                      Size1 y_index)
     {
-      assert(y_index >= 0 and y_index < y_size_);
-      assert(x_index >= 0 and x_index < x_size_);
+      assert(y_index >= 0 and y_index < size_.y());
+      assert(x_index >= 0 and x_index < size_.x());
       return operator ()(x_index, y_index);
     }
 
@@ -285,16 +309,12 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
   private:
 
     Container container_;
-
-    size_t x_size_;
-    size_t y_size_;
+    Size2 size_;
 
   };
 
 template <typename T_, int XSize_, int YSize_, typename AllocatorT_>
   const int Matrix<T_, XSize_, YSize_, AllocatorT_>::Size;
-
-/** @} */
 
 } /* namespace calibration */
 #endif /* CALIBRATION_COMMON_BASE_MATRIX_H_ */

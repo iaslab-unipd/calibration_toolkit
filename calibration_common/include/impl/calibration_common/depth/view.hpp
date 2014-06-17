@@ -50,7 +50,7 @@ template <typename SensorT_, typename DataT_, typename ObjectT_>
     marker.color.a = 1.0;
 
     const Cloud3 & points = Base::points();
-    for (size_t i = 0; i < points.size(); ++i)
+    for (Size1 i = 0; i < points.elements(); ++i)
     {
       geometry_msgs::Point p;
       p.x = points[i][0];

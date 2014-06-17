@@ -88,7 +88,7 @@ public:
   {
     std::vector<cv::Point2f> cv_corners;
     bool pattern_found = find(checkerboard, cv_corners);
-    corners.resize(checkerboard.cols(), checkerboard.rows());
+    corners.resize(Size2(checkerboard.cols(), checkerboard.rows()));
     OpenCVConversion<Scalar>::toPointMatrix(cv_corners, corners);
     return pattern_found;
   }

@@ -30,33 +30,34 @@
 #include <calibration_common/base/matrix.h>
 
 using calibration::Matrix;
+using calibration::Size2;
 
 TEST(Matrix, Matrix_fixed)
 {
   Matrix<int, 2, 5> matrix;
-  EXPECT_EQ(matrix.xSize(), 2);
-  EXPECT_EQ(matrix.ySize(), 5);
+  EXPECT_EQ(matrix.size().x(), 2);
+  EXPECT_EQ(matrix.size().y(), 5);
 }
 
 TEST(Matrix, Matrix_dynamic)
 {
-  Matrix<int> matrix(2, 5);
-  EXPECT_EQ(matrix.xSize(), 2);
-  EXPECT_EQ(matrix.ySize(), 5);
+  Matrix<int> matrix(Size2(2, 5));
+  EXPECT_EQ(matrix.size().x(), 2);
+  EXPECT_EQ(matrix.size().y(), 5);
 }
 
 TEST(Matrix, Matrix_dynamic_2)
 {
-  Matrix<int, 2, Eigen::Dynamic> matrix(2, 5);
-  EXPECT_EQ(matrix.xSize(), 2);
-  EXPECT_EQ(matrix.ySize(), 5);
+  Matrix<int, 2, Eigen::Dynamic> matrix(Size2(2, 5));
+  EXPECT_EQ(matrix.size().x(), 2);
+  EXPECT_EQ(matrix.size().y(), 5);
 }
 
 TEST(Matrix, Matrix_dynamic_3)
 {
-  Matrix<int, Eigen::Dynamic, 5> matrix(2, 5);
-  EXPECT_EQ(matrix.xSize(), 2);
-  EXPECT_EQ(matrix.ySize(), 5);
+  Matrix<int, Eigen::Dynamic, 5> matrix(Size2(2, 5));
+  EXPECT_EQ(matrix.size().x(), 2);
+  EXPECT_EQ(matrix.size().y(), 5);
 }
 
 TEST(Matrix, Matrix_fixed_value)
@@ -69,21 +70,21 @@ TEST(Matrix, Matrix_fixed_value)
 TEST(Matrix, Matrix_dynamic_value)
 {
   std::vector<int> conf(10, 7);
-  Matrix<int> matrix(2, 5, 7);
+  Matrix<int> matrix(Size2(2, 5), 7);
   EXPECT_EQ(matrix.container(), conf);
 }
 
 TEST(Matrix, Matrix_dynamic_value_2)
 {
   std::vector<int> conf(10, 7);
-  Matrix<int, 2> matrix(2, 5, 7);
+  Matrix<int, 2> matrix(Size2(2, 5), 7);
   EXPECT_EQ(matrix.container(), conf);
 }
 
 TEST(Matrix, Matrix_dynamic_value_3)
 {
   std::vector<int> conf(10, 7);
-  Matrix<int, Eigen::Dynamic, 5> matrix(2, 5, 7);
+  Matrix<int, Eigen::Dynamic, 5> matrix(Size2(2, 5), 7);
   EXPECT_EQ(matrix.container(), conf);
 }
 
@@ -97,7 +98,7 @@ TEST(Matrix, Matrix_data)
 TEST(Matrix, reshape)
 {
   std::vector<int> conf(10, 7);
-  Matrix<int> matrix(2, 5, 7);
-  matrix.reshape(5, 2);
+  Matrix<int> matrix(Size2(2, 5), 7);
+  matrix.reshape(Size2(5, 2));
   EXPECT_EQ(matrix.container(), conf);
 }

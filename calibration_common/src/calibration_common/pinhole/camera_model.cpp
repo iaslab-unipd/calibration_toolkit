@@ -66,7 +66,7 @@ void PinholeCameraModel::projectPixelTo3dRay(const Cloud2 & pixel_points,
                                              Cloud3 & world_points) const
 {
   assert(initialized());
-  assert(pixel_points.size() == world_points.size());
+  assert((pixel_points.size() == world_points.size()).all());
 
   Eigen::Array<Scalar, 2, 1> sub(-cx() - Tx(), -cy() - Ty());
   Eigen::Array<Scalar, 2, 1> div(fx(), fy());
@@ -79,7 +79,7 @@ void PinholeCameraModel::projectPixelTo3dRay(const Cloud2 & pixel_points,
 
 Cloud3 PinholeCameraModel::projectPixelTo3dRay(const Cloud2 & pixel_points) const
 {
-  Cloud3 world_points(pixel_points.xSize(), pixel_points.ySize());
+  Cloud3 world_points(pixel_points.size());
   projectPixelTo3dRay(pixel_points, world_points);
   return world_points;
 }
@@ -89,7 +89,7 @@ void PinholeCameraModel::project3dToPixel(const Cloud3 & world_points,
 {
   assert(initialized());
   assert(P_(2, 3) == 0.0);
-  assert(pixel_points.size() == world_points.size());
+  assert((pixel_points.size() == world_points.size()).all());
 
   Eigen::Array<Scalar, 2, 1> prod(fx(), fy());
   Point2 sum(Tx(), Ty());
@@ -105,7 +105,7 @@ void PinholeCameraModel::project3dToPixel(const Cloud3 & world_points,
 
 Cloud2 PinholeCameraModel::project3dToPixel(const Cloud3 & world_points) const
 {
-  Cloud2 pixel_points(world_points.xSize(), world_points.ySize());
+  Cloud2 pixel_points(world_points.size());
   project3dToPixel(world_points, pixel_points);
   return pixel_points;
 }
@@ -113,7 +113,7 @@ Cloud2 PinholeCameraModel::project3dToPixel(const Cloud3 & world_points) const
 Pose PinholeCameraModel::estimatePose(const Cloud2 & points_image,
                                       const Cloud3 & points_object) const
 {
-  assert(points_image.size() == points_object.size());
+  assert((points_image.size() == points_object.size()).all());
 
   cv::Mat_<cv::Vec<Scalar, 2> > cv_points_image;
   cv::Mat_<cv::Vec<Scalar, 3> > cv_points_object;

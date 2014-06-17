@@ -188,9 +188,9 @@ template <typename PointT_>
     if (cluster_indices.empty())
       return false;
 
-    size_t max_index = 0;
-    size_t max_size = cluster_indices[0].indices.size();
-    for (size_t i = 1; i < cluster_indices.size(); ++i)
+    Size1 max_index = 0;
+    Size1 max_size = cluster_indices[0].indices.size();
+    for (Size1 i = 1; i < cluster_indices.size(); ++i)
     {
       if (cluster_indices[i].indices.size() > max_size)
       {
@@ -252,7 +252,7 @@ template <typename PointT_>
     cloud_label_->sensor_origin_ = cloud->sensor_origin_;
     cloud_label_->sensor_orientation_ = cloud->sensor_orientation_;
 
-    for (size_t i = 0; i < cloud->points.size(); ++i)
+    for (Size1 i = 0; i < cloud->points.size(); ++i)
     {
       pcl::PointXYZL p;
       p.x = cloud->points[i].x;
@@ -326,7 +326,7 @@ template <typename PointT_>
   void PointPlaneExtractorGUI<PointT_>::pointPickingCallback(const pcl_vis::PointPickingEvent & event,
                                                              void * param)
   {
-    for (size_t i = 0; i < cloud_label_->points.size(); ++i)
+    for (Size1 i = 0; i < cloud_label_->points.size(); ++i)
     {
       if (cloud_label_->points[i].label == current_index_)
         cloud_label_->points[i].label = 0;
@@ -340,7 +340,7 @@ template <typename PointT_>
     PointPlaneExtractor<PointT_>::extract(last_plane_info_);
 
     const std::vector<int> & indices = *last_plane_info_.indices_;
-    for (size_t i = 0; i < indices.size(); ++i)
+    for (Size1 i = 0; i < indices.size(); ++i)
     {
       if (cloud_label_->points[indices[i]].label == 0)
         cloud_label_->points[indices[i]].label = current_index_;

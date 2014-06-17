@@ -66,8 +66,8 @@ template <typename UndistortionT_>
 
     explicit PolynomialUndistortionMatrixFit_(const typename UndistortionT_::Ptr & model_impl)
       : model_impl_(model_impl),
-        distorsion_bins_(model_impl->model()->data()->xSize(), model_impl->model()->data()->ySize()),
-        accumulation_bins_(model_impl->model()->data()->xSize(), model_impl->model()->data()->ySize())
+        distorsion_bins_(model_impl->model()->data()->size()),
+        accumulation_bins_(model_impl->model()->data()->size())
     {
       // Do nothing
     }
@@ -80,10 +80,8 @@ template <typename UndistortionT_>
     virtual void setModelImpl(const typename UndistortionT_::Ptr & model_impl)
     {
       model_impl_ = model_impl;
-      distorsion_bins_ = Matrix<typename Base::PointDistorsionBin>(model_impl->model()->data()->xSize(),
-                                                                   model_impl->model()->data()->ySize());
-      accumulation_bins_ = Matrix<typename Base::AccumulationBin>(model_impl->model()->data()->xSize(),
-                                                                  model_impl->model()->data()->ySize());
+      distorsion_bins_ = Matrix<typename Base::PointDistorsionBin>(model_impl->model()->data()->size());
+      accumulation_bins_ = Matrix<typename Base::AccumulationBin>(model_impl->model()->data()->size());
     }
 
     virtual const typename UndistortionT_::Ptr & modelImpl() const
@@ -163,14 +161,14 @@ template <typename PolynomialT_, typename ScalarT_ = typename MathTraits<Polynom
 
     virtual void accumulateCloud(const Cloud & cloud)
     {
-      for (size_t i = 0; i < cloud.size(); ++i)
+      for (Size1 i = 0; i < cloud.elements(); ++i)
         accumulatePoint(cloud[i]);
     }
 
     virtual void accumulateCloud(const Cloud & cloud,
                                  const std::vector<int> & indices)
     {
-      for (size_t i = 0; i < indices.size(); ++i)
+      for (Size1 i = 0; i < indices.size(); ++i)
         accumulatePoint(cloud[indices[i]]);
     }
 
@@ -254,14 +252,14 @@ template <typename PolynomialT_, typename PCLPointT_, typename ScalarT_ = typena
 
     virtual void accumulateCloud(const Cloud & cloud)
     {
-      for (size_t i = 0; i < cloud.points.size(); ++i)
+      for (Size1 i = 0; i < cloud.points.size(); ++i)
         accumulatePoint(cloud.points[i]);
     }
 
     virtual void accumulateCloud(const Cloud & cloud,
                                  const std::vector<int> & indices)
     {
-      for (size_t i = 0; i < indices.size(); ++i)
+      for (Size1 i = 0; i < indices.size(); ++i)
         accumulatePoint(cloud.points[indices[i]]);
     }
 

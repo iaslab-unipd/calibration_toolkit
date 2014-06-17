@@ -47,6 +47,15 @@ class InteractiveCheckerboardFinder
 public:
 
   /**
+   * @brief setImage
+   * @param image
+   */
+  inline void setImage(const cv::Mat & image)
+  {
+    image_ = image;
+  }
+
+  /**
    * @brief Extract the corners of the given checkerboard.
    * @param [in] checkerboard The checkerboard to look for in the image.
    * @param [out] corners The extracted corners.

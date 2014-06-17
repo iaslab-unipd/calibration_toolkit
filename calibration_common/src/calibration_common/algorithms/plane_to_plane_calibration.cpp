@@ -34,7 +34,7 @@ namespace calibration
 
 Transform PlaneToPlaneCalibration::estimateTransform(const std::vector<PlanePair> & plane_pair_vector)
 {
-  const int size = plane_pair_vector.size();
+  const Size1 size = plane_pair_vector.size();
 
   Eigen::Matrix<Scalar, 3, Eigen::Dynamic> normals_1(3, size);
   Eigen::Matrix<Scalar, 3, Eigen::Dynamic> normals_2(3, size);

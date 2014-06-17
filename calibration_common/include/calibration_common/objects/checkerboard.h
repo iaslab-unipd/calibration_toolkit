@@ -55,12 +55,12 @@ public:
    * @param cell_width
    * @param cell_height
    */
-  Checkerboard(size_t cols,
-               size_t rows,
+  Checkerboard(Size1 cols,
+               Size1 rows,
                Scalar cell_width,
                Scalar cell_height)
     : PlanarObject(),
-      corners_(cols, rows),
+      corners_(Size2(cols, rows)),
       cell_width_(cell_width),
       cell_height_(cell_height)
   {
@@ -68,8 +68,8 @@ public:
     assert(rows > 0);
     assert(cell_width > 0);
     assert(cell_height > 0);
-    for (size_t r = 0; r < rows; ++r)
-      for (size_t c = 0; c < cols; ++c)
+    for (Size1 r = 0; r < rows; ++r)
+      for (Size1 c = 0; c < cols; ++c)
         corners_(c, r) << c * cell_width, r * cell_height, Scalar(0);
   }
 
@@ -153,27 +153,27 @@ public:
    * @brief size
    * @return
    */
-  inline size_t size() const
+  inline Size1 size() const
   {
-    return corners_.size();
+    return corners_.elements();
   }
 
   /**
    * @brief rows
    * @return
    */
-  inline size_t rows() const
+  inline Size1 rows() const
   {
-    return corners_.ySize();
+    return corners_.size().y();
   }
 
   /**
    * @brief cols
    * @return
    */
-  inline size_t cols() const
+  inline Size1 cols() const
   {
-    return corners_.xSize();
+    return corners_.size().x();
   }
 
   /**
@@ -226,7 +226,7 @@ public:
    * @param index
    * @return
    */
-  inline Element operator [](size_t index)
+  inline Element operator [](Size1 index)
   {
     return corners_[index];
   }
@@ -236,7 +236,7 @@ public:
    * @param index
    * @return
    */
-  inline const ConstElement operator [](size_t index) const
+  inline const ConstElement operator [](Size1 index) const
   {
     return corners_[index];
   }
@@ -247,10 +247,10 @@ public:
    * @param row
    * @return
    */
-  inline const ConstElement at(size_t col,
-                        size_t row) const
+  inline const ConstElement at(Size1 col,
+                               Size1 row) const
   {
-    return corners_.at(col, row);
+    return corners_.at(Size2(col, row));
   }
 
   /**
@@ -259,10 +259,10 @@ public:
    * @param row
    * @return
    */
-  inline Element at(size_t col,
-                    size_t row)
+  inline Element at(Size1 col,
+                    Size1 row)
   {
-    return corners_.at(col, row);
+    return corners_.at(Size2(col, row));
   }
 
   /**
@@ -271,10 +271,10 @@ public:
    * @param row
    * @return
    */
-  inline const ConstElement operator ()(size_t col,
-                                        size_t row) const
+  inline const ConstElement operator ()(Size1 col,
+                                        Size1 row) const
   {
-    return corners_(col, row);
+    return corners_(Size2(col, row));
   }
 
   /**
@@ -283,10 +283,10 @@ public:
    * @param row
    * @return
    */
-  inline Element operator ()(size_t col,
-                             size_t row)
+  inline Element operator ()(Size1 col,
+                             Size1 row)
   {
-    return corners_(col, row);
+    return corners_(Size2(col, row));
   }
 
   /**

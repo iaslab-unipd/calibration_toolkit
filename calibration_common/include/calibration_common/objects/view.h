@@ -101,10 +101,10 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
      * @param indices
      */
     inline void setPoints(const PointMatrix<Scalar, Dimension_> & points,
-                   const std::vector<int> & indices)
+                          const std::vector<int> & indices)
     {
       points_.resize(indices.size(), 1);
-      for (size_t i = 0; i < indices.size(); ++i)
+      for (Size1 i = 0; i < indices.size(); ++i)
         points_[i] << points[indices[i]];
       centroid_need_recompute_ = true;
     }
@@ -136,6 +136,10 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
       return object_;
     }
 
+    /**
+     * @brief setSensor
+     * @param sensor
+     */
     inline void setSensor(const typename SensorT_::ConstPtr & sensor)
     {
       sensor_ = sensor;
