@@ -176,7 +176,7 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      */
     inline size_t size() const
     {
-      return container_.size();
+      return container_.cols();
     }
 
     /**
