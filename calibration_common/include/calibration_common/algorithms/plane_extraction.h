@@ -71,16 +71,16 @@ struct PlaneInfo
  * @param PCLPoint_ The point
  */
 template <typename PCLPointT_>
-  class PlaneExtractor
+  class PlaneExtraction
   {
   public:
 
-    typedef boost::shared_ptr<PlaneExtractor> Ptr;
-    typedef boost::shared_ptr<const PlaneExtractor> ConstPtr;
+    typedef boost::shared_ptr<PlaneExtraction> Ptr;
+    typedef boost::shared_ptr<const PlaneExtraction> ConstPtr;
 
     typedef typename pcl::PointCloud<PCLPointT_>::ConstPtr PointCloudConstPtr;
 
-    virtual ~PlaneExtractor()
+    virtual ~PlaneExtraction()
     {
     }
 
@@ -104,10 +104,13 @@ template <typename PCLPointT_>
  * @param PCLPointT_
  */
 template <typename PCLPointT_>
-  class PointPlaneExtractor : public PlaneExtractor<PCLPointT_>
+  class PointPlaneExtraction : public PlaneExtraction<PCLPointT_>
   {
   public:
 
+    /**
+     * @brief The PickingPoint struct
+     */
     struct PickingPoint
     {
       PickingPoint(PCLPointT_ point,
@@ -121,8 +124,8 @@ template <typename PCLPointT_>
       const Scalar radius_;
     };
 
-    typedef boost::shared_ptr<PointPlaneExtractor> Ptr;
-    typedef boost::shared_ptr<const PointPlaneExtractor> ConstPtr;
+    typedef boost::shared_ptr<PointPlaneExtraction> Ptr;
+    typedef boost::shared_ptr<const PointPlaneExtraction> ConstPtr;
 
     typedef pcl::PointCloud<PCLPointT_> PointCloud;
     typedef typename PointCloud::ConstPtr PointCloudConstPtr;
@@ -135,18 +138,30 @@ template <typename PCLPointT_>
     /**
      * @brief PointPlaneExtractor
      */
-    PointPlaneExtractor();
+    PointPlaneExtraction()
+      : cloud_normals_(boost::make_shared<pcl::PointCloud<pcl::Normal> >()),
+        cloud_tree_(boost::make_shared<KdTree>()),
+        radius_(0.1)
+    {
+      // Do nothing
+    }
 
     /**
      * @brief ~PointPlaneExtractor
      */
-    virtual ~PointPlaneExtractor();
+    virtual ~PointPlaneExtraction()
+    {
+      // Do nothing
+    }
 
     /**
      * @brief setRadius
      * @param radius
      */
-    void setRadius(Scalar radius);
+    inline void setRadius(Scalar radius)
+    {
+      radius_ = radius;
+    }
 
     /**
      * @brief setInputCloud
@@ -158,13 +173,20 @@ template <typename PCLPointT_>
      * @brief setPoint
      * @param point
      */
-    virtual void setPoint(const PCLPointT_ & point);
+    inline virtual void setPoint(const PCLPointT_ & point)
+    {
+      point_ = point;
+    }
 
     /**
      * @brief setPoint
      * @param picking_point
      */
-    virtual void setPoint(const PickingPoint & picking_point);
+    inline virtual void setPoint(const PickingPoint & picking_point)
+    {
+      setRadius(picking_point.radius_);
+      setPoint(picking_point.point_);
+    }
 
     /**
      * @brief extract
@@ -190,12 +212,12 @@ template <typename PCLPointT_>
  * @param PCLPointT_
  */
 template <typename PCLPointT_>
-  class PointPlaneExtractorGUI : public PointPlaneExtractor<PCLPointT_>
+  class PointPlaneExtractionGUI : public PointPlaneExtraction<PCLPointT_>
   {
   public:
 
-    typedef boost::shared_ptr<PointPlaneExtractorGUI> Ptr;
-    typedef boost::shared_ptr<const PointPlaneExtractorGUI> ConstPtr;
+    typedef boost::shared_ptr<PointPlaneExtractionGUI> Ptr;
+    typedef boost::shared_ptr<const PointPlaneExtractionGUI> ConstPtr;
 
     typedef pcl::PointCloud<PCLPointT_> PointCloud;
     typedef typename PointCloud::ConstPtr PointCloudConstPtr;
@@ -208,17 +230,17 @@ template <typename PCLPointT_>
     typedef boost::shared_ptr<ColorHandler> ColorHandlerPtr;
     typedef boost::signals2::connection Connection;
 
-    typedef PointPlaneExtractor<PCLPointT_> Base;
+    typedef PointPlaneExtraction<PCLPointT_> Base;
 
     /**
      * @brief PointPlaneExtractorGUI
      */
-    PointPlaneExtractorGUI();
+    PointPlaneExtractionGUI();
 
     /**
      * @brief ~PointPlaneExtractorGUI
      */
-    virtual ~PointPlaneExtractorGUI();
+    virtual ~PointPlaneExtractionGUI();
 
     /**
      * @brief extract
@@ -272,6 +294,6 @@ template <typename PCLPointT_>
 
 } /* namespace calibration */
 
-#include <impl/calibration_common/algorithms/plane_extractor.hpp>
+#include <impl/calibration_common/algorithms/plane_extraction.hpp>
 
 #endif /* CALIBRATION_COMMON_ALGORITHMS_PLANE_EXTRACTOR_H_ */

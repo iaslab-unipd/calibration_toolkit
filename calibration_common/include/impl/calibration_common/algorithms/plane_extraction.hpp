@@ -31,7 +31,7 @@
 
 #include <boost/smart_ptr/make_shared.hpp>
 
-#include <calibration_common/algorithms/plane_extractor.h>
+#include <calibration_common/algorithms/plane_extraction.h>
 
 #include <Eigen/Geometry>
 #include <Eigen/StdVector>
@@ -48,30 +48,8 @@ namespace calibration
 {
 
 template <typename PointT_>
-  PointPlaneExtractor<PointT_>::PointPlaneExtractor()
-    : cloud_normals_(new pcl::PointCloud<pcl::Normal>()),
-      cloud_tree_(new KdTree()),
-      radius_(0.1)
+  void PointPlaneExtraction<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
   {
-    // Do nothing
-  }
-
-template <typename PointT_>
-  PointPlaneExtractor<PointT_>::~PointPlaneExtractor()
-  {
-    // Do nothing
-  }
-
-template <typename PointT_>
-  void PointPlaneExtractor<PointT_>::setRadius(Scalar radius)
-  {
-    radius_ = radius;
-  }
-
-template <typename PointT_>
-  void PointPlaneExtractor<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
-  {
-
     cloud_ = cloud;
     cloud_tree_->setInputCloud(cloud_);
 
@@ -81,24 +59,10 @@ template <typename PointT_>
     normal_estimator.setKSearch(100); // TODO setRadiusSearch
     //normal_estimator.setRadiusSearch(0.05f);
     normal_estimator.compute(*cloud_normals_);
-
   }
 
 template <typename PointT_>
-  void PointPlaneExtractor<PointT_>::setPoint(const PointT_ & point)
-  {
-    point_ = point;
-  }
-
-template <typename PointT_>
-  void PointPlaneExtractor<PointT_>::setPoint(const PickingPoint & picking_point)
-  {
-    setRadius(picking_point.radius_);
-    setPoint(picking_point.point_);
-  }
-
-template <typename PointT_>
-  bool PointPlaneExtractor<PointT_>::extract(PlaneInfo & plane_info) const
+  bool PointPlaneExtraction<PointT_>::extract(PlaneInfo & plane_info) const
   {
     if (not plane_info.indices_)
       plane_info.indices_ = boost::make_shared<std::vector<int> >();
@@ -241,7 +205,7 @@ template <typename PointT_>
 //  }
 
 template <typename PointT_>
-  void PointPlaneExtractorGUI<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
+  void PointPlaneExtractionGUI<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
   {
     cloud_label_ = boost::make_shared<pcl::PointCloud<pcl::PointXYZL> >();
 
@@ -279,19 +243,19 @@ template <typename PointT_>
   }
 
 template <typename PointT_>
-  PointPlaneExtractorGUI<PointT_>::PointPlaneExtractorGUI()
+  PointPlaneExtractionGUI<PointT_>::PointPlaneExtractionGUI()
     : cloud_name_("Cloud"),
       current_index_(1),
       next_plane_(false),
       viewer_(boost::make_shared<pcl_vis::PCLVisualizer>("Select Checkerboard Planes")),
-      k_connection_(viewer_->registerKeyboardCallback(&PointPlaneExtractorGUI::keyboardCallback, *this)),
-      pp_connection_(viewer_->registerPointPickingCallback(&PointPlaneExtractorGUI::pointPickingCallback, *this))
+      k_connection_(viewer_->registerKeyboardCallback(&PointPlaneExtractionGUI::keyboardCallback, *this)),
+      pp_connection_(viewer_->registerPointPickingCallback(&PointPlaneExtractionGUI::pointPickingCallback, *this))
   {
     // Do nothing
   }
 
 template <typename PointT_>
-  PointPlaneExtractorGUI<PointT_>::~PointPlaneExtractorGUI()
+  PointPlaneExtractionGUI<PointT_>::~PointPlaneExtractionGUI()
   {
     if (viewer_ and cloud_label_)
       viewer_->removePointCloud(cloud_name_);
@@ -301,7 +265,7 @@ template <typename PointT_>
   }
 
 template <typename PointT_>
-  bool PointPlaneExtractorGUI<PointT_>::extract(PlaneInfo & plane_info) const
+  bool PointPlaneExtractionGUI<PointT_>::extract(PlaneInfo & plane_info) const
   {
     if (not cloud_label_)
       throw std::runtime_error("Need to call setInputCloud(...) method first.");
@@ -323,7 +287,7 @@ template <typename PointT_>
   }
 
 template <typename PointT_>
-  void PointPlaneExtractorGUI<PointT_>::pointPickingCallback(const pcl_vis::PointPickingEvent & event,
+  void PointPlaneExtractionGUI<PointT_>::pointPickingCallback(const pcl_vis::PointPickingEvent & event,
                                                              void * param)
   {
     for (Size1 i = 0; i < cloud_label_->points.size(); ++i)
@@ -336,8 +300,8 @@ template <typename PointT_>
     event.getPoint(p.x, p.y, p.z);
     last_clicked_point_ << p.x, p.y, p.z;
 
-    PointPlaneExtractor<PointT_>::setPoint(p);
-    PointPlaneExtractor<PointT_>::extract(last_plane_info_);
+    PointPlaneExtraction<PointT_>::setPoint(p);
+    PointPlaneExtraction<PointT_>::extract(last_plane_info_);
 
     const std::vector<int> & indices = *last_plane_info_.indices_;
     for (Size1 i = 0; i < indices.size(); ++i)
@@ -353,7 +317,7 @@ template <typename PointT_>
   }
 
 template <typename PointT_>
-  inline void PointPlaneExtractorGUI<PointT_>::keyboardCallback(const pcl_vis::KeyboardEvent & event,
+  inline void PointPlaneExtractionGUI<PointT_>::keyboardCallback(const pcl_vis::KeyboardEvent & event,
                                                                 void * param)
   {
     if (event.getKeySym() == "space" and event.keyUp())

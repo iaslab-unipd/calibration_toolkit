@@ -35,7 +35,7 @@ TEST(BaseObject, BaseObject)
 {
   BaseObject object;
 
-  EXPECT_EQ(object.frameId(), "");
+  EXPECT_EQ(object.frameId(), "object_1");
   EXPECT_FALSE(object.parent());
   EXPECT_EQ(object.pose().matrix(), Eigen::Affine3d::Identity().matrix());
 }

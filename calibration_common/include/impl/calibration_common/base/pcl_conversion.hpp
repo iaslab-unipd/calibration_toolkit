@@ -62,7 +62,7 @@ template <typename ScalarT_>
   template <typename PCLPointT_>
     PointMatrix<ScalarT_, 3> PCLConversion<ScalarT_>::toPointMatrix(const pcl::PointCloud<PCLPointT_> & point_cloud)
     {
-      PointMatrix<ScalarT_, 3> point_matrix(point_cloud.width, point_cloud.height);
+      PointMatrix<ScalarT_, 3> point_matrix(Size2(point_cloud.width, point_cloud.height));
       toPointMatrix(point_cloud, point_matrix);
       return point_matrix;
     }

@@ -31,7 +31,7 @@
 
 #include "automatic_checkerboard_finder.h"
 #include "checkerboard_finder.h"
-#include "plane_extractor.h"
+#include "plane_extraction.h"
 #include "plane_to_plane_calibration.h"
 #include "point_on_plane_calibration.h"
 

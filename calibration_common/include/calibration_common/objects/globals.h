@@ -107,6 +107,12 @@ typedef Types<Scalar>::Cloud3 Cloud3;               ///< 3D Eigen PointCloud.
 typedef pcl::PointXYZ PCLPoint3;                    ///< 3D pcl Point.
 typedef pcl::PointCloud<PCLPoint3> PCLCloud3;       ///< 3D pcl PointCloud.
 
+// Misc
+
+typedef std::vector<int> Indices;
+typedef boost::shared_ptr<Indices> IndicesPtr;
+typedef boost::shared_ptr<const Indices> IndicesConstPtr;
+
 /* ******************************************************************* */
 
 const Plane PLANE_XY = Plane(Vector3::UnitZ(), 0);  ///< The $x-y$ plane.
@@ -151,16 +157,13 @@ struct Constraint
     // Do nothing
   }
 
+  /**
+   * @brief Test if the @c object satisfies the constraint.
+   * @param object The object.
+   * @return @c true if the constraint is satisfied, @c false otherwise.
+   */
   virtual bool isValid(const ObjectT_ & object) const = 0;
 };
-
-    /**
-     * @brief Test if the @c object satisfies the constraint.
-     * @param object The object.
-     * @return @c true if the constraint is satisfied, @c false otherwise.
-     */
-    virtual bool isValid(const ObjectT_ & object) const = 0;
-  };
 
 /**
  * @brief Dummy implementation. The constraint is always satisfied.
@@ -181,6 +184,7 @@ bool isValid(const ObjectT_ & object) const
 {
   return true;
 }
+
 };
 
 /**

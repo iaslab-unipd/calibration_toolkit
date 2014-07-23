@@ -160,6 +160,11 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
 //      assert(container.size() == Size);
 //    }
 
+    bool isOrganized() const
+    {
+      return size_.y() > 1;
+    }
+
     /**
      * @brief size
      * @return
@@ -283,6 +288,8 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
     inline const ConstElement operator ()(Size1 x_index,
                                           Size1 y_index) const
     {
+      assert(x_index >= 0 and x_index < size_.x());
+      assert(y_index >= 0 and y_index < size_.y());
       return container_.col(y_index * size_.x() + x_index);
     }
 
@@ -295,6 +302,8 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
     inline Element operator ()(Size1 x_index,
                                Size1 y_index)
     {
+      assert(x_index >= 0 and x_index < size_.x());
+      assert(y_index >= 0 and y_index < size_.y());
       return container_.col(y_index * size_.x() + x_index);
     }
 

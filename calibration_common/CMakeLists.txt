@@ -57,7 +57,7 @@ set(INCLUDE_FILES
   include/calibration_common/algorithms/point_on_plane_calibration.h
   include/calibration_common/algorithms/automatic_checkerboard_finder.h
   include/calibration_common/algorithms/interactive_checkerboard_finder.h
-  include/calibration_common/algorithms/plane_extractor.h
+  include/calibration_common/algorithms/plane_extraction.h
   include/calibration_common/algorithms/plane_to_plane_calibration.h
   include/calibration_common/algorithms/checkerboard_finder.h
 
@@ -102,7 +102,7 @@ set(INCLUDE_FILES
   include/calibration_common/ceres/math.h
   include/calibration_common/ceres/ceres.h
 
-  include/impl/calibration_common/algorithms/plane_extractor.hpp
+  include/impl/calibration_common/algorithms/plane_extraction.hpp
   include/impl/calibration_common/pinhole/camera_model.hpp
   include/impl/calibration_common/base/opencv_conversion.hpp
   include/impl/calibration_common/base/pcl_conversion.hpp
