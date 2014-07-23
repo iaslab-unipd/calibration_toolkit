@@ -38,9 +38,7 @@ namespace calibration
 
 template <class Polynomial_>
   bool PolynomialUndistortionMatrixIO<Polynomial_>::write(const Data & data,
-                                                          const std::string & file_name,
-                                                          Scalar fov_x,
-                                                          Scalar fov_y) const
+                                                          const std::string & file_name) const
   {
     const int degree = MathTraits<Polynomial_>::Degree;
     const int min_degree = MathTraits<Polynomial_>::MinDegree;
@@ -54,7 +52,6 @@ template <class Polynomial_>
     std::stringstream output_stream;
 
     output_stream << "Polynomial " << degree << " " << min_degree << std::endl;
-    output_stream << "FOV " << fov_x << " " << fov_y << std::endl;
     output_stream << "Matrix " << matrix_column_number << " " << matrix_row_number << std::endl;
 
     for (int y = 0; y < matrix_row_number; ++y)
@@ -81,9 +78,7 @@ template <class Polynomial_>
 
 template <class Polynomial_>
   bool PolynomialUndistortionMatrixIO<Polynomial_>::read(typename Data::Ptr & data,
-                                                         const std::string & file_name,
-                                                         Scalar & x_fov,
-                                                         Scalar & y_fov) const
+                                                         const std::string & file_name) const
   {
     bool file_found = false;
 
@@ -103,7 +98,6 @@ template <class Polynomial_>
       std::string line = "";
 
       int line_count = 0;
-      bool assigned = false;
 
       while (std::getline(input_file, line))
       {
@@ -121,12 +115,6 @@ template <class Polynomial_>
           line_count++;
         }
         else if (line_count == 1)
-        {
-          x_fov = boost::lexical_cast<Scalar>(tokens.at(1));
-          y_fov = boost::lexical_cast<Scalar>(tokens.at(2));
-          line_count++;
-        }
-        else if (line_count == 2)
         {
           matrix_column_number = boost::lexical_cast<size_t>(tokens.at(1));
           matrix_row_number = boost::lexical_cast<size_t>(tokens.at(2));
@@ -203,7 +191,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                                                             const Scalar z,
                                                             cv::Mat & image,
                                                             Scalar max) const
@@ -227,7 +215,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                                                                 const Scalar z,
                                                                 cv::Mat & image,
                                                                 Scalar & max) const

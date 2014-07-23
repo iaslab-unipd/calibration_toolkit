@@ -37,10 +37,10 @@ namespace calibration
 {
 
 template <typename PolynomialT_>
-  class PolynomialMatrixModel;
+  class PolynomialMatrixModel_;
 
 template <typename PolynomialT_>
-  struct ModelTraits<PolynomialMatrixModel<PolynomialT_> >
+  struct ModelTraits<PolynomialMatrixModel_<PolynomialT_> >
   {
     typedef PolynomialT_ Poly;
     typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
@@ -48,15 +48,15 @@ template <typename PolynomialT_>
   };
 
 template <typename PolynomialT_>
-  class PolynomialMatrixModel : public DepthUndistortionModel<PolynomialMatrixModel<PolynomialT_> >
+  class PolynomialMatrixModel_
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialMatrixModel> Ptr;
-    typedef boost::shared_ptr<const PolynomialMatrixModel> ConstPtr;
+    typedef boost::shared_ptr<PolynomialMatrixModel_> Ptr;
+    typedef boost::shared_ptr<const PolynomialMatrixModel_> ConstPtr;
 
-    typedef ModelTraits<PolynomialMatrixModel> Traits;
-    typedef DepthUndistortionModel<PolynomialMatrixModel> Base;
+    typedef ModelTraits<PolynomialMatrixModel_> Traits;
+//    typedef DepthUndistortionModel<PolynomialSimpleMatrixModel> Base;
 
     typedef typename Traits::Poly Poly;
     typedef typename Traits::Scalar Scalar;
@@ -65,80 +65,154 @@ template <typename PolynomialT_>
     typedef typename Data::Element Element;
     typedef typename Data::ConstElement ConstElement;
 
-    PolynomialMatrixModel()
-      : bin_size_(1, 1)
+    PolynomialMatrixModel_(const Size2 & image_size)
+      : image_size_(image_size),
+        bin_size_(1, 1)
     {
       // Do nothing
     }
 
-    explicit PolynomialMatrixModel(const typename Data::Ptr & data)
-      : data_(data)
+    inline const Size2 & imageSize() const
     {
-      // Do nothing
+      return image_size_;
     }
 
-    virtual ~PolynomialMatrixModel()
+    inline virtual void setMatrix(const typename Data::Ptr & matrix,
+                                  const Size2 & bin_size)
     {
-      // Do nothing
+      matrix_ = matrix;
+      bin_size_ = bin_size;
     }
 
-    void setData(const typename Data::Ptr & data)
+    inline virtual void setMatrix(const typename Data::Ptr & matrix)
     {
-      data_ = data;
+      matrix_ = matrix;
+      bin_size_ = image_size_ / matrix->size();
     }
 
-    const typename Data::Ptr & data() const
+    inline const typename Data::Ptr & matrix() const
     {
-      return data_;
+      return matrix_;
     }
 
-    void setBinSize(const Size2 & size)
-    {
-      bin_size_ = size;
-    }
-
-    const Size2 & binSize() const
+    inline const Size2 & binSize() const
     {
       return bin_size_;
     }
 
-    Element polynomial(size_t x_index,
-                       size_t y_index)
+    inline Element polynomial(Size1 x_index,
+                              Size1 y_index)
     {
-      assert(data_);
-      return (*data_)(x_index, y_index);
+      assert(matrix_);
+      return (*matrix_)(x_index, y_index);
     }
 
-    const ConstElement polynomial(size_t x_index,
-                                  size_t y_index) const
+    inline const ConstElement polynomial(Size1 x_index,
+                                         Size1 y_index) const
     {
-      assert(data_);
-      return (*boost::static_pointer_cast<const Data>(data_))(x_index, y_index);
+      assert(matrix_);
+      return (*boost::static_pointer_cast<const Data>(matrix_))(x_index, y_index);
     }
 
-    virtual void undistort(size_t x_index,
-                           size_t y_index,
-                           Scalar & depth) const
+    inline Element polynomial(const Size2 & index)
     {
-      depth = Poly::evaluate(polynomial(x_index, y_index), depth);
+      assert(matrix_);
+      return (*matrix_)(index);
     }
 
-    Scalar * dataPtr()
+    inline const ConstElement polynomial(const Size2 & index) const
     {
-      assert(data_);
-      return data_->container().data();
+      assert(matrix_);
+      return (*boost::static_pointer_cast<const Data>(matrix_))(index);
     }
 
-    const Scalar * dataPtr() const
+    inline virtual Scalar * dataPtr()
     {
-      assert(data_);
-      return data_->container().data();
+      assert(matrix_);
+      return matrix_->container().data();
+    }
+
+    inline virtual const Scalar * dataPtr() const
+    {
+      assert(matrix_);
+      return matrix_->container().data();
     }
 
   protected:
 
-    typename Data::Ptr data_;
+    typename Data::Ptr matrix_;
+    Size2 image_size_;
     Size2 bin_size_;
+
+  };
+
+template <typename PolynomialT_>
+  class PolynomialMatrixSimpleModel;
+
+template <typename PolynomialT_>
+  struct ModelTraits<PolynomialMatrixSimpleModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel_<PolynomialT_> >
+  {
+    typedef ModelTraits<PolynomialMatrixModel_<PolynomialT_> > Base;
+    typedef typename Base::Poly Poly;
+    typedef typename Base::Scalar Scalar;
+    typedef typename Base::Data Data;
+  };
+
+template <typename PolynomialT_>
+  class PolynomialMatrixSimpleModel : public PolynomialMatrixModel_<PolynomialT_>
+  {
+  public:
+
+    typedef boost::shared_ptr<PolynomialMatrixSimpleModel> Ptr;
+    typedef boost::shared_ptr<const PolynomialMatrixSimpleModel> ConstPtr;
+
+    typedef ModelTraits<PolynomialMatrixSimpleModel> Traits;
+    typedef PolynomialMatrixModel_<PolynomialT_> Base;
+
+    typedef typename Traits::Poly Poly;
+    typedef typename Traits::Scalar Scalar;
+    typedef typename Traits::Data Data;
+
+    typedef typename Data::Element Element;
+    typedef typename Data::ConstElement ConstElement;
+
+    PolynomialMatrixSimpleModel(const Size2 & image_size)
+      : Base(image_size)
+    {
+      // Do nothing
+    }
+
+    inline typename Data::Ptr createMatrix(const Size2 & bin_size)
+    {
+      assert((bin_size <= Base::image_size_).all() and (bin_size > Size2(0, 0)).all());
+      return boost::make_shared<Data>(Base::image_size_ / bin_size);
+    }
+
+    inline Size2 matrixIndex(Size1 x_index,
+                             Size1 y_index) const
+    {
+      assert(x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0);
+      return Size2(x_index / Base::bin_size_.x(), y_index / Base::bin_size_.y());
+    }
+
+    inline Size2 matrixIndex(const Size2 & index) const
+    {
+      assert((index < Base::image_size_).all() and (index >= Size2(0, 0)).all());
+      return index / Base::bin_size_;
+    }
+
+    inline void undistort(Size1 x_index,
+                          Size1 y_index,
+                          Scalar & depth) const
+    {
+      depth = Poly::evaluate(Base::polynomial(matrixIndex(x_index, y_index)), depth);
+    }
+
+    inline void undistort(const Size2 & index,
+                          Scalar & depth) const
+    {
+      depth = Poly::evaluate(Base::polynomial(matrixIndex(index)), depth);
+    }
 
   };
 
@@ -146,16 +220,20 @@ template <typename PolynomialT_>
   class PolynomialMatrixSmoothModel;
 
 template <typename PolynomialT_>
-  struct ModelTraits<PolynomialMatrixSmoothModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel<PolynomialT_> >
+  struct ModelTraits<PolynomialMatrixSmoothModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel_<PolynomialT_> >
   {
-    typedef ModelTraits<PolynomialMatrixModel<PolynomialT_> > Base;
+    typedef ModelTraits<PolynomialMatrixModel_<PolynomialT_> > Base;
     typedef typename Base::Poly Poly;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::Data Data;
   };
 
+/**
+ * @brief The PolynomialSmoothMatrixModel class
+ * @todo Use a Lookup Table
+ */
 template <typename PolynomialT_>
-  class PolynomialMatrixSmoothModel : public PolynomialMatrixModel<PolynomialT_>
+  class PolynomialMatrixSmoothModel : public PolynomialMatrixModel_<PolynomialT_>
   {
   public:
 
@@ -163,7 +241,7 @@ template <typename PolynomialT_>
     typedef boost::shared_ptr<const PolynomialMatrixSmoothModel> ConstPtr;
 
     typedef ModelTraits<PolynomialMatrixSmoothModel> Traits;
-    typedef PolynomialMatrixModel<PolynomialT_> Base;
+    typedef PolynomialMatrixModel_<PolynomialT_> Base;
 
     typedef typename Traits::Poly Poly;
     typedef typename Traits::Scalar Scalar;
@@ -172,278 +250,286 @@ template <typename PolynomialT_>
     typedef typename Data::Element Element;
     typedef typename Data::ConstElement ConstElement;
 
-    PolynomialMatrixSmoothModel()
+    PolynomialMatrixSmoothModel(const Size2 & image_size)
+      : Base(image_size)
     {
       // Do nothing
     }
 
-    explicit PolynomialMatrixSmoothModel(const typename Data::Ptr & data)
-      : Base(data)
+    inline typename Data::Ptr createMatrix(const Size2 & bin_size)
     {
-      // Do nothing
+      assert((bin_size <= Base::image_size_).all() and (bin_size > Size2(0, 0)).all());
+      assert(bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0);
+      return boost::make_shared<Data>(Base::image_size_ / bin_size + Size2(1, 1));
     }
 
-    virtual ~PolynomialMatrixSmoothModel()
+    inline virtual void setMatrix(const typename Data::Ptr & matrix,
+                                  const Size2 & bin_size)
     {
-      // Do nothing
+      Base::setMatrix(matrix, bin_size);
+      assert(bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0);
     }
 
-    virtual void undistort(size_t x_index,
-                           size_t y_index,
-                           Scalar & depth) const
+    inline virtual void setMatrix(const typename Data::Ptr & matrix)
     {
-
-      /*size_t x_index[2];
-      size_t y_index[2];
-      Scalar x_weight[2] = {0.5, 0.5};
-      Scalar y_weight[2] = {0.5, 0.5};
-
-      Scalar dx = diff.x() / bin_size_.x();
-
-      if (diff.x() < 0)
-        x_index[0] = x_index[1] = 0;
-      else if (dx > Base::data_->size().x() - 1)
-        x_index[0] = x_index[1] = Base::data_->size().x() - 1;
-      else
-      {
-        x_index[0] = size_t(std::floor(dx));
-        x_index[1] = x_index[0] + 1;
-        x_weight[1] = dx - x_index[0];
-        x_weight[0] = 1.0 - x_weight[1];
-      }*/
-
-
-
-      //depth = Poly::evaluate(polynomial(x_index, y_index), depth);
+      Base::setMatrix(matrix, Base::image_size_ / (matrix->size() - Size2(1, 1)));
+      assert(Base::bin_size_.x() % 2 == 0 and Base::bin_size_.y() % 2 == 0);
     }
-    /*
+
+    inline Size2 matrixIndex(Size1 x_index,
+                             Size1 y_index) const
     {
-      assert(Base::data_);
-      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
-      Point2 diff = point_proj - zero_ - 0.5 * bin_size_.matrix();
+      assert(x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0);
+      return Size2((x_index + Base::bin_size_.x() / 2) / Base::bin_size_.x(),
+                   (y_index + Base::bin_size_.y() / 2) / Base::bin_size_.y());
+    }
 
-      size_t x_index[2];
-      size_t y_index[2];
-      Scalar x_weight[2] = {0.5, 0.5};
-      Scalar y_weight[2] = {0.5, 0.5};
+    inline Size2 matrixIndex(const Size2 & index) const
+    {
+      assert((index < Base::image_size_).all() and (index >= Size2(0, 0)).all());
+      return (index + Base::bin_size_ / 2) / Base::bin_size_;
+    }
 
-      Scalar dx = diff.x() / bin_size_.x();
+    void undistort(size_t x_index,
+                   size_t y_index,
+                   Scalar & depth) const
+    {
+      assert(x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0);
 
-      if (diff.x() < 0)
-        x_index[0] = x_index[1] = 0;
-      else if (dx > Base::data_->size().x() - 1)
-        x_index[0] = x_index[1] = Base::data_->size().x() - 1;
-      else
-      {
-        x_index[0] = size_t(std::floor(dx));
-        x_index[1] = x_index[0] + 1;
-        x_weight[1] = dx - x_index[0];
-        x_weight[0] = 1.0 - x_weight[1];
-      }
+      Size2 x_bin, y_bin;
+      Scalar x_weight[2] = {Scalar(0.5), Scalar(0.5)};
+      Scalar y_weight[2] = {Scalar(0.5), Scalar(0.5)};
 
-      Scalar dy = diff.y() / bin_size_.y();
+      x_bin[0] = x_index / Base::bin_size_.x();
+      x_bin[1] = (x_index + Base::bin_size_.x() / 2) / Base::bin_size_.x();
+      if (x_bin[0] == x_bin[1])
+        x_bin[1] = x_bin[0] + 1;
 
-      if (diff.y() < 0)
-        y_index[0] = y_index[1] = 0;
-      else if (dy > Base::data_->size().y() - 1)
-        y_index[0] = y_index[1] = Base::data_->size().y() - 1;
-      else
-      {
-        y_index[0] = size_t(std::floor(dy));
-        y_index[1] = y_index[0] + 1;
-        y_weight[1] = dy - y_index[0];
-        y_weight[0] = 1.0 - y_weight[1];
-      }
+      x_weight[1] = static_cast<Scalar>(x_index - x_bin[0] * Base::bin_size_.x()) / Base::bin_size_.x();
+      x_weight[0] = Scalar(1.0) - x_weight[1];
 
-      Scalar tmp_z = 0.0;
+      y_bin[0] = y_index / Base::bin_size_.y();
+      y_bin[1] = (y_index + Base::bin_size_.y() / 2) / Base::bin_size_.y();
+      if (y_bin[0] == y_bin[1])
+        y_bin[1] = y_bin[0] + 1;
+
+      y_weight[1] = static_cast<Scalar>(y_index - y_bin[0] * Base::bin_size_.y()) / Base::bin_size_.y();
+      y_weight[0] = Scalar(1.0) - y_weight[1];
+
+      Scalar tmp_depth = 0.0;
       for (int i = 0; i < 2; ++i)
         for (int j = 0; j < 2; ++j)
-          tmp_z += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_index[i], y_index[j]), z);
+        {
+          tmp_depth += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_bin[i], y_bin[j]), depth);
+          if (tmp_depth != tmp_depth)
+          {
+            std::cout << "AAAAAAAAAA " << x_index << " < " << Base::image_size_.x() << " "
+                      << Base::bin_size_.x() << " " << x_bin[i] << std::endl;
+            exit(1);
+          }
+        }
 
-      z = tmp_z;
-
+      depth = tmp_depth;
     }
-    */
+
+    void undistort(const Size2 & index,
+                   Scalar & depth) const
+    {
+      assert((index < Base::image_size_).all() and (index >= Size2(0, 0)).all());
+
+      Eigen::Array<Size1, 2, 2> bin;
+      Eigen::Array<Scalar, 2, 2> weight;
+
+      bin.col(0) = index / Base::bin_size_;
+      bin.col(1) = matrixIndex(index);
+
+      if (bin(0, 0) == bin(0, 1))
+        bin(0, 1) = bin(0, 0) + 1;
+
+      if (bin(1, 0) == bin(1, 1))
+        bin(1, 1) = bin(1, 0) + 1;
+
+      weight.col(1) = ((index - bin.col(0) * Base::bin_size_).template cast<Scalar>() / Base::bin_size_.template cast<Scalar>());
+      weight.col(0) = Eigen::Array<Scalar, 2, 1>(Scalar(1.0), Scalar(1.0)) - weight.col(1);
+
+      Scalar tmp_depth = 0.0;
+      for (int i = 0; i < 2; ++i)
+        for (int j = 0; j < 2; ++j)
+          tmp_depth += weight(0, i) * weight(1, j) * Poly::evaluate(Base::polynomial(bin(0, i), bin(1, j)), depth);
+
+      depth = tmp_depth;
+    }
 
   };
 
-template <typename PolynomialT_>
-  class PolynomialMatrixProjectedModel;
+//template <typename PolynomialT_>
+//  class PolynomialMatrixProjectedModel;
 
-template <typename PolynomialT_>
-  struct ModelTraits<PolynomialMatrixProjectedModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel<PolynomialT_> >
-  {
-    typedef ModelTraits<PolynomialMatrixModel<PolynomialT_> > Base;
-    typedef typename Base::Poly Poly;
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::Data Data;
-  };
+//template <typename PolynomialT_>
+//  struct ModelTraits<PolynomialMatrixProjectedModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel<PolynomialT_> >
+//  {
+//    typedef ModelTraits<PolynomialMatrixModel<PolynomialT_> > Base;
+//    typedef typename Base::Poly Poly;
+//    typedef typename Base::Scalar Scalar;
+//    typedef typename Base::Data Data;
+//  };
 
-template <typename PolynomialT_>
-  class PolynomialMatrixProjectedModel : public PolynomialMatrixModel<PolynomialT_>
-  {
-  public:
+//template <typename PolynomialT_>
+//  class PolynomialMatrixProjectedModel : public PolynomialMatrixModel<PolynomialT_>
+//  {
+//  public:
 
-    typedef boost::shared_ptr<PolynomialMatrixProjectedModel> Ptr;
-    typedef boost::shared_ptr<const PolynomialMatrixProjectedModel> ConstPtr;
+//    typedef boost::shared_ptr<PolynomialMatrixProjectedModel> Ptr;
+//    typedef boost::shared_ptr<const PolynomialMatrixProjectedModel> ConstPtr;
 
-    typedef PolynomialMatrixModel<PolynomialT_> Base;
+//    typedef PolynomialMatrixModel<PolynomialT_> Base;
 
-    typedef typename Base::Scalar Scalar;
-    typedef typename Base::Data Data;
-    typedef typename Base::Poly Poly;
-    typedef typename Base::Element Element;
-    typedef typename Base::ConstElement ConstElement;
+//    typedef typename Base::Scalar Scalar;
+//    typedef typename Base::Data Data;
+//    typedef typename Base::Poly Poly;
+//    typedef typename Base::Element Element;
+//    typedef typename Base::ConstElement ConstElement;
 
-    typedef typename Types<Scalar>::Point2 Point2;
-    typedef Eigen::Array<Scalar, 2, 1> Array2;
+//    typedef typename Types<Scalar>::Point2 Point2;
+//    typedef Eigen::Array<Scalar, 2, 1> Array2;
 
-    PolynomialMatrixProjectedModel()
-      : Base(),
-        bin_size_(0.0, 0.0)
-    {
-      // Do nothing
-    }
+//    PolynomialMatrixProjectedModel()
+//      : Base(),
+//        bin_size_(0.0, 0.0)
+//    {
+//      // Do nothing
+//    }
 
-    explicit PolynomialMatrixProjectedModel(const typename Data::Ptr & data)
-      : Base(data),
-        bin_size_(0.0, 0.0)
-    {
-      // Do nothing
-    }
+//    explicit PolynomialMatrixProjectedModel(const typename Data::Ptr & matrix)
+//      : Base(matrix),
+//        bin_size_(0.0, 0.0)
+//    {
+//      // Do nothing
+//    }
 
-    PolynomialMatrixProjectedModel(const Base & other)
-      : Base(other),
-        zero_(other.zero_),
-        bin_size_(other.bin_size_),
-        fov_(other.fov_)
-    {
-      // Do nothing
-    }
+//    PolynomialMatrixProjectedModel(const Base & other)
+//      : Base(other),
+//        zero_(other.zero_),
+//        bin_size_(other.bin_size_),
+//        fov_(other.fov_)
+//    {
+//      // Do nothing
+//    }
 
-    virtual ~PolynomialMatrixProjectedModel()
-    {
-      // Do nothing
-    }
+//    virtual ~PolynomialMatrixProjectedModel()
+//    {
+//      // Do nothing
+//    }
 
-    void setFieldOfView(Scalar x,
-                        Scalar y)
-    {
-      assert(Base::data_);
-      fov_ = Array2(x, y);
-      zero_ = Point2(-std::tan(x / 2), -std::tan(y / 2));
-      bin_size_ = -2 * zero_.array() / Array2(Base::data_->size().x(), Base::data_->size().y());
-    }
+//    void setFieldOfView(Scalar x,
+//                        Scalar y)
+//    {
+//      assert(Base::matrix_);
+//      fov_ = Array2(x, y);
+//      zero_ = Point2(-std::tan(x / 2), -std::tan(y / 2));
+//      bin_size_ = -2 * zero_.array() / Array2(Base::matrix_->size().x(), Base::matrix_->size().y());
+//    }
 
-    Scalar fieldOfViewX() const
-    {
-      return fov_.x();
-    }
+//    Scalar fieldOfViewX() const
+//    {
+//      return fov_.x();
+//    }
 
-    Scalar fieldOfViewY() const
-    {
-      return fov_.y();
-    }
+//    Scalar fieldOfViewY() const
+//    {
+//      return fov_.y();
+//    }
 
-    void getIndex(const Point2 & point_proj,
-                  size_t & x_index,
-                  size_t & y_index) const
-    {
-      assert(Base::data_);
-      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
-      Point2 diff = point_proj - zero_;
-      x_index = diff.x() < 0 ? 0 : size_t(std::min(Base::data_->size().x() - 1.0, std::floor(diff.x() / bin_size_.x())));
-      y_index = diff.y() < 0 ? 0 : size_t(std::min(Base::data_->size().y() - 1.0, std::floor(diff.y() / bin_size_.y())));
-    }
+//    void getIndex(const Point2 & point_proj,
+//                  size_t & x_index,
+//                  size_t & y_index) const
+//    {
+//      assert(Base::matrix_);
+//      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
+//      Point2 diff = point_proj - zero_;
+//      x_index = diff.x() < 0 ? 0 : size_t(std::min(Base::matrix_->size().x() - 1.0, std::floor(diff.x() / bin_size_.x())));
+//      y_index = diff.y() < 0 ? 0 : size_t(std::min(Base::matrix_->size().y() - 1.0, std::floor(diff.y() / bin_size_.y())));
+//    }
 
-    using Base::polynomial;
+//    using Base::polynomial;
 
-    Element polynomial(const Point2 & point_proj)
-    {
-      size_t x_index, y_index;
-      getIndex(point_proj, x_index, y_index);
-      return Base::polynomial(x_index, y_index);
-    }
+//    Element polynomial(const Point2 & point_proj)
+//    {
+//      size_t x_index, y_index;
+//      getIndex(point_proj, x_index, y_index);
+//      return Base::polynomial(x_index, y_index);
+//    }
 
-    const ConstElement polynomial(const Point2 & point_proj) const
-    {
-      size_t x_index, y_index;
-      getIndex(point_proj, x_index, y_index);
-      return Base::polynomial(x_index, y_index);
-    }
+//    const ConstElement polynomial(const Point2 & point_proj) const
+//    {
+//      size_t x_index, y_index;
+//      getIndex(point_proj, x_index, y_index);
+//      return Base::polynomial(x_index, y_index);
+//    }
 
-    using Base::undistort;
-
-//    TODO create two different classes.
 //    virtual void undistort(const Point2 & point_proj,
 //                           Scalar & z) const
 //    {
-//      z = Poly::evaluate(polynomial(point_proj), z);
+//      assert(Base::matrix_);
+//      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
+//      Point2 diff = point_proj - zero_ - 0.5 * bin_size_.matrix();
+
+//      size_t x_index[2];
+//      size_t y_index[2];
+//      Scalar x_weight[2] = {0.5, 0.5};
+//      Scalar y_weight[2] = {0.5, 0.5};
+
+//      Scalar dx = diff.x() / bin_size_.x();
+
+//      if (diff.x() < 0)
+//        x_index[0] = x_index[1] = 0;
+//      else if (dx > Base::matrix_->size().x() - 1)
+//        x_index[0] = x_index[1] = Base::matrix_->size().x() - 1;
+//      else
+//      {
+//        x_index[0] = size_t(std::floor(dx));
+//        x_index[1] = x_index[0] + 1;
+//        x_weight[1] = dx - x_index[0];
+//        x_weight[0] = 1.0 - x_weight[1];
+//      }
+
+//      Scalar dy = diff.y() / bin_size_.y();
+
+//      if (diff.y() < 0)
+//        y_index[0] = y_index[1] = 0;
+//      else if (dy > Base::matrix_->size().y() - 1)
+//        y_index[0] = y_index[1] = Base::matrix_->size().y() - 1;
+//      else
+//      {
+//        y_index[0] = size_t(std::floor(dy));
+//        y_index[1] = y_index[0] + 1;
+//        y_weight[1] = dy - y_index[0];
+//        y_weight[0] = 1.0 - y_weight[1];
+//      }
+
+//      Scalar tmp_z = 0.0;
+//      for (int i = 0; i < 2; ++i)
+//        for (int j = 0; j < 2; ++j)
+//          tmp_z += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_index[i], y_index[j]), z);
+
+//      z = tmp_z;
+
 //    }
 
-    virtual void undistort(const Point2 & point_proj,
-                           Scalar & z) const
-    {
-      assert(Base::data_);
-      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
-      Point2 diff = point_proj - zero_ - 0.5 * bin_size_.matrix();
+//    static Point2 project(Scalar x,
+//                          Scalar y,
+//                          Scalar z)
+//    {
+//      return Point2(x / z, y / z);
+//    }
 
-      size_t x_index[2];
-      size_t y_index[2];
-      Scalar x_weight[2] = {0.5, 0.5};
-      Scalar y_weight[2] = {0.5, 0.5};
+//  protected:
 
-      Scalar dx = diff.x() / bin_size_.x();
+//    Point2 zero_;
+//    Array2 bin_size_;
+//    Array2 fov_;
 
-      if (diff.x() < 0)
-        x_index[0] = x_index[1] = 0;
-      else if (dx > Base::data_->size().x() - 1)
-        x_index[0] = x_index[1] = Base::data_->size().x() - 1;
-      else
-      {
-        x_index[0] = size_t(std::floor(dx));
-        x_index[1] = x_index[0] + 1;
-        x_weight[1] = dx - x_index[0];
-        x_weight[0] = 1.0 - x_weight[1];
-      }
-
-      Scalar dy = diff.y() / bin_size_.y();
-
-      if (diff.y() < 0)
-        y_index[0] = y_index[1] = 0;
-      else if (dy > Base::data_->size().y() - 1)
-        y_index[0] = y_index[1] = Base::data_->size().y() - 1;
-      else
-      {
-        y_index[0] = size_t(std::floor(dy));
-        y_index[1] = y_index[0] + 1;
-        y_weight[1] = dy - y_index[0];
-        y_weight[0] = 1.0 - y_weight[1];
-      }
-
-      Scalar tmp_z = 0.0;
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          tmp_z += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_index[i], y_index[j]), z);
-
-      z = tmp_z;
-
-    }
-
-    static Point2 project(Scalar x,
-                          Scalar y,
-                          Scalar z)
-    {
-      return Point2(x / z, y / z);
-    }
-
-  protected:
-
-    Point2 zero_;
-    Array2 bin_size_;
-    Array2 fov_;
-
-  };
+//  };
 
 } /* namespace calibration */
 #endif /* KINECT_DEPTH_POLYNOMIAL_MATRIX_MODEL_H_ */

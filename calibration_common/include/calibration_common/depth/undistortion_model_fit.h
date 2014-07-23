@@ -38,10 +38,11 @@ namespace calibration
 
 /**
  * @brief The DepthUndistortionModelFit class
+ * @param ModelT_
  * @param DepthT_
  * @param ScalarT_
  */
-template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::Scalar>
+template <typename ModelT_, typename DepthT_, typename ScalarT_>
   class DepthUndistortionModelFit
   {
   public:
@@ -50,23 +51,16 @@ template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::S
     typedef boost::shared_ptr<const DepthUndistortionModelFit> ConstPtr;
 
     typedef ScalarT_ Scalar;
+    typedef ModelT_ Model;
+
     typedef typename DepthTraits<DepthT_>::Point Point;
     typedef typename DepthTraits<DepthT_>::Cloud Cloud;
     typedef typename Types<Scalar>::Plane Plane;
 
-    /**
-     * @brief ~DepthUndistortionModelFit
-     */
     virtual ~DepthUndistortionModelFit()
     {
       // Do nothing
     }
-
-    /**
-     * @brief model
-     * @return
-     */
-    virtual const typename DepthUndistortion<DepthT_>::Ptr & model() const = 0;
 
     /**
      * @brief accumulateCloud
@@ -74,26 +68,30 @@ template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::S
      */
     virtual void accumulateCloud(const Cloud & cloud) = 0;
 
-    /**
-     * @brief accumulateCloud
-     * @param cloud
-     * @param indices
-     */
-    virtual void accumulateCloud(const Cloud & cloud,
-                                 const std::vector<int> & indices) = 0;
+//    /**
+//     * @brief accumulateCloud
+//     * @param cloud
+//     * @param indices
+//     */
+//    virtual void accumulateCloud(const Cloud & cloud,
+//                                 const std::vector<int> & indices) = 0;
 
     /**
      * @brief accumulatePoint
      * @param point
      */
-    virtual void accumulatePoint(const Point & point) = 0;
+    virtual void accumulatePoint(Size1 x_index,
+                                 Size1 y_index,
+                                 const Point & point) = 0;
 
     /**
      * @brief addPoint
      * @param point
      * @param plane
      */
-    virtual void addPoint(const Point & point,
+    virtual void addPoint(Size1 x_index,
+                          Size1 y_index,
+                          const Point & point,
                           const Plane & plane) = 0;
 
     /**
@@ -106,105 +104,6 @@ template <typename DepthT_, typename ScalarT_ = typename DepthTraits<DepthT_>::S
      * @brief update
      */
     virtual void update() = 0;
-
-  };
-
-/**
- * @brief The DepthUndistortionModelFitImpl class
- * @param ModelImplT_
- */
-template <typename ModelImplT_>
-  class DepthUndistortionModelFitImpl
-  {
-  public:
-
-    typedef boost::shared_ptr<DepthUndistortionModelFitImpl> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModelFitImpl> ConstPtr;
-
-    typedef typename ModelImplT_::Scalar Scalar;
-
-    typedef std::vector<std::pair<Scalar, Scalar> > PointDistorsionBin;
-
-    /**
-     * @brief The AccumulationBin class
-     */
-    class AccumulationBin
-    {
-    public:
-
-      typedef typename Types<Scalar>::Point3 Point;
-
-      /**
-       * @brief AccumulationBin
-       */
-      AccumulationBin()
-        : sum_(Point::Zero()),
-          n_(0)
-      {
-        // Do nothing
-      }
-
-      /**
-       * @brief reset
-       */
-      void reset()
-      {
-        sum_ = Point::Zero();
-        n_ = 0;
-      }
-
-      /**
-       * @brief operator +=
-       * @param point
-       * @return
-       */
-      AccumulationBin & operator +=(const Point & point)
-      {
-        sum_ += point;
-        ++n_;
-        return *this;
-      }
-
-      /**
-       * @brief isEmpty
-       * @return
-       */
-      bool isEmpty()
-      {
-        return n_ == 0;
-      }
-
-      /**
-       * @brief average
-       * @return
-       */
-      Point average()
-      {
-        return sum_ / Scalar(n_);
-      }
-
-      EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-    private:
-
-      Point sum_;
-      int n_;
-
-    };
-
-    /**
-     * @brief ~DepthUndistortionModelFitImpl
-     */
-    virtual ~DepthUndistortionModelFitImpl()
-    {
-      // Do nothing
-    }
-
-    /**
-     * @brief modelImpl
-     * @return
-     */
-    virtual const boost::shared_ptr<ModelImplT_> & modelImpl() const = 0;
 
   };
 

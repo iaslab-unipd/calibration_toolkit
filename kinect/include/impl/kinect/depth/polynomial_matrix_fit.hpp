@@ -35,8 +35,8 @@
 namespace calibration
 {
 
-template <typename ModelImpl_>
-  void PolynomialUndistortionMatrixFit_<ModelImpl_>::addAccumulatedPoints(const Plane & plane)
+template <typename ModelT_>
+  void PolynomialMatrixModelFit_<ModelT_>::addAccumulatedPoints(const Plane & plane)
   {
     for (Size1 i = 0; i < accumulation_bins_.elements(); ++i)
     {
@@ -51,10 +51,10 @@ template <typename ModelImpl_>
     }
   }
 
-template <typename ModelImpl_>
-  void PolynomialUndistortionMatrixFit_<ModelImpl_>::update()
+template <typename ModelT_>
+  void PolynomialMatrixModelFit_<ModelT_>::update()
   {
-    assert(model_impl_);
+    assert(model());
 
 #pragma omp parallel for
     for (Size1 y_index = 0; y_index < distorsion_bins_.size().y(); ++y_index)
@@ -74,7 +74,7 @@ template <typename ModelImpl_>
                                                                              distorsion_bin[i].second);
           problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual<Poly>, 1, Size>(residual),
                                    NULL,
-                                   model_impl_->model()->polynomial(x_index, y_index).data());
+                                   model()->polynomial(x_index, y_index).data());
         }
 
         ceres::Solver::Options options;
@@ -88,31 +88,33 @@ template <typename ModelImpl_>
     }
   }
 
-template <typename Polynomial_, typename ScalarT_>
-  void PolynomialUndistortionMatrixFitEigen<Polynomial_, ScalarT_>::addPoint(const Point & point,
-                                                                             const Plane & plane)
+template <typename ModelT_, typename ScalarT_>
+  void PolynomialMatrixModelFitEigen<ModelT_, ScalarT_>::addPoint(Size1 x_index,
+                                                                  Size1 y_index,
+                                                                  const Point & point,
+                                                                  const Plane & plane)
   {
-    assert(Base::model_impl_);
-    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
+    assert(Base::model());
+    if (point.hasNaN())
+      return;
 
-    Size1 x_index, y_index;
-    Base::model_impl_->model()->getIndex(UndistortionModel::toSphericalCoordinates(point), x_index, y_index);
+    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
   }
 
-template <typename Polynomial_, typename PCLPoint_, typename ScalarT_>
-  void PolynomialUndistortionMatrixFitPCL<Polynomial_, PCLPoint_, ScalarT_>::addPoint(const Point & point,
-                                                                                      const Plane & plane)
+template <typename ModelT_, typename PCLPoint_, typename ScalarT_>
+  void PolynomialMatrixModelFitPCL<ModelT_, PCLPoint_, ScalarT_>::addPoint(Size1 x_index,
+                                                                           Size1 y_index,
+                                                                           const Point & point,
+                                                                           const Plane & plane)
   {
-    assert(Base::model_impl_);
+    assert(Base::model());
     if (not pcl::isFinite(point))
       return;
 
     typename Types<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
     typename Types<Scalar>::Line line(eigen_point, Types<Scalar>::Vector3::UnitZ());
 
-    Size1 x_index, y_index;
-    Base::model_impl_->model()->getIndex(UndistortionModel::project(point), x_index, y_index);
     Base::distorsion_bins_(x_index, y_index).push_back(std::make_pair(eigen_point.z(),
                                                                       line.intersectionPoint(plane).z()));
   }

@@ -41,61 +41,55 @@ template <class Polynomial_>
   public:
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
-    typedef typename PolynomialMatrixModel<Polynomial_>::Data Data;
+    typedef typename PolynomialMatrixSimpleModel<Polynomial_>::Data Data;
 
-    bool write(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+    bool write(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                const std::string & file_name) const
     {
-      return write(*undistortion_matrix.data(), file_name);
+      return write(*undistortion_matrix.matrix(), file_name);
     }
 
-    bool write(const PolynomialMatrixProjectedModel<Polynomial_> & undistortion_matrix,
+    bool write(const PolynomialMatrixSmoothModel<Polynomial_> & undistortion_matrix,
                const std::string & file_name) const
     {
-      return write(*undistortion_matrix.data(),
-                   file_name,
-                   undistortion_matrix.fieldOfViewX(),
-                   undistortion_matrix.fieldOfViewY());
+      return write(*undistortion_matrix.matrix(), file_name);
     }
 
-    bool read(typename PolynomialMatrixModel<Polynomial_>::Ptr & undistortion_matrix,
+    bool read(typename PolynomialMatrixSimpleModel<Polynomial_>::Ptr & undistortion_matrix,
               const std::string & file_name) const
     {
       assert(undistortion_matrix);
       typename Data::Ptr data;
-      Scalar x_fov, y_fov;
-      if (not read(data, file_name, x_fov, y_fov))
+      if (not read(data, file_name))
         return false;
 
       undistortion_matrix->setData(data);
       return true;
     }
 
-    bool read(typename PolynomialMatrixProjectedModel<Polynomial_>::Ptr & undistortion_matrix,
+    bool read(typename PolynomialMatrixSmoothModel<Polynomial_>::Ptr & undistortion_matrix,
               const std::string & file_name) const
     {
       assert(undistortion_matrix);
-      typename Data::Ptr data;
-      Scalar x_fov, y_fov;
-      if (not read(data, file_name, x_fov, y_fov) or x_fov == 0 or y_fov == 0)
+      typename Data::Ptr matrix;
+      if (not read(matrix, file_name))
         return false;
 
-      undistortion_matrix->setData(data);
-      undistortion_matrix->setFieldOfView(x_fov, y_fov);
+      undistortion_matrix->setMatrix(matrix);
       return true;
     }
 
-    void toImage(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+    void toImage(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                  const Scalar z,
                  cv::Mat & image,
                  const Scalar max) const;
 
-    void toImageAuto(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+    void toImageAuto(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                      const Scalar z,
                      cv::Mat & image,
                      Scalar & max) const;
 
-    bool writeImage(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+    bool writeImage(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                     Scalar z,
                     const std::string & file_name,
                     const Scalar max) const
@@ -105,7 +99,7 @@ template <class Polynomial_>
       return cv::imwrite(file_name, image);
     }
 
-    bool writeImageAuto(const PolynomialMatrixModel<Polynomial_> & undistortion_matrix,
+    bool writeImageAuto(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
                         Scalar z,
                         const std::string & file_name,
                         Scalar & max) const
@@ -116,14 +110,10 @@ template <class Polynomial_>
     }
 
     bool write(const Data & data,
-               const std::string & file_name,
-               Scalar fov_x = 0.0,
-               Scalar fov_y = 0.0) const;
+               const std::string & file_name) const;
 
     bool read(typename Data::Ptr & data,
-              const std::string & file_name,
-              Scalar & x_fov,
-              Scalar & y_fov) const;
+              const std::string & file_name) const;
 
   protected:
 

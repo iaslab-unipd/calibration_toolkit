@@ -34,41 +34,34 @@
 namespace calibration
 {
 
-template <typename PolynomialT_>
-  class PolynomialMatrixImpl_
+template <typename ModelT_>
+  class PolynomialMatrix_
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialMatrixImpl_> Ptr;
-    typedef boost::shared_ptr<const PolynomialMatrixImpl_> ConstPtr;
+    typedef boost::shared_ptr<PolynomialMatrix_> Ptr;
+    typedef boost::shared_ptr<const PolynomialMatrix_> ConstPtr;
 
-    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef ModelT_ Model;
 
-    typedef PolynomialMatrixProjectedModel<PolynomialT_> Model;
-
-    PolynomialMatrixImpl_()
+    PolynomialMatrix_()
       : model_()
     {
       // Do nothing
     }
 
-    explicit PolynomialMatrixImpl_(const typename Model::Ptr & model)
+    explicit PolynomialMatrix_(const typename Model::Ptr & model)
       : model_(model)
     {
       // Do nothing
     }
 
-    virtual ~PolynomialMatrixImpl_()
-    {
-      // Do nothing
-    }
-
-    void setModel(const typename Model::Ptr & model)
+    inline void setModel(const typename Model::Ptr & model)
     {
       model_ = model;
     }
 
-    typename Model::Ptr model() const
+    inline typename Model::Ptr model() const
     {
       return model_;
     }
@@ -79,112 +72,153 @@ template <typename PolynomialT_>
 
   };
 
-template <typename PolynomialT_, typename ScalarT_>
-  class DepthUndistortionImpl<PolynomialMatrixProjectedModel<PolynomialT_>, DepthEigen_<ScalarT_> > : public PolynomialMatrixImpl_<PolynomialT_>,
-                                                                                                      public DepthUndistortion<DepthEigen_<ScalarT_> >
+template <typename ModelT_, typename ScalarT_>
+  class PolynomialMatrixEigen : public PolynomialMatrix_<ModelT_>,
+                                public DepthUndistortion<DepthEigen_<ScalarT_> >
   {
   public:
 
-    typedef boost::shared_ptr<DepthUndistortionImpl> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionImpl> ConstPtr;
+    typedef boost::shared_ptr<PolynomialMatrixEigen> Ptr;
+    typedef boost::shared_ptr<const PolynomialMatrixEigen> ConstPtr;
 
     typedef ScalarT_ Scalar;
 
-    typedef PolynomialMatrixImpl_<PolynomialT_> Base;
+    typedef PolynomialMatrix_<ModelT_> Base;
     typedef typename Base::Model Model;
-    typedef typename Model::Point2 Point2;
 
     typedef DepthUndistortion<DepthEigen_<Scalar> > Interface;
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
-    DepthUndistortionImpl()
+    PolynomialMatrixEigen()
       : Base()
     {
       // Do nothing
     }
 
-    explicit DepthUndistortionImpl(const typename Model::Ptr & model)
+    explicit PolynomialMatrixEigen(const typename Model::Ptr & model)
       : Base(model)
     {
       // Do nothing
     }
 
-    virtual ~DepthUndistortionImpl()
+    virtual ~PolynomialMatrixEigen()
     {
       // Do nothing
     }
 
-    virtual void undistort(Point & point) const
+    virtual void undistort(Size1 x_index,
+                           Size1 y_index,
+                           Point & point) const
     {
-      assert(Base::model_);
+      assert(Base::model());
+      if (point.hasNaN())
+        return;
+
       Scalar z = point.z();
-      Base::model_->undistort(project(point), z);
+      Base::model()->undistort(x_index, y_index, z);
+      point *= z / point.z();
+    }
+
+    virtual void undistort(const Size2 & index,
+                           Point & point) const
+    {
+      assert(Base::model());
+      if (point.hasNaN())
+        return;
+
+      Scalar z = point.z();
+      Base::model()->undistort(index, z);
       point *= z / point.z();
     }
 
     virtual void undistort(Cloud & cloud) const
     {
-      assert(Base::model_);
-      for (Size1 i = 0; i < cloud.elements(); ++i)
-      {
-        Scalar z = cloud[i].z();
-        Base::model_->undistort(project(cloud[i]), z);
-        cloud[i] *= z / cloud[i].z();
-      }
-    }
+      assert(Base::model());
+      if (not (cloud.size() == Base::model()->imageSize()).all())
+        std::cout << cloud.size().transpose() << " == " << Base::model()->imageSize().transpose() << std::endl;
+      assert((cloud.size() == Base::model()->imageSize()).all());
 
-    static Point2 project(const Point & point)
-    {
-      return Point2(point.x() / point.z(), point.y() / point.z());
+
+      for (Size1 i = 0; i < cloud.size().x(); ++i)
+      {
+        for (Size1 j = 0; j < cloud.size().y(); ++j)
+        {
+          if (cloud(i, j).hasNaN())
+            continue;
+
+          Scalar z = cloud(i, j).z();
+          Base::model()->undistort(i, j, z);
+          assert(z == z);
+          cloud(i, j) *= z / cloud(i, j).z();
+          assert(cloud(i, j).allFinite());
+        }
+      }
     }
 
   };
 
-template <typename PolynomialT_, typename PCLPointT_>
-  class DepthUndistortionImpl<PolynomialMatrixProjectedModel<PolynomialT_>, DepthPCL_<PCLPointT_> > : public PolynomialMatrixImpl_<PolynomialT_>,
-                                                                                                      public DepthUndistortion<DepthPCL_<PCLPointT_> >
+template <typename ModelT_, typename ScalarT_, typename PCLPointT_>
+  class PolynomialMatrixPCL : public PolynomialMatrix_<ModelT_>,
+                              public DepthUndistortion<DepthPCL_<PCLPointT_> >
   {
   public:
 
-    typedef boost::shared_ptr<DepthUndistortionImpl> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionImpl> ConstPtr;
+    typedef boost::shared_ptr<PolynomialMatrixPCL> Ptr;
+    typedef boost::shared_ptr<const PolynomialMatrixPCL> ConstPtr;
 
-    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef ScalarT_ Scalar;
 
-    typedef PolynomialMatrixImpl_<PolynomialT_> Base;
+    typedef PolynomialMatrix_<ModelT_> Base;
     typedef typename Base::Model Model;
-    typedef typename Model::Point2 Point2;
 
     typedef DepthUndistortion<DepthPCL_<PCLPointT_> > Interface;
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
-    DepthUndistortionImpl()
+    PolynomialMatrixPCL()
       : Base()
     {
       // Do nothing
     }
 
-    explicit DepthUndistortionImpl(const typename Model::Ptr & model)
+    explicit PolynomialMatrixPCL(const typename Model::Ptr & model)
       : Base(model)
     {
       // Do nothing
     }
 
-    virtual ~DepthUndistortionImpl()
+    virtual ~PolynomialMatrixPCL()
     {
       // Do nothing
     }
 
-    virtual void undistort(Point & point) const
+    virtual void undistort(Size1 x_index,
+                           Size1 y_index,
+                           Point & point) const
     {
-      assert(Base::model_);
+      assert(Base::model());
       if (not pcl::isFinite(point))
         return;
 
       Scalar z = Scalar(point.z);
-      Base::model_->undistort(project(point), z);
+      Base::model()->undistort(x_index, y_index, z);
+      float k = static_cast<float>(z) / point.z;
+
+      point.x *= k;
+      point.y *= k;
+      point.z *= k;
+    }
+
+    virtual void undistort(const Size2 & index,
+                           Point & point) const
+    {
+      assert(Base::model());
+      if (not pcl::isFinite(point))
+        return;
+
+      Scalar z = Scalar(point.z);
+      Base::model()->undistort(index, z);
       float k = static_cast<float>(z) / point.z;
 
       point.x *= k;
@@ -194,13 +228,24 @@ template <typename PolynomialT_, typename PCLPointT_>
 
     virtual void undistort(Cloud & cloud) const
     {
-      for (Size1 i = 0; i < cloud.size(); ++i)
-        undistort(cloud.points[i]);
-    }
+      assert(Base::model());
 
-    static Point2 project(const Point & point)
-    {
-      return Model::project(Scalar(point.x), Scalar(point.y), Scalar(point.z));
+      for (Size1 i = 0; i < cloud.width; ++i)
+      {
+        for (Size1 j = 0; j < cloud.height; ++j)
+        {
+          if (not pcl::isFinite(cloud(i, j)))
+            continue;
+
+          Scalar z = Scalar(cloud(i, j).z);
+          Base::model()->undistort(i, j, z);
+          float k = static_cast<float>(z) / cloud(i, j).z;
+
+          cloud(i, j).x *= k;
+          cloud(i, j).y *= k;
+          cloud(i, j).z *= k;
+        }
+      }
     }
 
   };

@@ -35,8 +35,8 @@
 #include "two_steps_model.h"
 #include "two_steps_undistortion.h"
 
-#include "polynomial_function.h"
-#include "polynomial_function_fit.h"
+//#include "polynomial_function.h"
+//#include "polynomial_function_fit.h"
 
 #include "polynomial_matrix.h"
 #include "polynomial_matrix_fit.h"

@@ -36,69 +36,69 @@ namespace calibration
 {
 
 template <typename Polynomial_>
-  class PolynomialUndistortionFunctionModel;
+  class PolynomialFunctionModel;
 
 template <typename PolynomialT_>
-  struct ModelTraits<PolynomialUndistortionFunctionModel<PolynomialT_> >
+  struct ModelTraits<PolynomialFunctionModel<PolynomialT_> >
   {
     typedef PolynomialT_ Poly;
     typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
     typedef PolynomialT_ Data;
   };
 
-template <typename Polynomial_>
-  class PolynomialUndistortionFunctionModel : public DepthUndistortionModel<PolynomialUndistortionFunctionModel<Polynomial_> >
+template <typename PolynomialT_>
+  class PolynomialFunctionModel
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialUndistortionFunctionModel> Ptr;
-    typedef boost::shared_ptr<const PolynomialUndistortionFunctionModel> ConstPtr;
+    typedef boost::shared_ptr<PolynomialFunctionModel> Ptr;
+    typedef boost::shared_ptr<const PolynomialFunctionModel> ConstPtr;
 
-    typedef ModelTraits<PolynomialUndistortionFunctionModel> Traits;
-    typedef DepthUndistortionModel<PolynomialUndistortionFunctionModel> Base;
+    typedef ModelTraits<PolynomialFunctionModel> Traits;
 
     typedef typename Traits::Poly Poly;
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Data Data;
 
-    PolynomialUndistortionFunctionModel()
+    PolynomialFunctionModel()
     {
       // Do nothing
     }
 
-    explicit PolynomialUndistortionFunctionModel(const boost::shared_ptr<Data> & polynomial)
+    explicit PolynomialFunctionModel(const boost::shared_ptr<Data> & polynomial)
       : polynomial_(polynomial)
     {
       // Do nothing
     }
 
-    virtual ~PolynomialUndistortionFunctionModel()
+    virtual ~PolynomialFunctionModel()
     {
       // Do nothing
     }
 
-    virtual void setData(const boost::shared_ptr<Data> & polynomial)
+    inline virtual void setPolynomial(const boost::shared_ptr<Data> & polynomial)
     {
       polynomial_ = polynomial;
     }
 
-    virtual const boost::shared_ptr<Data> & data() const
+    inline virtual const boost::shared_ptr<Data> & polynomial() const
     {
       return polynomial_;
     }
 
-    virtual void undistort(Scalar & z) const
+    inline virtual void undistort(Scalar & depth) const
     {
-      z = polynomial_->evaluate(z);
+      assert(polynomial_);
+      depth = polynomial_->evaluate(depth);
     }
 
-    virtual Scalar * dataPtr()
+    inline virtual Scalar * dataPtr()
     {
       assert(polynomial_);
       return polynomial_->dataPtr();
     }
 
-    virtual const Scalar * dataPtr() const
+    inline virtual const Scalar * dataPtr() const
     {
       assert(polynomial_);
       return polynomial_->dataPtr();
@@ -110,127 +110,137 @@ template <typename Polynomial_>
 
   };
 
-template <typename Polynomial_>
-  class PolynomialUndistortionFunctionEigen : public PolynomialUndistortionFunctionModel<Polynomial_>,
-                                              public DepthUndistortion<DepthEigen_<typename MathTraits<Polynomial_>::Scalar> >
+template <typename Polynomial_, typename ScalarT_>
+  class PolynomialFunctionEigen : public DepthUndistortion<DepthEigen_<ScalarT_> >
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialUndistortionFunctionEigen> Ptr;
-    typedef boost::shared_ptr<const PolynomialUndistortionFunctionEigen> ConstPtr;
+    typedef boost::shared_ptr<PolynomialFunctionEigen> Ptr;
+    typedef boost::shared_ptr<const PolynomialFunctionEigen> ConstPtr;
 
-    typedef PolynomialUndistortionFunctionModel<Polynomial_> Base;
+    typedef PolynomialFunctionModel<Polynomial_> Model;
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
     typedef typename DepthTraits<DepthEigen_<Scalar> >::Point Point;
     typedef typename DepthTraits<DepthEigen_<Scalar> >::Cloud Cloud;
-    typedef typename Base::Traits::Data Data;
+    typedef typename Model::Traits::Data Data;
 
     typedef DepthUndistortion<DepthEigen_<Scalar> > Interface;
 
-    PolynomialUndistortionFunctionEigen()
-      : Base()
+    PolynomialFunctionEigen()
     {
       // Do nothing
     }
 
-    explicit PolynomialUndistortionFunctionEigen(const typename Data::Ptr & polynomial)
-      : Base(polynomial)
+    explicit PolynomialFunctionEigen(const typename Model::Ptr & model)
+      : model_(model)
     {
       // Do nothing
     }
 
-    PolynomialUndistortionFunctionEigen(const Base & other)
-      : Base(other)
+    virtual ~PolynomialFunctionEigen()
     {
       // Do nothing
     }
 
-    virtual ~PolynomialUndistortionFunctionEigen()
+    inline virtual void undistort(Point & point) const
     {
-      // Do nothing
-    }
+      assert(model_);
+      if (point.isNaN())
+        return;
 
-    virtual void undistort(Point & point) const
-    {
-      assert(Base::polynomial_);
-      point *= Base::polynomial_->evaluate(point.z()) / point.z();
+      Scalar z = Scalar(point.z());
+      model_->undistort(z);
+      point *= z / point.z();
     }
 
     virtual void undistort(Cloud & cloud) const
     {
-      assert(Base::polynomial_);
+      assert(model_);
       for (Size1 i = 0; i < cloud.elements(); ++i)
-        cloud[i] *= Base::polynomial_->evaluate(cloud[i].z()) / cloud[i].z();
+      {
+        if (cloud[i].isNaN())
+          continue;
+
+        Scalar z = Scalar(cloud[i].z());
+        model_->undistort(z);
+        cloud[i] *= z / cloud[i].z();
+      }
     }
 
-    virtual typename Interface::Ptr clone() const
-    {
-      return boost::make_shared<PolynomialUndistortionFunctionEigen>(boost::make_shared<Data>(*Base::polynomial_));
-    }
+  protected:
+
+    Model model_;
 
   };
 
 template <typename Polynomial_, typename PCLPoint_>
-  class PolynomialUndistortionFunctionPCL : public PolynomialUndistortionFunctionModel<Polynomial_>,
-                                            public DepthUndistortion<DepthPCL_<PCLPoint_> >
+  class PolynomialFunctionPCL : public DepthUndistortion<DepthPCL_<PCLPoint_> >
   {
   public:
 
-    typedef boost::shared_ptr<PolynomialUndistortionFunctionPCL> Ptr;
-    typedef boost::shared_ptr<const PolynomialUndistortionFunctionPCL> ConstPtr;
+    typedef boost::shared_ptr<PolynomialFunctionPCL> Ptr;
+    typedef boost::shared_ptr<const PolynomialFunctionPCL> ConstPtr;
 
-    typedef PolynomialUndistortionFunctionModel<Polynomial_> Base;
+    typedef PolynomialFunctionModel<Polynomial_> Model;
 
     typedef typename MathTraits<Polynomial_>::Scalar Scalar;
     typedef typename DepthTraits<DepthPCL_<PCLPoint_> >::Point Point;
     typedef typename DepthTraits<DepthPCL_<PCLPoint_> >::Cloud Cloud;
-    typedef typename Base::Traits::Data Data;
+    typedef typename Model::Traits::Data Data;
 
     typedef DepthUndistortion<DepthPCL_<PCLPoint_> > Interface;
 
-    PolynomialUndistortionFunctionPCL()
-      : Base()
+    PolynomialFunctionPCL()
     {
       // Do nothing
     }
 
-    explicit PolynomialUndistortionFunctionPCL(const typename Data::Ptr & polynomial)
-      : Base(polynomial)
+    explicit PolynomialFunctionPCL(const typename Model::Ptr & model)
+      : model_(model)
     {
       // Do nothing
     }
 
-    PolynomialUndistortionFunctionPCL(const Base & other)
-      : Base(other)
+    virtual ~PolynomialFunctionPCL()
     {
       // Do nothing
     }
 
-    virtual ~PolynomialUndistortionFunctionPCL()
+    inline virtual void undistort(Point & point) const
     {
-      // Do nothing
-    }
+      assert(model_);
+      if (not pcl::isFinite(point))
+        return;
 
-    virtual void undistort(Point & point) const
-    {
-      assert(Base::polynomial_);
-      float k = static_cast<float>(Base::polynomial_->evaluate(point.z)) / point.z;
+      Scalar z = Scalar(point.z);
+      model_->undistort(z);
+      float k = static_cast<float>(z) / point.z;
       point.x *= k;
       point.y *= k;
       point.z *= k;
     }
 
-    virtual void undistort(Cloud & cloud) const
+    inline virtual void undistort(Cloud & cloud) const
     {
-      for (Size1 i = 0; i < cloud.elements(); ++i)
-        undistort(cloud.points[i]);
+      assert(model_);
+      for (Size1 i = 0; i < cloud.size(); ++i)
+      {
+        if (not pcl::isFinite(cloud[i]))
+          continue;
+
+        Scalar z = Scalar(cloud[i].z);
+        model_->undistort(z);
+        float k = static_cast<float>(z) / cloud[i].z;
+        cloud[i].x *= k;
+        cloud[i].y *= k;
+        cloud[i].z *= k;
+      }
     }
 
-    virtual typename Interface::Ptr clone() const
-    {
-      return boost::make_shared<PolynomialUndistortionFunctionPCL>(boost::make_shared<Data>(*Base::polynomial_));
-    }
+  protected:
+
+    Model model_;
 
   };
 

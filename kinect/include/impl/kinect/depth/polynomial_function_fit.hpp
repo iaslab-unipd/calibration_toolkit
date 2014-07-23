@@ -36,8 +36,8 @@
 namespace calibration
 {
 
-template <typename ModelImpl_>
-  void PolynomialUndistortionFunctionFitImpl<ModelImpl_>::addAccumulatedPoints(const Plane & plane)
+template <typename ModelT_>
+  void PolynomialFunctionFit_<ModelT_>::addAccumulatedPoints(const Plane & plane)
   {
     if (accumulation_bin_.isEmpty())
       return;
@@ -49,10 +49,10 @@ template <typename ModelImpl_>
     accumulation_bin_.reset();
   }
 
-template <typename ModelImpl_>
-  void PolynomialUndistortionFunctionFitImpl<ModelImpl_>::update()
+template <typename ModelT_>
+  void PolynomialFunctionFit_<ModelT_>::update()
   {
-    assert(model_impl_);
+    assert(model_);
     const size_t & bin_size = distorsion_bin_.size();
 
     if (bin_size < 5 * Degree)
@@ -66,7 +66,7 @@ template <typename ModelImpl_>
 
       problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual<Poly>, 1, Size>(residual),
                                NULL,
-                               model_impl_->dataPtr());
+                               model_->dataPtr());
     }
 
     ceres::Solver::Options options;
@@ -77,13 +77,13 @@ template <typename ModelImpl_>
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);
 
-//    std::cout << Base::polynomial_.coefficients().transpose() << std::endl;
+//    std::cout << Base::PolynomialT_.coefficients().transpose() << std::endl;
 
   }
 
-template <typename Polynomial_>
-  void PolynomialUndistortionFunctionFitEigen<Polynomial_>::addPoint(const Point & point,
-                                                                     const Plane & plane)
+template <typename PolynomialT_, typename ScalarT_>
+  void PolynomialFunctionFitEigen<PolynomialT_, ScalarT_>::addPoint(const Point & point,
+                                                                    const Plane & plane)
   {
     typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
 
@@ -91,9 +91,9 @@ template <typename Polynomial_>
     Base::distorsion_bin_.push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
   }
 
-template <typename Polynomial_, typename PCLPoint_>
-  void PolynomialUndistortionFunctionFitPCL<Polynomial_, PCLPoint_>::addPoint(const Point & point,
-                                                                              const Plane & plane)
+template <typename PolynomialT_, typename ScalarT_, typename PCLPoint_>
+  void PolynomialFunctionFitPCL<PolynomialT_, ScalarT_, PCLPoint_>::addPoint(const Point & point,
+                                                                             const Plane & plane)
   {
     if (not pcl::isFinite(point))
       return;

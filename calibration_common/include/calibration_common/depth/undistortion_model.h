@@ -46,40 +46,40 @@ template <typename ModelT_>
   {
   };
 
-/**
- * @brief The DepthUndistortionModel struct
- * @param ModelT_
- */
-template <typename ModelT_>
-  struct DepthUndistortionModel
-  {
-    typedef boost::shared_ptr<DepthUndistortionModel> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionModel> ConstPtr;
+///**
+// * @brief The DepthUndistortionModel struct
+// * @param ModelT_
+// */
+//template <typename ModelT_>
+//  struct DepthUndistortionModel
+//  {
+//    typedef boost::shared_ptr<DepthUndistortionModel> Ptr;
+//    typedef boost::shared_ptr<const DepthUndistortionModel> ConstPtr;
 
-    typedef typename ModelTraits<ModelT_>::Scalar Scalar;
-    typedef typename ModelTraits<ModelT_>::Data Data;
+////    typedef typename ModelTraits<ModelT_>::Scalar Scalar;
+////    typedef typename ModelTraits<ModelT_>::Data Data;
 
-    /**
-     * @brief ~DepthUndistortionModel
-     */
-    virtual ~DepthUndistortionModel()
-    {
-      // Do nothing
-    }
+////    /**
+////     * @brief ~DepthUndistortionModel
+////     */
+////    virtual ~DepthUndistortionModel()
+////    {
+////      // Do nothing
+////    }
 
-    /**
-     * @brief setData
-     * @param data
-     */
-    virtual void setData(const boost::shared_ptr<Data> & data) = 0;
+////    /**
+////     * @brief setData
+////     * @param data
+////     */
+////    virtual void setData(const boost::shared_ptr<Data> & data) = 0;
 
-    /**
-     * @brief data
-     * @return
-     */
-    virtual const boost::shared_ptr<Data> & data() const = 0;
+////    /**
+////     * @brief data
+////     * @return
+////     */
+////    virtual const boost::shared_ptr<Data> & data() const = 0;
 
-  };
+//  };
 
 /**
  * @brief The DepthUndistortion struct
@@ -104,9 +104,21 @@ template <typename DepthT_>
 
     /**
      * @brief undistort
+     * @param x_index
+     * @param y_index
      * @param point
      */
-    virtual void undistort(Point & point) const = 0;
+    virtual void undistort(Size1 x_index,
+                           Size1 y_index,
+                           Point & point) const = 0;
+
+    /**
+     * @brief undistort
+     * @param index
+     * @param point
+     */
+    virtual void undistort(const Size2 & index,
+                           Point & point) const = 0;
 
     /**
      * @brief undistort
@@ -116,16 +128,16 @@ template <typename DepthT_>
 
   };
 
-/**
- * @brief The DepthUndistortionImpl struct
- * @param ModelT_
- * @param DepthT_
- */
-template <typename ModelT_, typename DepthT_>
-  struct DepthUndistortionImpl
-  {
+///**
+// * @brief The DepthUndistortionImpl struct
+// * @param ModelT_
+// * @param DepthT_
+// */
+//template <typename ModelT_, typename DepthT_>
+//  struct DepthUndistortionImpl
+//  {
 
-  };
+//  };
 
 /**
  * @brief The NoUndistortion_ class

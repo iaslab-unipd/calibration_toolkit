@@ -74,15 +74,16 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     typedef boost::shared_ptr<View_> Ptr;
     typedef boost::shared_ptr<const View_> ConstPtr;
 
+    typedef Eigen::Matrix<Scalar, Dimension_, 1> Point;
+
     /**
      * @brief View_
      */
     View_()
-      : points_std_dev_(Scalar(1.0)),
-        centroid_(Point3::Zero()),
+      : centroid_(Point::Zero()),
         centroid_need_recompute_(false)
     {
-
+      // Do nothing
     }
 
     /**
@@ -117,6 +118,25 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     {
       return points_;
     }
+
+//    /**
+//     * @brief setPoints
+//     * @param points
+//     */
+//    inline void setPoints(const std::vector<int> & points)
+//    {
+//      points_ = points;
+//      centroid_need_recompute_ = true;
+//    }
+
+//    /**
+//     * @brief points
+//     * @return
+//     */
+//    inline const std::vector<int> & points() const
+//    {
+//      return points_;
+//    }
 
     /**
      * @brief setObject
@@ -172,33 +192,29 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
       return data_;
     }
 
-    /**
-     * @brief setPointsStdDev
-     * @param points_std_dev
-     */
-    inline void setPointsStdDev(const Scalar & points_std_dev)
-    {
-      points_std_dev_ = points_std_dev;
-    }
-
-    /**
-     * @brief pointsStdDev
-     * @return
-     */
-    inline const Scalar & pointsStdDev() const
-    {
-      return points_std_dev_;
-    }
+//    /**
+//     * @brief centroid
+//     * @return
+//     */
+//    inline Point centroid() const
+//    {
+//      if (centroid_need_recompute_)
+//      {
+//        centroid_ = points_.container().rowwise().sum();
+//        centroid_need_recompute_ = false;
+//      }
+//      return centroid_;
+//    }
 
     /**
      * @brief centroid
      * @return
      */
-    inline Point3 centroid() const
+    inline Point centroid() const
     {
       if (centroid_need_recompute_)
       {
-        centroid_ = points_.container().rowwise().sum();
+//        centroid_ = points_.container().rowwise().sum();
         centroid_need_recompute_ = false;
       }
       return centroid_;
@@ -208,11 +224,11 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
 
     typename SensorT_::ConstPtr sensor_;
     DataT_ data_;
+//    std::vector<int> points_;
     typename ObjectT_::ConstPtr object_;
     PointMatrix<Scalar, Dimension_> points_;
-    Scalar points_std_dev_;
 
-    mutable Point3 centroid_;
+    mutable Point centroid_;
     mutable bool centroid_need_recompute_;
 
   };

@@ -65,8 +65,8 @@ catkin_package(
 set(INCLUDE_FILES
   include/kinect/depth/camera_model.h
   include/kinect/depth/depth.h
-  include/kinect/depth/polynomial_function.h
-  include/kinect/depth/polynomial_function_fit.h
+#  include/kinect/depth/polynomial_function.h
+#  include/kinect/depth/polynomial_function_fit.h
   include/kinect/depth/polynomial_matrix.h
   include/kinect/depth/polynomial_matrix_fit.h
   include/kinect/depth/polynomial_matrix_io.h
@@ -75,9 +75,9 @@ set(INCLUDE_FILES
   include/kinect/depth/two_steps_model.h
   include/kinect/depth/two_steps_undistortion.h
 
+#  include/impl/kinect/depth/polynomial_function_fit.hpp
   include/impl/kinect/depth/polynomial_matrix_io.hpp
   include/impl/kinect/depth/polynomial_matrix_fit.hpp
-  include/impl/kinect/depth/polynomial_function_fit.hpp
 )
 
 include_directories(

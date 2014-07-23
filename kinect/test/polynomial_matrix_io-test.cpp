@@ -12,18 +12,17 @@
 using namespace calibration;
 
 typedef Polynomial<double, 2, 0> PolynomialT;
-typedef PolynomialMatrixProjectedModel<PolynomialT> ModelT;
+typedef PolynomialMatrixSimpleModel<PolynomialT> ModelT;
 typedef ModelT::Data DataT;
-typedef DepthUndistortionImpl<ModelT, DepthPCL> MatrixPCL;
+typedef PolynomialMatrixPCL<ModelT, Scalar, PCLPoint3> MatrixPCL;
 typedef PolynomialUndistortionMatrixIO<PolynomialT> MatrixIO;
 
 TEST(PolynomialUndistortionMatrixIO, write_read)
 {
   DataT::Ptr data = boost::make_shared<DataT>(Size2(15, 10), PolynomialT::IdentityCoefficients());
 
-  ModelT::Ptr model = boost::make_shared<ModelT>();
-  model->setData(data);
-  model->setFieldOfView(M_PI/4.0, M_PI/6.0);
+  ModelT::Ptr model = boost::make_shared<ModelT>(Size2(640, 480));
+  model->setMatrix(data);
 
   MatrixPCL::Ptr um = boost::make_shared<MatrixPCL>();
   um->setModel(model);
@@ -34,14 +33,12 @@ TEST(PolynomialUndistortionMatrixIO, write_read)
   io.write(*um->model(), "/tmp/matrix.txt");
 
 // Read
-  double fov_x, fov_y;
   DataT::Ptr um_data;
 
-  if (io.read(um_data, "/tmp/matrix.txt", fov_x, fov_y))
+  if (io.read(um_data, "/tmp/matrix.txt"))
   {
-    ModelT::Ptr model = boost::make_shared<ModelT>();
-    model->setData(um_data);
-    model->setFieldOfView(fov_x, fov_y);
+    ModelT::Ptr model = boost::make_shared<ModelT>(Size2(640, 480));
+    model->setMatrix(um_data);
     um = boost::make_shared<MatrixPCL>();
     um->setModel(model);
   }

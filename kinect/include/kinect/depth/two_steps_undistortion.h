@@ -30,18 +30,19 @@
 #define KINECT_DEPTH_TWO_STEPS_UNDISTORTION_H_
 
 #include <calibration_common/depth/traits.h>
+#include <kinect/depth/polynomial_matrix.h>
 #include <kinect/depth/two_steps_model.h>
 
 namespace calibration
 {
 
 template <typename ScalarT_, typename LocalT_, typename GlobalT_>
-  class TwoStepsUndistortionImpl_
+  class TwoStepsUndistortion_
   {
   public:
 
-    typedef boost::shared_ptr<TwoStepsUndistortionImpl_> Ptr;
-    typedef boost::shared_ptr<const TwoStepsUndistortionImpl_> ConstPtr;
+    typedef boost::shared_ptr<TwoStepsUndistortion_> Ptr;
+    typedef boost::shared_ptr<const TwoStepsUndistortion_> ConstPtr;
 
     typedef ScalarT_ Scalar;
     typedef typename LocalT_::Model LocalModel;
@@ -49,12 +50,12 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
 
     typedef TwoStepsModel<ScalarT_, LocalModel, GlobalModel> Model;
 
-    TwoStepsUndistortionImpl_()
+    TwoStepsUndistortion_()
     {
       // Do nothing
     }
 
-    explicit TwoStepsUndistortionImpl_(const typename Model::ConstPtr & model)
+    explicit TwoStepsUndistortion_(const typename Model::ConstPtr & model)
       : model_(model),
         local_(boost::make_shared<LocalT_>(model_->localModel())),
         global_(boost::make_shared<GlobalT_>(model_->globalModel()))
@@ -62,7 +63,7 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
       // Do nothing
     }
 
-    virtual ~TwoStepsUndistortionImpl_()
+    virtual ~TwoStepsUndistortion_()
     {
       // Do nothing
     }
@@ -105,37 +106,36 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
   };
 
 template <typename ScalarT_, typename LocalModelT_, typename GlobalModelT_>
-  class DepthUndistortionImpl<TwoStepsModel<ScalarT_, LocalModelT_, GlobalModelT_>, DepthEigen_<ScalarT_> >
-    : public TwoStepsUndistortionImpl_<ScalarT_, DepthUndistortionImpl<LocalModelT_, DepthEigen_<ScalarT_> >, DepthUndistortionImpl<GlobalModelT_, DepthEigen_<ScalarT_> > >,
-      public DepthUndistortion<DepthEigen_<ScalarT_> >
+  class TwoStepsUndistortionEigen : public TwoStepsUndistortion_<ScalarT_, PolynomialMatrixEigen<LocalModelT_, ScalarT_>, PolynomialMatrixEigen<GlobalModelT_, ScalarT_> >,
+                                    public DepthUndistortion<DepthEigen_<ScalarT_> >
   {
   public:
 
-    typedef boost::shared_ptr<DepthUndistortionImpl> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionImpl> ConstPtr;
+    typedef boost::shared_ptr<TwoStepsUndistortionEigen> Ptr;
+    typedef boost::shared_ptr<const TwoStepsUndistortionEigen> ConstPtr;
 
-    typedef DepthUndistortionImpl<LocalModelT_, DepthEigen_<ScalarT_> > LocalT;
-    typedef DepthUndistortionImpl<GlobalModelT_, DepthEigen_<ScalarT_> > GlobalT;
-    typedef TwoStepsUndistortionImpl_<ScalarT_, LocalT, GlobalT> Base;
+    typedef PolynomialMatrixEigen<LocalModelT_, ScalarT_> LocalT;
+    typedef PolynomialMatrixEigen<GlobalModelT_, ScalarT_> GlobalT;
+    typedef TwoStepsUndistortion_<ScalarT_, LocalT, GlobalT> Base;
     typedef typename Base::Model Model;
 
     typedef DepthUndistortion<DepthEigen_<Scalar> > Interface;
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
-    DepthUndistortionImpl()
+    TwoStepsUndistortionEigen()
       : Base()
     {
       // Do nothing
     }
 
-    explicit DepthUndistortionImpl(const typename Model::ConstPtr & model)
+    explicit TwoStepsUndistortionEigen(const typename Model::ConstPtr & model)
       : Base(model)
     {
       // Do nothing
     }
 
-    virtual ~DepthUndistortionImpl()
+    virtual ~TwoStepsUndistortionEigen()
     {
       // Do nothing
     }
@@ -159,37 +159,36 @@ template <typename ScalarT_, typename LocalModelT_, typename GlobalModelT_>
   };
 
 template <typename ScalarT_, typename PCLPoint_, typename LocalModelT_, typename GlobalModelT_>
-  class DepthUndistortionImpl<TwoStepsModel<ScalarT_, LocalModelT_, GlobalModelT_>, DepthPCL_<PCLPoint_> >
-    : public TwoStepsUndistortionImpl_<ScalarT_, DepthUndistortionImpl<LocalModelT_, DepthPCL_<PCLPoint_> >, DepthUndistortionImpl<GlobalModelT_, DepthPCL_<PCLPoint_> > >,
-      public DepthUndistortion<DepthPCL_<PCLPoint_> >
+  class TwoStepsUndistortionPCL : public TwoStepsUndistortion_<ScalarT_, PolynomialMatrixPCL<LocalModelT_, ScalarT_, PCLPoint_>, PolynomialMatrixPCL<GlobalModelT_, ScalarT_, PCLPoint_> >,
+                                  public DepthUndistortion<DepthPCL_<PCLPoint_> >
   {
   public:
 
-    typedef boost::shared_ptr<DepthUndistortionImpl> Ptr;
-    typedef boost::shared_ptr<const DepthUndistortionImpl> ConstPtr;
+    typedef boost::shared_ptr<TwoStepsUndistortionPCL> Ptr;
+    typedef boost::shared_ptr<const TwoStepsUndistortionPCL> ConstPtr;
 
-    typedef DepthUndistortionImpl<LocalModelT_, DepthPCL_<PCLPoint_> > LocalT;
-    typedef DepthUndistortionImpl<GlobalModelT_, DepthPCL_<PCLPoint_> > GlobalT;
-    typedef TwoStepsUndistortionImpl_<ScalarT_, LocalT, GlobalT> Base;
+    typedef PolynomialMatrixPCL<LocalModelT_, ScalarT_, PCLPoint_> LocalT;
+    typedef PolynomialMatrixPCL<GlobalModelT_, ScalarT_, PCLPoint_> GlobalT;
+    typedef TwoStepsUndistortion_<ScalarT_, LocalT, GlobalT> Base;
     typedef typename Base::Model Model;
 
     typedef DepthUndistortion<DepthPCL_<PCLPoint_> > Interface;
     typedef typename Interface::Point Point;
     typedef typename Interface::Cloud Cloud;
 
-    DepthUndistortionImpl()
+    TwoStepsUndistortionPCL()
       : Base()
     {
       // Do nothing
     }
 
-    explicit DepthUndistortionImpl(const typename Model::ConstPtr & model)
+    explicit TwoStepsUndistortionPCL(const typename Model::ConstPtr & model)
       : Base(model)
     {
       // Do nothing
     }
 
-    virtual ~DepthUndistortionImpl()
+    virtual ~TwoStepsUndistortionPCL()
     {
       // Do nothing
     }

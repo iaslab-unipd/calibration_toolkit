@@ -50,14 +50,14 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
       typedef typename ModelTraits<LocalT_>::Data LocalData;
       typedef typename ModelTraits<GlobalT_>::Data GlobalData;
 
-      boost::shared_ptr<LocalData> local_data_;
-      boost::shared_ptr<GlobalData> global_data_;
+      boost::shared_ptr<LocalData> local_matrix_;
+      boost::shared_ptr<GlobalData> global_matrix_;
     };
 
   };
 
 template <typename ScalarT_, typename LocalT_, typename GlobalT_>
-  class TwoStepsModel : public DepthUndistortionModel<TwoStepsModel<ScalarT_, LocalT_, GlobalT_> >
+  class TwoStepsModel
   {
   public:
 
@@ -65,7 +65,6 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
     typedef boost::shared_ptr<const TwoStepsModel> ConstPtr;
 
     typedef ModelTraits<TwoStepsModel> Traits;
-    typedef DepthUndistortionModel<TwoStepsModel> Base;
 
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Data Data;
@@ -85,8 +84,8 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
     {
       assert(local_ and global_);
       data_ = data;
-      local_->setData(data->local_data_);
-      global_->setData(data->global_data_);
+      local_->setMatrix(data->local_matrix_);
+      global_->setMatrix(data->global_matrix_);
     }
 
     virtual const boost::shared_ptr<Data> & data() const
@@ -97,13 +96,13 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
     void setLocalModel(const boost::shared_ptr<LocalT_> & local)
     {
       local_ = local;
-      data_->local_data_ = local->data();
+      data_->local_matrix_ = local->matrix();
     }
 
     void setGlobalModel(const boost::shared_ptr<GlobalT_> & global)
     {
       global_ = global;
-      data_->global_data_ = global->data();
+      data_->global_matrix_ = global->matrix();
     }
 
     const boost::shared_ptr<LocalT_> & localModel() const
