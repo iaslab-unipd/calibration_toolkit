@@ -30,6 +30,7 @@
 #define CALIBRATION_COMMON_PCL_UTILS_H_
 
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/CameraInfo.h>
 #include <pcl_ros/point_cloud.h>
 
 namespace calibration
