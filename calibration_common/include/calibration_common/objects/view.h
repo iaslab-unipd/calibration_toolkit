@@ -19,7 +19,6 @@
 #define CALIBRATON_COMMON_OBJECTS_VIEW_H_
 
 #include <calibration_common/base/point_matrix.h>
-#include <visualization_msgs/Marker.h>
 #include <calibration_common/objects/globals.h>
 
 namespace calibration
@@ -66,7 +65,7 @@ protected:
  * @param ObjectT_
  * @param Dimension_
  */
-template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
+template <typename SensorT_, typename DataT_, typename PointT_, typename ObjectT_, int Dimension_>
   class View_ : public View
   {
   public:
@@ -87,26 +86,31 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     }
 
     /**
-     * @brief setPoints
-     * @param points
+     * @brief setData
+     * @param data
      */
-    inline void setPoints(const PointMatrix<Scalar, Dimension_> & points)
+    inline void setData(const DataT_ & data)
     {
-      points_ = points;
-      centroid_need_recompute_ = true;
+      data_ = data;
+    }
+
+    /**
+     * @brief data
+     * @return
+     */
+    inline const DataT_ & data() const
+    {
+      assert(data_);
+      return data_;
     }
 
     /**
      * @brief setPoints
      * @param points
-     * @param indices
      */
-    inline void setPoints(const PointMatrix<Scalar, Dimension_> & points,
-                          const std::vector<int> & indices)
+    inline void setPoints(const PointT_ & points)
     {
-      points_.resize(indices.size(), 1);
-      for (Size1 i = 0; i < indices.size(); ++i)
-        points_[i] << points[indices[i]];
+      points_ = points;
       centroid_need_recompute_ = true;
     }
 
@@ -114,29 +118,10 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
      * @brief points
      * @return
      */
-    inline const PointMatrix<Scalar, Dimension_> & points() const
+    inline const PointT_ & points() const
     {
       return points_;
     }
-
-//    /**
-//     * @brief setPoints
-//     * @param points
-//     */
-//    inline void setPoints(const std::vector<int> & points)
-//    {
-//      points_ = points;
-//      centroid_need_recompute_ = true;
-//    }
-
-//    /**
-//     * @brief points
-//     * @return
-//     */
-//    inline const std::vector<int> & points() const
-//    {
-//      return points_;
-//    }
 
     /**
      * @brief setObject
@@ -153,6 +138,7 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
      */
     inline const typename ObjectT_::ConstPtr & object() const
     {
+      assert(object_);
       return object_;
     }
 
@@ -171,40 +157,9 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
      */
     inline const typename SensorT_::ConstPtr & sensor() const
     {
+      assert(sensor_);
       return sensor_;
     }
-
-    /**
-     * @brief setData
-     * @param data
-     */
-    inline void setData(const DataT_ & data)
-    {
-      data_ = data;
-    }
-
-    /**
-     * @brief data
-     * @return
-     */
-    inline const DataT_ & data() const
-    {
-      return data_;
-    }
-
-//    /**
-//     * @brief centroid
-//     * @return
-//     */
-//    inline Point centroid() const
-//    {
-//      if (centroid_need_recompute_)
-//      {
-//        centroid_ = points_.container().rowwise().sum();
-//        centroid_need_recompute_ = false;
-//      }
-//      return centroid_;
-//    }
 
     /**
      * @brief centroid
@@ -214,7 +169,7 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
     {
       if (centroid_need_recompute_)
       {
-//        centroid_ = points_.container().rowwise().sum();
+        centroid_ = computeCentroid();
         centroid_need_recompute_ = false;
       }
       return centroid_;
@@ -222,11 +177,16 @@ template <typename SensorT_, typename DataT_, typename ObjectT_, int Dimension_>
 
   protected:
 
+    /**
+     * @brief computeCentroid
+     * @return
+     */
+    virtual Point computeCentroid() const = 0;
+
     typename SensorT_::ConstPtr sensor_;
-    DataT_ data_;
-//    std::vector<int> points_;
     typename ObjectT_::ConstPtr object_;
-    PointMatrix<Scalar, Dimension_> points_;
+    DataT_ data_;
+    PointT_ points_;
 
     mutable Point centroid_;
     mutable bool centroid_need_recompute_;

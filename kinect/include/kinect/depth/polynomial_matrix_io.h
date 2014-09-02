@@ -79,35 +79,39 @@ template <class Polynomial_>
       return true;
     }
 
-    void toImage(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
-                 const Scalar z,
-                 cv::Mat & image,
-                 const Scalar max) const;
+    template <typename ModelT_>
+      void toImage(const ModelT_ & model,
+                   const Scalar z,
+                   cv::Mat & image,
+                   const Scalar max) const;
 
-    void toImageAuto(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
-                     const Scalar z,
-                     cv::Mat & image,
-                     Scalar & max) const;
+    template <typename ModelT_>
+      void toImageAuto(const ModelT_ & model,
+                       const Scalar z,
+                       cv::Mat & image,
+                       Scalar & max) const;
 
-    bool writeImage(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
-                    Scalar z,
-                    const std::string & file_name,
-                    const Scalar max) const
-    {
-      cv::Mat image;
-      toImage(undistortion_matrix, z, image, max);
-      return cv::imwrite(file_name, image);
-    }
+    template <typename ModelT_>
+      bool writeImage(const ModelT_ & model,
+                      Scalar z,
+                      const std::string & file_name,
+                      const Scalar max) const
+      {
+        cv::Mat image;
+        toImage(model, z, image, max);
+        return cv::imwrite(file_name, image);
+      }
 
-    bool writeImageAuto(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
-                        Scalar z,
-                        const std::string & file_name,
-                        Scalar & max) const
-    {
-      cv::Mat image;
-      toImageAuto(undistortion_matrix, z, image, max);
-      return cv::imwrite(file_name, image);
-    }
+    template <typename ModelT_>
+      bool writeImageAuto(const ModelT_ & model,
+                          Scalar z,
+                          const std::string & file_name,
+                          Scalar & max) const
+      {
+        cv::Mat image;
+        toImageAuto(model, z, image, max);
+        return cv::imwrite(file_name, image);
+      }
 
     bool write(const Data & data,
                const std::string & file_name) const;

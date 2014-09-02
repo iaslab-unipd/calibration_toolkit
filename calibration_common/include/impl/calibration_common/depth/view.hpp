@@ -35,31 +35,31 @@
 namespace calibration
 {
 
-template <typename SensorT_, typename DataT_, typename ObjectT_>
-  void DepthView_<SensorT_, DataT_, ObjectT_>::toMarker(visualization_msgs::Marker & marker) const
-  {
-    marker.header.stamp = ros::Time::now();
-    marker.header.frame_id = Base::sensor()->frameId();
+//template <typename SensorT_, typename DataT_, typename ObjectT_>
+//  void DepthView_<SensorT_, DataT_, ObjectT_>::toMarker(visualization_msgs::Marker & marker) const
+//  {
+//    marker.header.stamp = ros::Time::now();
+//    marker.header.frame_id = Base::sensor()->frameId();
 
-    marker.type = visualization_msgs::Marker::SPHERE_LIST;
-    marker.action = visualization_msgs::Marker::ADD;
-    marker.scale.x = 0.01;
-    marker.scale.y = 0.01;
-    marker.scale.z = 0.01;
-    marker.color.r = 1.0;
-    marker.color.a = 1.0;
+//    marker.type = visualization_msgs::Marker::SPHERE_LIST;
+//    marker.action = visualization_msgs::Marker::ADD;
+//    marker.scale.x = 0.01;
+//    marker.scale.y = 0.01;
+//    marker.scale.z = 0.01;
+//    marker.color.r = 1.0;
+//    marker.color.a = 1.0;
 
-    const Cloud3 & points = Base::points();
-    for (Size1 i = 0; i < points.elements(); ++i)
-    {
-      geometry_msgs::Point p;
-      p.x = points[i][0];
-      p.y = points[i][1];
-      p.z = points[i][2];
-      marker.points.push_back(p);
-    }
+//    const Cloud3 & points = Base::points();
+//    for (Size1 i = 0; i < points.elements(); ++i)
+//    {
+//      geometry_msgs::Point p;
+//      p.x = points[i][0];
+//      p.y = points[i][1];
+//      p.z = points[i][2];
+//      marker.points.push_back(p);
+//    }
 
-  }
+//  }
 
 } /* namespace calibration */
 #endif /* CALIBRATON_COMMON_IMPL_DEPTH_VIEW_HPP_ */

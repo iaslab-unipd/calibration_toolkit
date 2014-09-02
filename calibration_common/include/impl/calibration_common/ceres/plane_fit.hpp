@@ -37,38 +37,54 @@
 namespace calibration
 {
 
-template <typename Scalar_>
-  typename Types<Scalar_>::Plane PlaneFit<Scalar_>::fit(const typename Types<Scalar_>::Cloud3 & points)
+template <typename ScalarT_>
+  typename Types<ScalarT_>::Plane PlaneFit<ScalarT_>::fit(const typename Types<ScalarT_>::Cloud3 & points)
   {
 
-    typename Types<Scalar_>::Point3 centroid = points.container().rowwise().mean();
-    typename Types<Scalar_>::Cloud3::Container diff = points.container().colwise() - centroid;
-    Eigen::Matrix<Scalar_, 3, 3> covariance_matrix = diff * diff.transpose() / Scalar_(points.elements() - 1);
+//    typename Types<ScalarT_>::Point3 centroid = points.container().rowwise().mean();
+//    typename Types<ScalarT_>::Cloud3::Container diff = points.container().colwise() - centroid;
+//    Eigen::Matrix<ScalarT_, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(points.elements() - 1);
 
-    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<Scalar_, 3, 3> > solver(covariance_matrix, Eigen::ComputeEigenvectors);
-    typename Types<Scalar_>::Point3 eigen_vector = solver.eigenvectors().col(0);
-    return typename Types<Scalar_>::Plane(eigen_vector, -eigen_vector.dot(centroid));
+    typename Types<ScalarT_>::Point3 centroid = Types<ScalarT_>::Point3::Zero();
+    typename Types<ScalarT_>::Cloud3::Container diff(3, points.elements());
+    Size1 count = 0;
+    for (Size1 i = 0; i < points.elements(); ++i)
+    {
+      if (points[i].allFinite())
+      {
+        centroid += points[i];
+        diff.col(count++) = points[i];
+      }
+    }
+    centroid /= count;
+    diff.resize(3, count);
+    diff.colwise() -= centroid;
+    Eigen::Matrix<ScalarT_, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(count - 1);
+
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT_, 3, 3> > solver(covariance_matrix, Eigen::ComputeEigenvectors);
+    typename Types<ScalarT_>::Point3 eigen_vector = solver.eigenvectors().col(0);
+    return typename Types<ScalarT_>::Plane(eigen_vector, -eigen_vector.dot(centroid));
 
   }
 
-template <typename Scalar_>
-  typename Types<Scalar_>::Plane PlaneFit<Scalar_>::robustFit(const typename Types<Scalar_>::Plane & initial_plane,
-                                                              const typename Types<Scalar_>::Cloud3 & points,
-                                                              Scalar_ scale)
+template <typename ScalarT_>
+  typename Types<ScalarT_>::Plane PlaneFit<ScalarT_>::robustFit(const typename Types<ScalarT_>::Plane & initial_plane,
+                                                                const typename Types<ScalarT_>::Cloud3 & points,
+                                                                ScalarT_ scale)
   {
     ceres::Problem problem;
-    typename Types<Scalar_>::Plane plane(initial_plane);
+    typename Types<ScalarT_>::Plane plane(initial_plane);
 
     for (Size1 i = 0; i < points.elements(); ++i)
     {
       ceres::CostFunction * cost_function =
-        new ceres::AutoDiffCostFunction<PlaneResidual<Scalar_>, 1, 4>(new PlaneResidual<Scalar_>(points[i]));
+        new ceres::AutoDiffCostFunction<PlaneResidual<ScalarT_>, 1, 4>(new PlaneResidual<ScalarT_>(points[i]));
       problem.AddResidualBlock(cost_function, new ceres::CauchyLoss(scale), plane.coeffs().data());
     }
 
     ceres::Solver::Options options;
     options.linear_solver_type = ceres::DENSE_QR;
-    //    options.minimizer_progress_to_stdout = true;
+//    options.minimizer_progress_to_stdout = true;
 
     ceres::Solver::Summary summary;
     ceres::Solve(options, &problem, &summary);

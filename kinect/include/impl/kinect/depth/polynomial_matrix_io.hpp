@@ -191,54 +191,56 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
-                                                            const Scalar z,
-                                                            cv::Mat & image,
-                                                            Scalar max) const
-  {
-    assert(max > 0);
-    cv::Mat float_image(undistortion_matrix.data()->size().y(), undistortion_matrix.data()->size().x(), CV_32FC1);
-
-    for (int y = 0; y < float_image.rows; ++y)
+  template <typename ModelT_>
+    void PolynomialUndistortionMatrixIO<Polynomial_>::toImage(const ModelT_ & model,
+                                                              const Scalar z,
+                                                              cv::Mat & image,
+                                                              Scalar max) const
     {
-      for (int x = 0; x < float_image.cols; ++x)
+      assert(max > 0);
+      cv::Mat float_image(model.imageSize().y(), model.imageSize().x(), CV_32FC1);
+
+      for (int y = 0; y < float_image.rows; ++y)
       {
-        Scalar z_tmp = z;
-        undistortion_matrix.undistort(x, y, z_tmp);
-        z_tmp -= z;
-        float_image.at<float>(y, x) = z_tmp;
+        for (int x = 0; x < float_image.cols; ++x)
+        {
+          Scalar z_tmp = z;
+          model.undistort(x, y, z_tmp);
+          z_tmp -= z;
+          float_image.at<float>(y, x) = z_tmp;
+        }
       }
+
+      toColorImage(float_image, image, max);
+
     }
-
-    toColorImage(float_image, image, max);
-
-  }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const PolynomialMatrixSimpleModel<Polynomial_> & undistortion_matrix,
-                                                                const Scalar z,
-                                                                cv::Mat & image,
-                                                                Scalar & max) const
-  {
-    max = 0;
-    cv::Mat float_image(undistortion_matrix.data()->size().y(), undistortion_matrix.data()->size().x(), CV_32FC1);
-
-    for (int y = 0; y < float_image.rows; ++y)
+  template <typename ModelT_>
+    void PolynomialUndistortionMatrixIO<Polynomial_>::toImageAuto(const ModelT_ & model,
+                                                                  const Scalar z,
+                                                                  cv::Mat & image,
+                                                                  Scalar & max) const
     {
-      for (int x = 0; x < float_image.cols; ++x)
+      max = 0;
+      cv::Mat float_image(model.imageSize().y(), model.imageSize().x(), CV_32FC1);
+
+      for (int y = 0; y < float_image.rows; ++y)
       {
-        Scalar z_tmp = z;
-        undistortion_matrix.undistort(x, y, z_tmp);
-        z_tmp -= z;
-        float_image.at<float>(y, x) = z_tmp;
-        if (z_tmp > max or z_tmp < -max)
-          max = std::fabs(z_tmp);
+        for (int x = 0; x < float_image.cols; ++x)
+        {
+          Scalar z_tmp = z;
+          model.undistort(x, y, z_tmp);
+          z_tmp -= z;
+          float_image.at<float>(y, x) = z_tmp;
+          if (z_tmp > max or z_tmp < -max)
+            max = std::fabs(z_tmp);
+        }
       }
+
+      toColorImage(float_image, image, max);
+
     }
-
-    toColorImage(float_image, image, max);
-
-  }
 
 } /* namespace calibration */
 #endif /* IMPL_KINECT_DEPTH_POLYNOMIAL_MATRIX_IO_HPP_ */

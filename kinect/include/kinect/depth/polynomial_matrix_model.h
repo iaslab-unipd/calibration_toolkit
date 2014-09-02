@@ -126,6 +126,11 @@ template <typename PolynomialT_>
       return (*boost::static_pointer_cast<const Data>(matrix_))(index);
     }
 
+    inline typename Data::ConstPtr data() const
+    {
+      return typename Data::ConstPtr(matrix_);
+    }
+
     inline virtual Scalar * dataPtr()
     {
       assert(matrix_);
@@ -273,7 +278,7 @@ template <typename PolynomialT_>
     inline virtual void setMatrix(const typename Data::Ptr & matrix)
     {
       Base::setMatrix(matrix, Base::image_size_ / (matrix->size() - Size2(1, 1)));
-      assert(Base::bin_size_.x() % 2 == 0 and Base::bin_size_.y() % 2 == 0);
+      assert((Base::bin_size_.x() % 2 == 0 and Base::bin_size_.y() % 2 == 0) or (Base::bin_size_ == Size2(1, 1)).all());
     }
 
     inline Size2 matrixIndex(Size1 x_index,
@@ -294,6 +299,10 @@ template <typename PolynomialT_>
                    size_t y_index,
                    Scalar & depth) const
     {
+      if (not (x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0))
+        std::cout << x_index << " " << y_index << std::endl;
+
+
       assert(x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0);
 
       Size2 x_bin, y_bin;
@@ -319,15 +328,7 @@ template <typename PolynomialT_>
       Scalar tmp_depth = 0.0;
       for (int i = 0; i < 2; ++i)
         for (int j = 0; j < 2; ++j)
-        {
           tmp_depth += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_bin[i], y_bin[j]), depth);
-          if (tmp_depth != tmp_depth)
-          {
-            std::cout << "AAAAAAAAAA " << x_index << " < " << Base::image_size_.x() << " "
-                      << Base::bin_size_.x() << " " << x_bin[i] << std::endl;
-            exit(1);
-          }
-        }
 
       depth = tmp_depth;
     }

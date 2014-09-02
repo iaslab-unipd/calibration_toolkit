@@ -43,32 +43,50 @@ typedef Marker_<std::allocator<void> > Marker;
 namespace calibration
 {
 
-/**
- * @brief The DepthView_ struct
- * @param SensorT_
- * @param DataT_
- * @param ObjectT_
- */
-template <typename SensorT_, typename DataT_, typename ObjectT_>
-  struct DepthView_ : public View_<SensorT_, DataT_, ObjectT_, 3>
-  {
-    typedef boost::shared_ptr<DepthView_> Ptr;
-    typedef boost::shared_ptr<const DepthView_> ConstPtr;
+///**
+// * @brief The DepthView_ struct
+// * @param SensorT_
+// * @param DataT_
+// * @param ObjectT_
+// */
+//template <typename SensorT_, typename DataT_, typename ObjectT_>
+//  struct DepthView_ : public View_<SensorT_, DataT_, ObjectT_, 3>
+//  {
+//    typedef boost::shared_ptr<DepthView_> Ptr;
+//    typedef boost::shared_ptr<const DepthView_> ConstPtr;
 
-    typedef View_<SensorT_, DataT_, ObjectT_, 3> Base;
+//    typedef View_<SensorT_, DataT_, ObjectT_, 3> Base;
 
-    void toMarker(visualization_msgs::Marker & marker) const;
-  };
+//    void toMarker(visualization_msgs::Marker & marker) const;
+//  };
 
 /**
  * @brief The DepthViewEigen struct
  * @param ObjectT_
  */
 template <typename ObjectT_>
-  struct DepthViewEigen : public DepthView_<DepthSensor, Cloud3::ConstPtr, ObjectT_>
+  struct DepthViewEigen : public View_<DepthSensor, Cloud3::ConstPtr, Indices, ObjectT_, 3>
   {
     typedef boost::shared_ptr<DepthViewEigen> Ptr;
     typedef boost::shared_ptr<const DepthViewEigen> ConstPtr;
+
+    typedef View_<DepthSensor, Cloud3::ConstPtr, Indices, ObjectT_, 3> Base;
+    typedef typename Base::Point Point;
+
+  protected:
+
+    inline virtual Point computeCentroid() const
+    {
+      const Indices & points = Base::points();
+      const Cloud3 & cloud = *Base::data();
+      assert(not points.empty());
+      Point sum = Point::Zero();
+      for (Size1 i = 0; i < points.size(); ++i)
+        sum += cloud[points[i]];
+      sum /= points.size();
+      return sum;
+    }
+
   };
 
 /**
@@ -76,10 +94,31 @@ template <typename ObjectT_>
  * @param ObjectT_
  */
 template <typename ObjectT_>
-  struct DepthViewPCL : public DepthView_<DepthSensor, PCLCloud3::ConstPtr, ObjectT_>
+  struct DepthViewPCL : public View_<DepthSensor, PCLCloud3::ConstPtr, Indices, ObjectT_, 3>
   {
     typedef boost::shared_ptr<DepthViewPCL> Ptr;
     typedef boost::shared_ptr<const DepthViewPCL> ConstPtr;
+
+    typedef View_<DepthSensor, PCLCloud3::ConstPtr, Indices, ObjectT_, 3> Base;
+    typedef typename Base::Point Point;
+
+  protected:
+
+    inline virtual Point computeCentroid() const
+    {
+      const Indices & points = Base::points();
+      const PCLCloud3 & cloud = *Base::data();
+      assert(not points.empty());
+      Point sum = Point::Zero();
+      for (Size1 i = 0; i < points.size(); ++i)
+      {
+        sum.x() += cloud[points[i]].x;
+        sum.y() += cloud[points[i]].y;
+        sum.z() += cloud[points[i]].z;
+      }
+      sum /= points.size();
+      return sum;
+    }
   };
 
 } /* namespace calibration */

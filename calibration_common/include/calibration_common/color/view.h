@@ -41,12 +41,22 @@ namespace calibration
  * @param ObjectT_
  */
 template <typename ColorSensorT_, typename ObjectT_>
-  class ColorView : public View_<ColorSensorT_, cv::Mat, ObjectT_, 2>
+  class ColorView : public View_<ColorSensorT_, cv::Mat, Cloud2, ObjectT_, 2>
   {
   public:
 
     typedef boost::shared_ptr<ColorView> Ptr;
     typedef boost::shared_ptr<const ColorView> ConstPtr;
+
+    typedef View_<ColorSensorT_, cv::Mat, Cloud2, ObjectT_, 2> Base;
+    typedef typename Base::Point Point;
+
+  protected:
+
+    inline virtual Point computeCentroid() const
+    {
+      return Base::points().container().rowwise().sum();
+    }
 
   };
 

@@ -426,6 +426,19 @@ template <typename ScalarT_, int Dimension_, int XSize_ = Eigen::Dynamic, int YS
         // Do nothing
       }
 
+    /**
+     * @brief PointMatrix
+     * @param other
+     * @param indices
+     */
+    PointMatrix(const PointMatrix & other,
+                const std::vector<int> & indices)
+      : Base(Size2(1, indices.size()))
+    {
+      for (Size1 i = 0; i < indices.size(); ++i)
+        Base::operator [](i) = other[indices[i]];
+    }
+
 //    /**
 //     * @brief PointMatrix
 //     * @param container

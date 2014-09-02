@@ -89,6 +89,9 @@ set(INCLUDE_FILES
 
   include/calibration_common/rgbd/data.h
 
+  include/calibration_common/pcl/pcl.h
+  include/calibration_common/pcl/utils.h
+
   include/calibration_common/objects/sensor.h
   include/calibration_common/objects/checkerboard.h
   include/calibration_common/objects/globals.h
@@ -109,6 +112,7 @@ set(INCLUDE_FILES
   include/impl/calibration_common/depth/view.hpp
   include/impl/calibration_common/ceres/polynomial_fit.hpp
   include/impl/calibration_common/ceres/plane_fit.hpp
+  include/impl/calibration_common/pcl/utils.hpp
 )
 
 ## LIBRARIES: libraries you create in this project that dependent projects also need

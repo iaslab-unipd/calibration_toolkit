@@ -135,23 +135,19 @@ template <typename ModelT_, typename ScalarT_>
     virtual void undistort(Cloud & cloud) const
     {
       assert(Base::model());
-      if (not (cloud.size() == Base::model()->imageSize()).all())
-        std::cout << cloud.size().transpose() << " == " << Base::model()->imageSize().transpose() << std::endl;
       assert((cloud.size() == Base::model()->imageSize()).all());
-
 
       for (Size1 i = 0; i < cloud.size().x(); ++i)
       {
         for (Size1 j = 0; j < cloud.size().y(); ++j)
         {
-          if (cloud(i, j).hasNaN())
+          if (not cloud(i, j).allFinite()/* or std::abs(cloud(i, j).z()) < 0.01*/)
             continue;
 
           Scalar z = cloud(i, j).z();
           Base::model()->undistort(i, j, z);
-          assert(z == z);
-          cloud(i, j) *= z / cloud(i, j).z();
-          assert(cloud(i, j).allFinite());
+          cloud(i, j) /= cloud(i, j).z();
+          cloud(i, j) *= z;
         }
       }
     }
@@ -234,7 +230,7 @@ template <typename ModelT_, typename ScalarT_, typename PCLPointT_>
       {
         for (Size1 j = 0; j < cloud.height; ++j)
         {
-          if (not pcl::isFinite(cloud(i, j)))
+          if (not pcl::isFinite(cloud(i, j))/* or std::abs(cloud(i, j).z) < 0.01*/)
             continue;
 
           Scalar z = Scalar(cloud(i, j).z);
