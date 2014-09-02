@@ -47,8 +47,8 @@ class InteractiveCheckerboardFinder
 public:
 
   /**
-   * @brief setImage
-   * @param image
+   * @brief Set the image where to look for the checkerboard.
+   * @param image The image where to look for the checkerboard.
    */
   inline void setImage(const cv::Mat & image)
   {
