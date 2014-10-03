@@ -37,14 +37,16 @@ bool AutomaticCheckerboardFinder::find(const Checkerboard & checkerboard,
   cv::Size pattern_size(checkerboard.cols(), checkerboard.rows());
   corners.clear();
 
-  bool pattern_found = cv::findChessboardCorners(gray_, pattern_size, corners);
+  bool pattern_found = cv::findChessboardCorners(gray_, pattern_size, corners, cv::CALIB_CB_FAST_CHECK);
 
   if (pattern_found)
+  {
     cv::cornerSubPix(gray_,
                      corners,
                      cv::Size(2, 2),
                      cv::Size(-1, -1),
                      cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 100, 0.01));
+  }
 
   return pattern_found;
 }
