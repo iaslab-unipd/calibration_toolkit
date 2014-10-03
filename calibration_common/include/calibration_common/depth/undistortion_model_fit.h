@@ -42,7 +42,7 @@ namespace calibration
  * @param DepthT_
  * @param ScalarT_
  */
-template <typename ModelT_, typename DepthT_, typename ScalarT_>
+template <typename DepthT_, typename ScalarT_>
   class DepthUndistortionModelFit
   {
   public:
@@ -51,7 +51,6 @@ template <typename ModelT_, typename DepthT_, typename ScalarT_>
     typedef boost::shared_ptr<const DepthUndistortionModelFit> ConstPtr;
 
     typedef ScalarT_ Scalar;
-    typedef ModelT_ Model;
 
     typedef typename DepthTraits<DepthT_>::Point Point;
     typedef typename DepthTraits<DepthT_>::Cloud Cloud;
@@ -67,14 +66,6 @@ template <typename ModelT_, typename DepthT_, typename ScalarT_>
      * @param cloud
      */
     virtual void accumulateCloud(const Cloud & cloud) = 0;
-
-//    /**
-//     * @brief accumulateCloud
-//     * @param cloud
-//     * @param indices
-//     */
-//    virtual void accumulateCloud(const Cloud & cloud,
-//                                 const std::vector<int> & indices) = 0;
 
     /**
      * @brief accumulatePoint
