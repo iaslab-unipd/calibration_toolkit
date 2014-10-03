@@ -48,6 +48,32 @@ public:
   typedef boost::shared_ptr<DepthSensor> Ptr;
   typedef boost::shared_ptr<const DepthSensor> ConstPtr;
 
+  DepthSensor()
+    : depth_error_function_(Vector3(0.01, 0.0, 0.0)) // Vector3(0.0, 0.0, 0.0035) - Vector3(0.02, 0.0, 0.0)
+  {
+    // Do nothing
+  }
+
+  DepthSensor(const Vector3 & error_function_coefficients)
+    : depth_error_function_(error_function_coefficients)
+  {
+    // Do nothing
+  }
+
+  const Polynomial<Scalar, 2> & depthErrorFunction() const
+  {
+    return depth_error_function_;
+  }
+
+  void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
+  {
+    depth_error_function_ = depth_error_function;
+  }
+
+private:
+
+  Polynomial<Scalar, 2> depth_error_function_;
+
 };
 
 } /* namespace calibration */

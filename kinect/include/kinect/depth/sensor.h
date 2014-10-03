@@ -36,8 +36,37 @@
 namespace calibration
 {
 
+class KinectDepthSensorBase : public DepthSensor
+{
+public:
+
+  typedef boost::shared_ptr<KinectDepthSensorBase> Ptr;
+  typedef boost::shared_ptr<const KinectDepthSensorBase> ConstPtr;
+
+  KinectDepthSensorBase()
+    : DepthSensor()
+  {
+    // Do nothing
+  }
+
+  const KinectDepthCameraModel::ConstPtr & cameraModel() const
+  {
+    return camera_model_;
+  }
+
+  void setCameraModel(const KinectDepthCameraModel::ConstPtr & camera_model)
+  {
+    camera_model_ = camera_model;
+  }
+
+private:
+
+  typename KinectDepthCameraModel::ConstPtr camera_model_;
+
+};
+
 template <typename ModelT_>
-  class KinectDepthSensor : public DepthSensor
+  class KinectDepthSensor : public KinectDepthSensorBase
   {
   public:
 
@@ -45,8 +74,7 @@ template <typename ModelT_>
     typedef boost::shared_ptr<const KinectDepthSensor> ConstPtr;
 
     KinectDepthSensor()
-      : DepthSensor(),
-        depth_error_function_(Vector3(0.0, 0.0, 0.0035))
+      : KinectDepthSensorBase()
     {
       // Do nothing
     }
@@ -61,76 +89,11 @@ template <typename ModelT_>
       undistortion_model_ = undistortion_model;
     }
 
-    const KinectDepthCameraModel::ConstPtr & cameraModel() const
-    {
-      return camera_model_;
-    }
-
-    void setCameraModel(const KinectDepthCameraModel::ConstPtr & camera_model)
-    {
-      camera_model_ = camera_model;
-    }
-
-    const Polynomial<Scalar, 2> & depthErrorFunction() const
-    {
-      return depth_error_function_;
-    }
-
-    void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
-    {
-      depth_error_function_ = depth_error_function;
-    }
-
   private:
 
-    typename KinectDepthCameraModel::ConstPtr camera_model_;
     boost::shared_ptr<const ModelT_> undistortion_model_;
-    Polynomial<Scalar, 2> depth_error_function_;
 
   };
-
-//class KinectDepthSensorEigen : public DepthSensorEigen
-//{
-//public:
-//
-//  typedef boost::shared_ptr<KinectDepthSensorEigen> Ptr;
-//  typedef boost::shared_ptr<const KinectDepthSensorEigen> ConstPtr;
-//
-//  typedef DepthSensorEigen Base;
-//
-//  KinectDepthSensorEigen()
-//    : Base()
-//  {
-//    // Do nothing
-//  }
-//
-//private:
-//
-//  typename KinectDepthCameraModel::ConstPtr camera_model_;
-//
-//};
-//
-//template <typename PCLPointT_>
-//class KinectDepthSensorPCL : public DepthSensorPCL<PCLPointT_>
-//{
-//public:
-//
-//  typedef boost::shared_ptr<KinectDepthSensorPCL> Ptr;
-//  typedef boost::shared_ptr<const KinectDepthSensorPCL> ConstPtr;
-//
-//  typedef DepthSensorPCL<PCLPointT_> Base;
-//
-//  KinectDepthSensorPCL()
-//    : Base()
-//  {
-//    // Do nothing
-//  }
-//
-//private:
-//
-//  typename KinectDepthCameraModel::ConstPtr camera_model_;
-//
-//};
 
 } /* namespace calibration */
 #endif /* KINECT_DEPTH_SENSOR_H_ */
