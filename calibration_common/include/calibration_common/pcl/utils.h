@@ -56,7 +56,7 @@ template <>
     {
       return (depth * 1000.0f) + 0.5f;
     }
-    static inline void initializeBuffer(std::vector<uint8_t>& buffer)
+    static inline void initializeBuffer(std::vector<uint8_t> & buffer)
     {
     } // Do nothing - already zero-filled
   };
@@ -77,12 +77,32 @@ template <>
       return depth;
     }
 
-    static inline void initializeBuffer(std::vector<uint8_t>& buffer)
+    static inline void initializeBuffer(std::vector<uint8_t> & buffer)
     {
-      float* start = reinterpret_cast<float*>(&buffer[0]);
-      float* end = reinterpret_cast<float*>(&buffer[0] + buffer.size());
+      float * start = reinterpret_cast<float *>(&buffer[0]);
+      float * end = reinterpret_cast<float *>(&buffer[0] + buffer.size());
       std::fill(start, end, std::numeric_limits<float>::quiet_NaN());
     }
+  };
+
+template <>
+  struct SensorDepthTraits<uint8_t>
+  {
+    static inline bool valid(uint8_t depth)
+    {
+      return depth != 0;
+    }
+    static inline float toMeters(uint8_t depth)
+    {
+      return depth * 0.001f;
+    } // originally mm
+    static inline uint8_t fromMeters(float depth)
+    {
+      return (depth * 1000.0f) + 0.5f;
+    }
+    static inline void initializeBuffer(std::vector<uint8_t> & buffer)
+    {
+    } // Do nothing - already zero-filled
   };
 
 template <typename Scalar_, typename PCLPoint_>
