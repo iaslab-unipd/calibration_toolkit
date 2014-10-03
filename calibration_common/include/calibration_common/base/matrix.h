@@ -223,6 +223,7 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      */
     inline const ConstElement at(const Size2 & index) const
     {
+      assert((index < size_).all() and (index >= Size2(0, 0)).all());
       return at(index.x(), index.y());
     }
 
@@ -233,6 +234,7 @@ template <typename T_, int XSize_ = Eigen::Dynamic, int YSize_ = Eigen::Dynamic,
      */
     inline Element at(const Size2 & index)
     {
+      assert((index < size_).all() and (index >= Size2(0, 0)).all());
       return at(index.x(), index.y());
     }
 
