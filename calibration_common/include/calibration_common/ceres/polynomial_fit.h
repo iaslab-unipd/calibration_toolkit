@@ -206,6 +206,142 @@ template <typename PolynomialT_>
 
   };
 
+/**
+ * @brief The WeightedPolynomialResidual class
+ * @param PolynomialT_
+ */
+template <typename PolynomialT_>
+  class WeightedPolynomialResidual
+  {
+  public:
+
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+
+    static const int Size = MathTraits<PolynomialT_>::Size;
+    static const int MinDegree = MathTraits<PolynomialT_>::MinDegree;
+    static const int Degree = MathTraits<PolynomialT_>::Degree;
+
+    /**
+     * @brief WeightedPolynomialResidual
+     * @param x
+     * @param y
+     * @param weight
+     */
+    WeightedPolynomialResidual(Scalar x,
+                               Scalar y,
+                               Scalar weight)
+      : x_(x),
+        y_(y),
+        weight_(weight)
+    {
+      // Do nothing
+    }
+
+    /**
+     * @brief operator ()
+     * @param coefficients
+     * @param residual
+     * @return
+     */
+    template <typename T>
+      inline bool operator()(const T * const coefficients,
+                             T * residual) const
+      {
+        typedef ceres::Polynomial<T, Degree, MinDegree> Polynomial_;
+        typedef typename MathTraits<Polynomial_>::Coefficients Coefficients;
+        residual[0] = ceres::sqrt(T(weight_)) * (T(y_) - Polynomial_::evaluate(Eigen::Map<const Coefficients>(coefficients), T(x_)));
+        return true;
+      }
+
+  private:
+
+    const Scalar x_;
+    const Scalar y_;
+    const Scalar weight_;
+
+  };
+
+/**
+ * @brief The WeightedPolynomialFit class
+ * @param PolynomialT_
+ */
+template <typename PolynomialT_>
+  class WeightedPolynomialFit : public MathFunctionFit<typename MathTraits<PolynomialT_>::Scalar>
+  {
+  public:
+
+    typedef boost::shared_ptr<WeightedPolynomialFit> Ptr;
+    typedef boost::shared_ptr<const WeightedPolynomialFit> ConstPtr;
+
+    typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
+    typedef typename boost::shared_ptr<PolynomialT_> PolynomialPtr;
+
+    static const int Size = MathTraits<PolynomialT_>::Size;
+    static const int MinDegree = MathTraits<PolynomialT_>::MinDegree;
+    static const int Degree = MathTraits<PolynomialT_>::Degree;
+
+    struct Data
+    {
+      Data(Scalar x, Scalar y, Scalar weight) : x_(x), y_(y), weight_(weight) {}
+      Scalar x_;
+      Scalar y_;
+      Scalar weight_;
+    };
+
+    typedef std::vector<Data> DataBin;
+
+    /**
+     * @brief WeightedPolynomialFit
+     * @param polynomial
+     */
+    WeightedPolynomialFit(const PolynomialPtr & polynomial)
+      : polynomial_(polynomial)
+    {
+      // Do nothing
+    }
+
+    /**
+     * @brief ~WeightedPolynomialFit
+     */
+    virtual ~WeightedPolynomialFit()
+    {
+      // Do nothing
+    }
+
+    /**
+     * @brief addData
+     * @param x
+     * @param y
+     */
+    inline virtual void addData(const Scalar & x,
+                                const Scalar & y,
+                                const Scalar & weight)
+    {
+      data_bin_.push_back(Data(x, y, weight));
+    }
+
+    /**
+     * @brief polynomial
+     * @return
+     */
+    inline const PolynomialT_ & polynomial()
+    {
+      return *polynomial_;
+    }
+
+    /**
+     * @brief update
+     * @return
+     */
+    virtual bool update();
+
+  private:
+
+    DataBin data_bin_;
+    PolynomialPtr polynomial_;
+
+  };
+
 } /* namespace calibration */
 
 #include <impl/calibration_common/ceres/polynomial_fit.hpp>

@@ -54,5 +54,37 @@ template <typename PolynomialT_>
     return true;
   }
 
+
+template <typename PolynomialT_>
+  bool WeightedPolynomialFit<PolynomialT_>::update()
+  {
+    typedef WeightedPolynomialResidual<PolynomialT_> PolynomialResidualT;
+    typedef ceres::AutoDiffCostFunction<PolynomialResidualT, 1, Size> CostFunction;
+
+    const Size1 bin_size = data_bin_.size();
+
+    if (bin_size < 5 * Degree)
+      return false;
+
+    ceres::Problem problem;
+    for (Size1 i = 0; i < bin_size; ++i)
+    {
+      const Data & data_bin = data_bin_[i];
+      problem.AddResidualBlock(new CostFunction(new PolynomialResidualT(data_bin.x_, data_bin.y_, data_bin.weight_)),
+                               NULL,
+                               polynomial_->dataPtr());
+    }
+
+    ceres::Solver::Options options;
+    options.max_num_iterations = 25;
+    options.linear_solver_type = ceres::DENSE_QR;
+//  options.minimizer_progress_to_stdout = true;
+
+    ceres::Solver::Summary summary;
+    ceres::Solve(options, &problem, &summary);
+
+    return true;
+  }
+
 } /* namespace calibration */
 #endif /* IMPL_CALIBRATION_COMMON_CERES_POLYNOMIAL_FIT_HPP_ */
