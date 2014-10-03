@@ -95,9 +95,9 @@ template <typename ScalarT_>
     void PCLConversion<ScalarT_>::toPCL(const Eigen::Matrix<ScalarT_, 3, 1> & point_in,
                                         PCLPointT_ & point_out)
     {
-      point_out.x = float(point_in[0]);
-      point_out.y = float(point_in[1]);
-      point_out.z = float(point_in[2]);
+      point_out.x = static_cast<float>(point_in[0]);
+      point_out.y = static_cast<float>(point_in[1]);
+      point_out.z = static_cast<float>(point_in[2]);
     }
 
 template <typename ScalarT_>
@@ -114,9 +114,9 @@ template <typename ScalarT_>
     void PCLConversion<ScalarT_>::toEigen(const PCLPointT_ & point_in,
                                           Eigen::Matrix<ScalarT_, 3, 1> & point_out)
     {
-      point_out[0] = ScalarT_(point_in.x);
-      point_out[1] = ScalarT_(point_in.y);
-      point_out[2] = ScalarT_(point_in.z);
+      point_out[0] = static_cast<ScalarT_>(point_in.x);
+      point_out[1] = static_cast<ScalarT_>(point_in.y);
+      point_out[2] = static_cast<ScalarT_>(point_in.z);
     }
 
 template <typename ScalarT_>
