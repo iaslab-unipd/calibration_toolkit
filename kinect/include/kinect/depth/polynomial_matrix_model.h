@@ -42,7 +42,7 @@ template <typename PolynomialT_>
 template <typename PolynomialT_>
   struct ModelTraits<PolynomialMatrixModel_<PolynomialT_> >
   {
-    typedef PolynomialT_ Poly;
+    typedef PolynomialT_ PolynomialT;
     typedef typename MathTraits<PolynomialT_>::Scalar Scalar;
     typedef EigenMatrix<typename MathTraits<PolynomialT_>::Coefficients> Data;
   };
@@ -56,9 +56,8 @@ template <typename PolynomialT_>
     typedef boost::shared_ptr<const PolynomialMatrixModel_> ConstPtr;
 
     typedef ModelTraits<PolynomialMatrixModel_> Traits;
-//    typedef DepthUndistortionModel<PolynomialSimpleMatrixModel> Base;
 
-    typedef typename Traits::Poly Poly;
+    typedef typename Traits::PolynomialT PolynomialT;
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Data Data;
 
@@ -158,7 +157,7 @@ template <typename PolynomialT_>
   struct ModelTraits<PolynomialMatrixSimpleModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel_<PolynomialT_> >
   {
     typedef ModelTraits<PolynomialMatrixModel_<PolynomialT_> > Base;
-    typedef typename Base::Poly Poly;
+    typedef typename Base::PolynomialT PolynomialT;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::Data Data;
   };
@@ -174,7 +173,7 @@ template <typename PolynomialT_>
     typedef ModelTraits<PolynomialMatrixSimpleModel> Traits;
     typedef PolynomialMatrixModel_<PolynomialT_> Base;
 
-    typedef typename Traits::Poly Poly;
+    typedef typename Traits::PolynomialT PolynomialT;
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Data Data;
 
@@ -210,13 +209,13 @@ template <typename PolynomialT_>
                           Size1 y_index,
                           Scalar & depth) const
     {
-      depth = Poly::evaluate(Base::polynomial(matrixIndex(x_index, y_index)), depth);
+      depth = PolynomialT::evaluate(Base::polynomial(matrixIndex(x_index, y_index)), depth);
     }
 
     inline void undistort(const Size2 & index,
                           Scalar & depth) const
     {
-      depth = Poly::evaluate(Base::polynomial(matrixIndex(index)), depth);
+      depth = PolynomialT::evaluate(Base::polynomial(matrixIndex(index)), depth);
     }
 
   };
@@ -228,7 +227,7 @@ template <typename PolynomialT_>
   struct ModelTraits<PolynomialMatrixSmoothModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel_<PolynomialT_> >
   {
     typedef ModelTraits<PolynomialMatrixModel_<PolynomialT_> > Base;
-    typedef typename Base::Poly Poly;
+    typedef typename Base::PolynomialT PolynomialT;
     typedef typename Base::Scalar Scalar;
     typedef typename Base::Data Data;
   };
@@ -248,17 +247,54 @@ template <typename PolynomialT_>
     typedef ModelTraits<PolynomialMatrixSmoothModel> Traits;
     typedef PolynomialMatrixModel_<PolynomialT_> Base;
 
-    typedef typename Traits::Poly Poly;
+    typedef typename Traits::PolynomialT PolynomialT;
     typedef typename Traits::Scalar Scalar;
     typedef typename Traits::Data Data;
 
     typedef typename Data::Element Element;
     typedef typename Data::ConstElement ConstElement;
 
+    struct LookupTableData
+    {
+      LookupTableData(Size2 index, Scalar weight) : index_(index), weight_(weight) {}
+      Size2 index_;
+      Scalar weight_;
+    };
+    typedef Matrix<std::vector<LookupTableData> > LookupTable;
+
     PolynomialMatrixSmoothModel(const Size2 & image_size)
-      : Base(image_size)
+      : Base(image_size),
+        lookup_table_(image_size)
     {
       // Do nothing
+    }
+
+    void createLookupTable()
+    {
+      for (Size1 x_index = 0; x_index < lookup_table_.size().x(); ++x_index)
+      {
+        for (Size1 y_index = 0; y_index < lookup_table_.size().y(); ++y_index)
+        {
+          std::vector<LookupTableData> & lt_data = lookup_table_(x_index, y_index);
+          lt_data.clear();
+
+          Size2 index(x_index, y_index);
+          Eigen::Array<Size1, 2, 2> bin;
+          Eigen::Array<Scalar, 2, 2> weight;
+
+          bin.col(0) = index / Base::bin_size_;
+          bin.col(1) = bin.col(0) + Size2(1, 1);
+
+          weight.col(1) = ((index - bin.col(0) * Base::bin_size_).template cast<Scalar>() / Base::bin_size_.template cast<Scalar>());
+          weight.col(0) = Eigen::Array<Scalar, 2, 1>(Scalar(1.0), Scalar(1.0)) - weight.col(1);
+
+          for (Size1 i = 0; i < 2; ++i)
+            for (Size1 j = 0; j < 2; ++j)
+              if (weight(0, i) * weight(1, j) > 0)
+                lt_data.push_back(LookupTableData(Size2(bin(0, i), bin(1, j)), weight(0, i) * weight(1, j)));
+
+        }
+      }
     }
 
     inline typename Data::Ptr createMatrix(const Size2 & bin_size)
@@ -272,265 +308,56 @@ template <typename PolynomialT_>
                                   const Size2 & bin_size)
     {
       Base::setMatrix(matrix, bin_size);
-      assert(bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0);
+      assert((bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0) or (bin_size == Size2(1, 1)).all());
+      createLookupTable();
     }
 
     inline virtual void setMatrix(const typename Data::Ptr & matrix)
     {
       Base::setMatrix(matrix, Base::image_size_ / (matrix->size() - Size2(1, 1)));
       assert((Base::bin_size_.x() % 2 == 0 and Base::bin_size_.y() % 2 == 0) or (Base::bin_size_ == Size2(1, 1)).all());
+      createLookupTable();
     }
 
-    inline Size2 matrixIndex(Size1 x_index,
-                             Size1 y_index) const
+    inline const std::vector<LookupTableData> & lookupTable(Size1 x_index,
+                                                            Size1 y_index) const
     {
-      assert(x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0);
-      return Size2((x_index + Base::bin_size_.x() / 2) / Base::bin_size_.x(),
-                   (y_index + Base::bin_size_.y() / 2) / Base::bin_size_.y());
+      return lookup_table_.at(x_index, y_index);
     }
 
-    inline Size2 matrixIndex(const Size2 & index) const
+    inline const std::vector<LookupTableData> & lookupTable(Size2 index) const
     {
-      assert((index < Base::image_size_).all() and (index >= Size2(0, 0)).all());
-      return (index + Base::bin_size_ / 2) / Base::bin_size_;
+      return lookup_table_.at(index);
     }
 
-    void undistort(size_t x_index,
-                   size_t y_index,
-                   Scalar & depth) const
+    inline void undistort(size_t x_index,
+                          size_t y_index,
+                          Scalar & depth) const
     {
-      if (not (x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0))
-        std::cout << x_index << " " << y_index << std::endl;
-
-
-      assert(x_index < Base::image_size_.x() and x_index >= 0 and y_index < Base::image_size_.y() and y_index >= 0);
-
-      Size2 x_bin, y_bin;
-      Scalar x_weight[2] = {Scalar(0.5), Scalar(0.5)};
-      Scalar y_weight[2] = {Scalar(0.5), Scalar(0.5)};
-
-      x_bin[0] = x_index / Base::bin_size_.x();
-      x_bin[1] = (x_index + Base::bin_size_.x() / 2) / Base::bin_size_.x();
-      if (x_bin[0] == x_bin[1])
-        x_bin[1] = x_bin[0] + 1;
-
-      x_weight[1] = static_cast<Scalar>(x_index - x_bin[0] * Base::bin_size_.x()) / Base::bin_size_.x();
-      x_weight[0] = Scalar(1.0) - x_weight[1];
-
-      y_bin[0] = y_index / Base::bin_size_.y();
-      y_bin[1] = (y_index + Base::bin_size_.y() / 2) / Base::bin_size_.y();
-      if (y_bin[0] == y_bin[1])
-        y_bin[1] = y_bin[0] + 1;
-
-      y_weight[1] = static_cast<Scalar>(y_index - y_bin[0] * Base::bin_size_.y()) / Base::bin_size_.y();
-      y_weight[0] = Scalar(1.0) - y_weight[1];
+      const std::vector<LookupTableData> & lt_data = lookup_table_.at(x_index, y_index);
 
       Scalar tmp_depth = 0.0;
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          tmp_depth += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_bin[i], y_bin[j]), depth);
-
+      for (Size1 i = 0; i < lt_data.size(); ++i)
+        tmp_depth += lt_data[i].weight_ * PolynomialT::evaluate(Base::polynomial(lt_data[i].index_), depth);
       depth = tmp_depth;
     }
 
-    void undistort(const Size2 & index,
-                   Scalar & depth) const
+    inline void undistort(const Size2 & index,
+                          Scalar & depth) const
     {
-      assert((index < Base::image_size_).all() and (index >= Size2(0, 0)).all());
-
-      Eigen::Array<Size1, 2, 2> bin;
-      Eigen::Array<Scalar, 2, 2> weight;
-
-      bin.col(0) = index / Base::bin_size_;
-      bin.col(1) = matrixIndex(index);
-
-      if (bin(0, 0) == bin(0, 1))
-        bin(0, 1) = bin(0, 0) + 1;
-
-      if (bin(1, 0) == bin(1, 1))
-        bin(1, 1) = bin(1, 0) + 1;
-
-      weight.col(1) = ((index - bin.col(0) * Base::bin_size_).template cast<Scalar>() / Base::bin_size_.template cast<Scalar>());
-      weight.col(0) = Eigen::Array<Scalar, 2, 1>(Scalar(1.0), Scalar(1.0)) - weight.col(1);
+      const std::vector<LookupTableData> & lt_data = lookup_table_.at(index);
 
       Scalar tmp_depth = 0.0;
-      for (int i = 0; i < 2; ++i)
-        for (int j = 0; j < 2; ++j)
-          tmp_depth += weight(0, i) * weight(1, j) * Poly::evaluate(Base::polynomial(bin(0, i), bin(1, j)), depth);
-
+      for (Size1 i = 0; i < lt_data.size(); ++i)
+        tmp_depth += lt_data[i].weight_ * PolynomialT::evaluate(Base::polynomial(lt_data[i].index_), depth);
       depth = tmp_depth;
     }
+
+  protected:
+
+    LookupTable lookup_table_;
 
   };
-
-//template <typename PolynomialT_>
-//  class PolynomialMatrixProjectedModel;
-
-//template <typename PolynomialT_>
-//  struct ModelTraits<PolynomialMatrixProjectedModel<PolynomialT_> > : public ModelTraits<PolynomialMatrixModel<PolynomialT_> >
-//  {
-//    typedef ModelTraits<PolynomialMatrixModel<PolynomialT_> > Base;
-//    typedef typename Base::Poly Poly;
-//    typedef typename Base::Scalar Scalar;
-//    typedef typename Base::Data Data;
-//  };
-
-//template <typename PolynomialT_>
-//  class PolynomialMatrixProjectedModel : public PolynomialMatrixModel<PolynomialT_>
-//  {
-//  public:
-
-//    typedef boost::shared_ptr<PolynomialMatrixProjectedModel> Ptr;
-//    typedef boost::shared_ptr<const PolynomialMatrixProjectedModel> ConstPtr;
-
-//    typedef PolynomialMatrixModel<PolynomialT_> Base;
-
-//    typedef typename Base::Scalar Scalar;
-//    typedef typename Base::Data Data;
-//    typedef typename Base::Poly Poly;
-//    typedef typename Base::Element Element;
-//    typedef typename Base::ConstElement ConstElement;
-
-//    typedef typename Types<Scalar>::Point2 Point2;
-//    typedef Eigen::Array<Scalar, 2, 1> Array2;
-
-//    PolynomialMatrixProjectedModel()
-//      : Base(),
-//        bin_size_(0.0, 0.0)
-//    {
-//      // Do nothing
-//    }
-
-//    explicit PolynomialMatrixProjectedModel(const typename Data::Ptr & matrix)
-//      : Base(matrix),
-//        bin_size_(0.0, 0.0)
-//    {
-//      // Do nothing
-//    }
-
-//    PolynomialMatrixProjectedModel(const Base & other)
-//      : Base(other),
-//        zero_(other.zero_),
-//        bin_size_(other.bin_size_),
-//        fov_(other.fov_)
-//    {
-//      // Do nothing
-//    }
-
-//    virtual ~PolynomialMatrixProjectedModel()
-//    {
-//      // Do nothing
-//    }
-
-//    void setFieldOfView(Scalar x,
-//                        Scalar y)
-//    {
-//      assert(Base::matrix_);
-//      fov_ = Array2(x, y);
-//      zero_ = Point2(-std::tan(x / 2), -std::tan(y / 2));
-//      bin_size_ = -2 * zero_.array() / Array2(Base::matrix_->size().x(), Base::matrix_->size().y());
-//    }
-
-//    Scalar fieldOfViewX() const
-//    {
-//      return fov_.x();
-//    }
-
-//    Scalar fieldOfViewY() const
-//    {
-//      return fov_.y();
-//    }
-
-//    void getIndex(const Point2 & point_proj,
-//                  size_t & x_index,
-//                  size_t & y_index) const
-//    {
-//      assert(Base::matrix_);
-//      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
-//      Point2 diff = point_proj - zero_;
-//      x_index = diff.x() < 0 ? 0 : size_t(std::min(Base::matrix_->size().x() - 1.0, std::floor(diff.x() / bin_size_.x())));
-//      y_index = diff.y() < 0 ? 0 : size_t(std::min(Base::matrix_->size().y() - 1.0, std::floor(diff.y() / bin_size_.y())));
-//    }
-
-//    using Base::polynomial;
-
-//    Element polynomial(const Point2 & point_proj)
-//    {
-//      size_t x_index, y_index;
-//      getIndex(point_proj, x_index, y_index);
-//      return Base::polynomial(x_index, y_index);
-//    }
-
-//    const ConstElement polynomial(const Point2 & point_proj) const
-//    {
-//      size_t x_index, y_index;
-//      getIndex(point_proj, x_index, y_index);
-//      return Base::polynomial(x_index, y_index);
-//    }
-
-//    virtual void undistort(const Point2 & point_proj,
-//                           Scalar & z) const
-//    {
-//      assert(Base::matrix_);
-//      assert(bin_size_.x() > 0 and bin_size_.y() > 0);
-//      Point2 diff = point_proj - zero_ - 0.5 * bin_size_.matrix();
-
-//      size_t x_index[2];
-//      size_t y_index[2];
-//      Scalar x_weight[2] = {0.5, 0.5};
-//      Scalar y_weight[2] = {0.5, 0.5};
-
-//      Scalar dx = diff.x() / bin_size_.x();
-
-//      if (diff.x() < 0)
-//        x_index[0] = x_index[1] = 0;
-//      else if (dx > Base::matrix_->size().x() - 1)
-//        x_index[0] = x_index[1] = Base::matrix_->size().x() - 1;
-//      else
-//      {
-//        x_index[0] = size_t(std::floor(dx));
-//        x_index[1] = x_index[0] + 1;
-//        x_weight[1] = dx - x_index[0];
-//        x_weight[0] = 1.0 - x_weight[1];
-//      }
-
-//      Scalar dy = diff.y() / bin_size_.y();
-
-//      if (diff.y() < 0)
-//        y_index[0] = y_index[1] = 0;
-//      else if (dy > Base::matrix_->size().y() - 1)
-//        y_index[0] = y_index[1] = Base::matrix_->size().y() - 1;
-//      else
-//      {
-//        y_index[0] = size_t(std::floor(dy));
-//        y_index[1] = y_index[0] + 1;
-//        y_weight[1] = dy - y_index[0];
-//        y_weight[0] = 1.0 - y_weight[1];
-//      }
-
-//      Scalar tmp_z = 0.0;
-//      for (int i = 0; i < 2; ++i)
-//        for (int j = 0; j < 2; ++j)
-//          tmp_z += x_weight[i] * y_weight[j] * Poly::evaluate(Base::polynomial(x_index[i], y_index[j]), z);
-
-//      z = tmp_z;
-
-//    }
-
-//    static Point2 project(Scalar x,
-//                          Scalar y,
-//                          Scalar z)
-//    {
-//      return Point2(x / z, y / z);
-//    }
-
-//  protected:
-
-//    Point2 zero_;
-//    Array2 bin_size_;
-//    Array2 fov_;
-
-//  };
 
 } /* namespace calibration */
 #endif /* KINECT_DEPTH_POLYNOMIAL_MATRIX_MODEL_H_ */
