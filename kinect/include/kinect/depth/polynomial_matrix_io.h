@@ -59,11 +59,11 @@ template <class Polynomial_>
               const std::string & file_name) const
     {
       assert(undistortion_matrix);
-      typename Data::Ptr data;
-      if (not read(data, file_name))
+      typename Data::Ptr matrix;
+      if (not read(matrix, file_name))
         return false;
 
-      undistortion_matrix->setData(data);
+      undistortion_matrix->setMatrix(matrix);
       return true;
     }
 
