@@ -36,16 +36,16 @@
 namespace calibration
 {
 
-template <typename Scalar_, typename PCLPoint_>
+template <typename ScalarT_, typename PCLPointT_>
   void convertToPointCloud(const sensor_msgs::Image & depth_msg,
                            const sensor_msgs::CameraInfo & info_msg,
-                           typename pcl::PointCloud<PCLPoint_>::Ptr & cloud)
+                           typename pcl::PointCloud<PCLPointT_>::Ptr & cloud)
   {
     image_geometry::PinholeCameraModel camera_model;
     camera_model.fromCameraInfo(info_msg);
 
     if (not cloud)
-      cloud = boost::make_shared<pcl::PointCloud<PCLPoint_> >();
+      cloud = boost::make_shared<pcl::PointCloud<PCLPointT_> >();
 
     cloud->header = pcl_conversions::toPCL(depth_msg.header);
     cloud->height = depth_msg.height;
@@ -54,33 +54,34 @@ template <typename Scalar_, typename PCLPoint_>
     cloud->points.resize(cloud->height * cloud->width);
 
     // Combine unit conversion (if necessary) with scaling by focal length for computing (X,Y)
-    float unit_scaling = SensorDepthTraits<Scalar_>::toMeters(Scalar_(1));
+    float unit_scaling = SensorDepthTraits<ScalarT_>::toMeters(ScalarT_(1));
     float constant_x = unit_scaling / camera_model.fx();
     float constant_y = unit_scaling / camera_model.fy();
     float bad_point = std::numeric_limits<float>::quiet_NaN();
 
-    const Scalar_ * depth_row = reinterpret_cast<const Scalar_ *>(&depth_msg.data[0]);
-    int row_step = depth_msg.step / sizeof(Scalar_);
+    const ScalarT_ * depth_row = reinterpret_cast<const ScalarT_ *>(&depth_msg.data[0]);
+    int row_step = depth_msg.step / sizeof(ScalarT_);
 
     for (int v = 0; v < (int)cloud->height; ++v, depth_row += row_step)
     {
 #pragma omp parallel for
       for (int u = 0; u < (int)cloud->width; ++u)
       {
-        PCLPoint_ & pt = cloud->points[u + v * cloud->width];
-        Scalar_ depth = depth_row[u];
+        cv::Point2d rect_uv = camera_model.rectifyPoint(cv::Point2d(u, v));
+        PCLPointT_ & pt = cloud->points[u + v * cloud->width];
+        ScalarT_ depth = depth_row[u];
 
         // Missing points denoted by NaNs
-        if (not SensorDepthTraits<Scalar_>::valid(depth))
+        if (not SensorDepthTraits<ScalarT_>::valid(depth))
         {
           pt.x = pt.y = pt.z = bad_point;
           continue;
         }
 
         // Fill in XYZ
-        pt.x = (u - camera_model.cx()) * depth * constant_x;
-        pt.y = (v - camera_model.cy()) * depth * constant_y;
-        pt.z = SensorDepthTraits<Scalar_>::toMeters(depth);
+        pt.x = (rect_uv.x - camera_model.cx()) * depth * constant_x;
+        pt.y = (rect_uv.y - camera_model.cy()) * depth * constant_y;
+        pt.z = SensorDepthTraits<ScalarT_>::toMeters(depth);
       }
     }
   }
