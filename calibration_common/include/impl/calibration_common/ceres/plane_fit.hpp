@@ -40,7 +40,7 @@ namespace calibration
 template <typename ScalarT_>
   typename Types<ScalarT_>::Plane PlaneFit<ScalarT_>::fit(const typename Types<ScalarT_>::Cloud3 & points)
   {
-
+    assert(points.elements() > 1);
 //    typename Types<ScalarT_>::Point3 centroid = points.container().rowwise().mean();
 //    typename Types<ScalarT_>::Cloud3::Container diff = points.container().colwise() - centroid;
 //    Eigen::Matrix<ScalarT_, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(points.elements() - 1);
@@ -59,12 +59,12 @@ template <typename ScalarT_>
     centroid /= count;
     diff.resize(3, count);
     diff.colwise() -= centroid;
-    Eigen::Matrix<ScalarT_, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(count - 1);
 
+    Eigen::Matrix<ScalarT_, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(count - 1);
     Eigen::SelfAdjointEigenSolver<Eigen::Matrix<ScalarT_, 3, 3> > solver(covariance_matrix, Eigen::ComputeEigenvectors);
+
     typename Types<ScalarT_>::Point3 eigen_vector = solver.eigenvectors().col(0);
     return typename Types<ScalarT_>::Plane(eigen_vector, -eigen_vector.dot(centroid));
-
   }
 
 template <typename ScalarT_>
