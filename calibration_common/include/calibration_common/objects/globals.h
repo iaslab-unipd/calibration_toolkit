@@ -49,33 +49,35 @@ namespace calibration
  * @param ScalarT_ Scalar type (@c float or @c double).
  */
 template <typename ScalarT_>
-struct Types
-{
-  typedef ScalarT_ Scalar;                                       ///< Scalar type.
+  struct Types
+  {
+    typedef ScalarT_ Scalar;                                       ///< Scalar type.
 
-  typedef Eigen::Matrix<Scalar, 2, 1> Vector2;                   ///< 2D Eigen Vector.
-  typedef Vector2 Point2;                                        ///< 2D Eigen Point.
+    typedef Eigen::Matrix<Scalar, 2, 1> Vector2;                   ///< 2D Eigen Vector.
+    typedef Vector2 Point2;                                        ///< 2D Eigen Point.
 
-  typedef Eigen::Matrix<Scalar, 3, 1> Vector3;                   ///< 3D Eigen Vector.
-  typedef Vector3 Point3;                                        ///< 3D Eigen Point.
+    typedef Eigen::Matrix<Scalar, 3, 1> Vector3;                   ///< 3D Eigen Vector.
+    typedef Vector3 Point3;                                        ///< 3D Eigen Point.
 
-  typedef Eigen::Matrix<Scalar, 4, 1> Vector4;                   ///< 4D Eigen Vector.
-  typedef Vector4 Point4;                                        ///< 4D Eigen Point.
+    typedef Eigen::Matrix<Scalar, 4, 1> Vector4;                   ///< 4D Eigen Vector.
+    typedef Vector4 Point4;                                        ///< 4D Eigen Point.
 
-  typedef Eigen::Hyperplane<Scalar, 3> Plane;                    ///< 3D Eigen Plane.
-  typedef Eigen::ParametrizedLine<Scalar, 3> Line;               ///< 3D Eigen Line.
+    typedef Eigen::Hyperplane<Scalar, 3> Plane;                    ///< 3D Eigen Plane.
+    typedef Eigen::ParametrizedLine<Scalar, 3> Line;               ///< 3D Eigen Line.
 
-  typedef Eigen::Transform<Scalar, 3, Eigen::Affine> Transform;  ///< 3D Eigen Affine Transform.
-  typedef Transform Pose;                                        ///< 3D Eigen Pose.
+    typedef Eigen::Transform<Scalar, 3, Eigen::Affine> Transform;  ///< 3D Eigen Affine Transform.
+    typedef Transform Pose;                                        ///< 3D Eigen Pose.
 
-  typedef Eigen::Quaternion<Scalar> Quaternion;                  ///< Eigen Quaternion.
-  typedef Eigen::Translation<Scalar, 2> Translation2;            ///< 2D Eigen Translation.
-  typedef Eigen::Translation<Scalar, 3> Translation3;            ///< 3D Eigen Translation.
-  typedef Eigen::AngleAxis<Scalar> AngleAxis;                    ///< Eigen AngleAxis angle representation.
+    typedef Eigen::Quaternion<Scalar> Quaternion;                  ///< Eigen Quaternion.
+    typedef Eigen::Translation<Scalar, 2> Translation2;            ///< 2D Eigen Translation.
+    typedef Eigen::Translation<Scalar, 3> Translation3;            ///< 3D Eigen Translation.
+    typedef Eigen::AngleAxis<Scalar> AngleAxis;                    ///< Eigen AngleAxis angle representation.
+    typedef Eigen::Rotation2D<Scalar> Rotation2;
+    typedef Eigen::Transform<Scalar, 2, Eigen::Affine> Transform2;
 
-  typedef PointMatrix<Scalar, 2> Cloud2;                         ///< 2D Eigen PointCloud.
-  typedef PointMatrix<Scalar, 3> Cloud3;                         ///< 3D Eigen PointCloud.
-};
+    typedef PointMatrix<Scalar, 2> Cloud2;                         ///< 2D Eigen PointCloud.
+    typedef PointMatrix<Scalar, 3> Cloud3;                         ///< 3D Eigen PointCloud.
+  };
 
 typedef Types<double>::Scalar Scalar;               ///< Scalar type (@c float or @c double).
 
@@ -98,6 +100,8 @@ typedef Types<Scalar>::Quaternion Quaternion;       ///< Eigen Quaternion.
 typedef Types<Scalar>::Translation2 Translation2;   ///< 2D Eigen Translation.
 typedef Types<Scalar>::Translation3 Translation3;   ///< 3D Eigen Translation.
 typedef Types<Scalar>::AngleAxis AngleAxis;         ///< Eigen AngleAxis angle representation.
+typedef Types<Scalar>::Rotation2 Rotation2;
+typedef Types<Scalar>::Transform2 Transform2;
 
 typedef Types<Scalar>::Cloud2 Cloud2;               ///< 2D Eigen PointCloud.
 typedef Types<Scalar>::Cloud3 Cloud3;               ///< 3D Eigen PointCloud.
@@ -147,45 +151,44 @@ struct Util
  * @param ObjectT_ The type for which to declare a constraint.
  */
 template <typename ObjectT_>
-struct Constraint
-{
-  typedef boost::shared_ptr<Constraint> Ptr;
-  typedef boost::shared_ptr<const Constraint> ConstPtr;
-
-  virtual ~Constraint()
+  struct Constraint
   {
-    // Do nothing
-  }
+    typedef boost::shared_ptr<Constraint> Ptr;
+    typedef boost::shared_ptr<const Constraint> ConstPtr;
 
-  /**
-   * @brief Test if the @c object satisfies the constraint.
-   * @param object The object.
-   * @return @c true if the constraint is satisfied, @c false otherwise.
-   */
-  virtual bool isValid(const ObjectT_ & object) const = 0;
-};
+    virtual ~Constraint()
+    {
+      // Do nothing
+    }
+
+    /**
+     * @brief Test if the @c object satisfies the constraint.
+     * @param object The object.
+     * @return @c true if the constraint is satisfied, @c false otherwise.
+     */
+    virtual bool isValid(const ObjectT_ & object) const = 0;
+  };
 
 /**
  * @brief Dummy implementation. The constraint is always satisfied.
  * @param ObjectT_ The type for which to declare a constraint.
  */
 template <typename ObjectT_>
-struct NoConstraint : public Constraint<ObjectT_>
-{
-  typedef boost::shared_ptr<NoConstraint> Ptr;
-  typedef boost::shared_ptr<const NoConstraint> ConstPtr;
+  struct NoConstraint : public Constraint<ObjectT_>
+  {
+    typedef boost::shared_ptr<NoConstraint> Ptr;
+    typedef boost::shared_ptr<const NoConstraint> ConstPtr;
 
-/**
- * @brief Test if the @c object satisfies the constraint.
- * @param object The object.
- * @return @c true
- */
-bool isValid(const ObjectT_ & object) const
-{
-  return true;
-}
-
-};
+    /**
+     * @brief Test if the @c object satisfies the constraint.
+     * @param object The object.
+     * @return @c true
+     */
+    bool isValid(const ObjectT_ & object) const
+    {
+      return true;
+    }
+  };
 
 /**
  * @}
