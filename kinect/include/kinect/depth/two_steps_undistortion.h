@@ -68,25 +68,25 @@ template <typename ScalarT_, typename LocalT_, typename GlobalT_>
       // Do nothing
     }
 
-    void setModel(const typename Model::Ptr & model)
+    void setModel(const typename Model::ConstPtr & model)
     {
       model_ = model;
       local_ = boost::make_shared<LocalT_>(model_->localModel());
       global_ = boost::make_shared<GlobalT_>(model_->globalModel());
     }
 
-    typename Model::Ptr model() const
+    typename Model::ConstPtr model() const
     {
       return model_;
     }
 
-    virtual void undistort(const typename Types<Scalar>::Point2 & point_sphere,
-                           Scalar & z) const
-    {
-      assert(model_);
-      model_->localModel()->undistort(point_sphere, z);
-      model_->globalModel()->undistort(point_sphere, z);
-    }
+//    virtual void undistort(const typename Types<Scalar>::Point2 & point_sphere,
+//                           Scalar & z) const
+//    {
+//      assert(model_);
+//      model_->localModel()->undistort(point_sphere, z);
+//      model_->globalModel()->undistort(point_sphere, z);
+//    }
 
     virtual void undistort(size_t x_index,
                            size_t y_index,
@@ -142,11 +142,13 @@ template <typename ScalarT_, typename LocalModelT_, typename GlobalModelT_>
 
     using Base::undistort;
 
-    virtual void undistort(Point & point) const
+    virtual void undistort(Size1 x_index,
+                           Size1 y_index,
+                           Point & point) const
     {
       assert(Base::local_ and Base::global_);
-      Base::local_->undistort(point);
-      Base::global_->undistort(point);
+      Base::local_->undistort(x_index, y_index, point);
+      Base::global_->undistort(x_index, y_index, point);
     }
 
     virtual void undistort(Cloud & cloud) const
@@ -195,11 +197,21 @@ template <typename ScalarT_, typename PCLPoint_, typename LocalModelT_, typename
 
     using Base::undistort;
 
-    virtual void undistort(Point & point) const
+    virtual void undistort(Size1 x_index,
+                           Size1 y_index,
+                           Point & point) const
     {
       assert(Base::local_ and Base::global_);
-      Base::local_->undistort(point);
-      Base::global_->undistort(point);
+      Base::local_->undistort(x_index, y_index, point);
+      Base::global_->undistort(x_index, y_index, point);
+    }
+
+    virtual void undistort(const Size2 & index,
+                           Point & point) const
+    {
+      assert(Base::local_ and Base::global_);
+      Base::local_->undistort(index, point);
+      Base::global_->undistort(index, point);
     }
 
     virtual void undistort(Cloud & cloud) const
