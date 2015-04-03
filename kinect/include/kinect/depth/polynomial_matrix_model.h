@@ -76,18 +76,10 @@ template <typename PolynomialT_>
       return image_size_;
     }
 
-    inline virtual void setMatrix(const typename Data::Ptr & matrix,
-                                  const Size2 & bin_size)
-    {
-      matrix_ = matrix;
-      bin_size_ = bin_size;
-    }
-
-    inline virtual void setMatrix(const typename Data::Ptr & matrix)
-    {
-      matrix_ = matrix;
-      bin_size_ = image_size_ / matrix->size();
-    }
+    virtual void setMatrix(const typename Data::Ptr & matrix) = 0;
+    virtual typename Data::Ptr createMatrix(const Size2 & bin_size) = 0;
+    virtual typename Data::Ptr createMatrix(const Size2 & bin_size,
+                                            const typename MathTraits<PolynomialT_>::Coefficients & value) = 0;
 
     inline const typename Data::Ptr & matrix() const
     {
@@ -144,6 +136,13 @@ template <typename PolynomialT_>
 
   protected:
 
+    inline virtual void setMatrix(const typename Data::Ptr & matrix,
+                                  const Size2 & bin_size)
+    {
+      matrix_ = matrix;
+      bin_size_ = bin_size;
+    }
+
     typename Data::Ptr matrix_;
     Size2 image_size_;
     Size2 bin_size_;
@@ -186,10 +185,22 @@ template <typename PolynomialT_>
       // Do nothing
     }
 
-    inline typename Data::Ptr createMatrix(const Size2 & bin_size)
+    inline virtual void setMatrix(const typename Data::Ptr & matrix)
+    {
+      Base::setMatrix(matrix, Base::image_size_ / matrix->size());
+    }
+
+    inline virtual typename Data::Ptr createMatrix(const Size2 & bin_size)
     {
       assert((bin_size <= Base::image_size_).all() and (bin_size > Size2(0, 0)).all());
-      return boost::make_shared<Data>(Base::image_size_ / bin_size);
+      return boost::make_shared<Data>(Size2(Base::image_size_ / bin_size));
+    }
+
+    inline virtual typename Data::Ptr createMatrix(const Size2 & bin_size,
+                                                   const typename MathTraits<PolynomialT_>::Coefficients & value)
+    {
+      assert((bin_size <= Base::image_size_).all() and (bin_size > Size2(0, 0)).all());
+      return boost::make_shared<Data>(Size2(Base::image_size_ / bin_size), value);
     }
 
     inline Size2 matrixIndex(Size1 x_index,
@@ -271,6 +282,7 @@ template <typename PolynomialT_>
 
     void createLookupTable()
     {
+
       for (Size1 x_index = 0; x_index < lookup_table_.size().x(); ++x_index)
       {
         for (Size1 y_index = 0; y_index < lookup_table_.size().y(); ++y_index)
@@ -297,19 +309,19 @@ template <typename PolynomialT_>
       }
     }
 
-    inline typename Data::Ptr createMatrix(const Size2 & bin_size)
+    inline virtual typename Data::Ptr createMatrix(const Size2 & bin_size)
     {
       assert((bin_size <= Base::image_size_).all() and (bin_size > Size2(0, 0)).all());
       assert(bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0);
-      return boost::make_shared<Data>(Base::image_size_ / bin_size + Size2(1, 1));
+      return boost::make_shared<Data>(Size2(Base::image_size_ / bin_size + Size2(1, 1)));
     }
 
-    inline virtual void setMatrix(const typename Data::Ptr & matrix,
-                                  const Size2 & bin_size)
+    inline virtual typename Data::Ptr createMatrix(const Size2 & bin_size,
+                                                   const typename MathTraits<PolynomialT_>::Coefficients & value)
     {
-      Base::setMatrix(matrix, bin_size);
-      assert((bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0) or (bin_size == Size2(1, 1)).all());
-      createLookupTable();
+      assert((bin_size <= Base::image_size_).all() and (bin_size > Size2(0, 0)).all());
+      assert(bin_size.x() % 2 == 0 and bin_size.y() % 2 == 0);
+      return boost::make_shared<Data>(Size2(Base::image_size_ / bin_size + Size2(1, 1)), value);
     }
 
     inline virtual void setMatrix(const typename Data::Ptr & matrix)
@@ -334,19 +346,18 @@ template <typename PolynomialT_>
                           size_t y_index,
                           Scalar & depth) const
     {
-      const std::vector<LookupTableData> & lt_data = lookup_table_.at(x_index, y_index);
-
-      Scalar tmp_depth = 0.0;
-      for (Size1 i = 0; i < lt_data.size(); ++i)
-        tmp_depth += lt_data[i].weight_ * PolynomialT::evaluate(Base::polynomial(lt_data[i].index_), depth);
-      depth = tmp_depth;
+      undistort_(lookup_table_.at(x_index, y_index), depth);
     }
 
     inline void undistort(const Size2 & index,
                           Scalar & depth) const
     {
-      const std::vector<LookupTableData> & lt_data = lookup_table_.at(index);
+      undistort_(lookup_table_.at(index), depth);
+    }
 
+    inline void undistort_(const std::vector<LookupTableData> & lt_data,
+                           Scalar & depth) const
+    {
       Scalar tmp_depth = 0.0;
       for (Size1 i = 0; i < lt_data.size(); ++i)
         tmp_depth += lt_data[i].weight_ * PolynomialT::evaluate(Base::polynomial(lt_data[i].index_), depth);

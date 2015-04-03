@@ -153,6 +153,24 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
       }
 
     /**
+     * @brief degree
+     * @return
+     */
+    inline int degree() const
+    {
+      return Degree_;
+    }
+
+    /**
+     * @brief minDegree
+     * @return
+     */
+    inline int minDegree() const
+    {
+      return MinDegree_;
+    }
+
+    /**
      * @brief evaluate
      * @param x
      * @return
@@ -246,242 +264,275 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
 
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  protected:
+  private:
 
-    /**
-     * @brief coefficients_
-     */
-    Coefficients coefficients_;
-
-  };
-
-template <typename ScalarT_>
-  class Polynomial<ScalarT_, Eigen::Dynamic, 0> : public MathFunction<Polynomial<ScalarT_, Eigen::Dynamic, 0> >
-  {
-  public:
-
-    typedef boost::shared_ptr<Polynomial> Ptr;
-    typedef boost::shared_ptr<const Polynomial> ConstPtr;
-
-    typedef MathFunction<Polynomial> Base;
-
-    typedef typename MathTraits<Polynomial>::Scalar Scalar;
-    typedef typename MathTraits<Polynomial>::FunctionX FunctionX;
-    typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
-    typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
-
-    explicit Polynomial(size_t degree)
-      : coefficients_(degree + 1)
-    {
-      // Do nothing
-    }
-
-    template <typename OtherDerived>
-      explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients)
-        : coefficients_(coefficients)
-      {
-        // Do nothing
-      }
-
-    inline size_t degree() const
-    {
-      return coefficients_.size() - 1;
-    }
-
-    inline size_t minDegree() const
-    {
-      return 0;
-    }
-
-    inline size_t size() const
-    {
-      return coefficients_.size();
-    }
-
-    inline FunctionY evaluate(const FunctionX & x) const
-    {
-      return evaluate(coefficients_, x);
-    }
-
-    inline Scalar & operator [](size_t index)
-    {
-      return coefficients_.coeffRef(index);
-    }
-
-    inline const Scalar & operator [](size_t index) const
-    {
-      return coefficients_.coeffRef(index);
-    }
-
-    template <typename OtherDerived>
-      inline void setCoefficients(const Eigen::DenseBase<OtherDerived> & coefficients)
-      {
-        coefficients_ = coefficients;
-      }
-
-    inline const Coefficients & coefficients() const
-    {
-      return coefficients_;
-    }
-
-    inline Scalar * dataPtr()
-    {
-      return coefficients_.data();
-    }
-
-    inline const Scalar * dataPtr() const
-    {
-      return coefficients_.data();
-    }
-
-    inline static const Polynomial Identity(int degree)
-    {
-      return Polynomial(IdentityCoefficients(degree));
-    }
-
-    inline static const Coefficients IdentityCoefficients(int degree)
-    {
-      assert(degree >= 1);
-      Coefficients coeffs(Coefficients::Zero(degree + 1));
-      coeffs[1] = Scalar(1);
-      return coeffs;
-    }
-
-    template <typename OtherDerived>
-      inline static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
-                                const FunctionX & x)
-      {
-        return Eigen::poly_eval(coefficients, x);
-      }
-
-    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
-  protected:
-
-    Coefficients coefficients_;
+    Coefficients coefficients_; ///< coefficients_
 
   };
 
 //template <typename ScalarT_>
-//class Polynomial<ScalarT_, Eigen::Dynamic, Eigen::Dynamic> : public MathFunction<Polynomial<ScalarT_, Eigen::Dynamic, Eigen::Dynamic> >
-//{
-//public:
-//
-//  typedef boost::shared_ptr<Polynomial> Ptr;
-//  typedef boost::shared_ptr<const Polynomial> ConstPtr;
-//
-//  typedef MathFunction<Polynomial> Base;
-//
-//  typedef typename Traits<Polynomial>::Scalar Scalar;
-//  typedef typename Traits<Polynomial>::FunctionX FunctionX;
-//  typedef typename Traits<Polynomial>::FunctionY FunctionY;
-//  typedef typename Traits<Polynomial>::Coefficients Coefficients;
-//
-//  Polynomial(size_t degree,
-//             size_t min_degree = 0)
-//    : coefficients_(degree - min_degree + 1),
-//      degree_(degree),
-//      min_degree_(min_degree)
+//  class Polynomial<ScalarT_, Eigen::Dynamic, 0> : public MathFunction<Polynomial<ScalarT_, Eigen::Dynamic, 0> >
 //  {
-//    // Do nothing
-//  }
-//
-//  template <typename OtherDerived>
-//  explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients,
-//                      size_t min_degree = 0)
-//    : coefficients_(coefficients),
-//      degree_(min_degree + coefficients.size() - 1),
-//      min_degree_(min_degree)
-//  {
-//    // Do nothing
-//  }
-//
-//  size_t degree() const
-//  {
-//    return degree_;
-//  }
-//
-//  size_t minDegree() const
-//  {
-//    return min_degree_;
-//  }
-//
-//  size_t size() const
-//  {
-//    return degree_ - min_degree_ + 1;
-//  }
-//
-//  FunctionY evaluate(const FunctionX & x) const
-//  {
-//    return evaluate(coefficients_, min_degree_, x);
-//  }
-//
-//  Scalar & operator [](size_t index)
-//  {
-//    return coefficients_.coeffRef(index);
-//  }
-//
-//  const Scalar & operator [](size_t index) const
-//  {
-//    return coefficients_.coeffRef(index);
-//  }
-//
-//  template <typename OtherDerived>
-//  void setCoefficients(const Eigen::DenseBase<OtherDerived> & coefficients)
-//  {
-//    assert(coefficients.size() == size());
-//    coefficients_ = coefficients;
-//  }
-//
-//  const Coefficients & coefficients() const
-//  {
-//    return coefficients_;
-//  }
-//
-//  Scalar * data()
-//  {
-//    return coefficients_.data();
-//  }
-//
-//  const Scalar * data() const
-//  {
-//    return coefficients_.data();
-//  }
-//
-//  static const Polynomial Identity(int degree,
-//                                   int min_degree = 0)
-//  {
-//    return Polynomial(IdentityCoefficients(degree, min_degree));
-//  }
-//
-//  static const Coefficients IdentityCoefficients(int degree,
-//                                                 int min_degree = 0)
-//  {
-//    assert(min_degree <= 1 and degree >= 1);
-//    Coefficients coeffs(Coefficients::Zero());
-//    coeffs[1 - MinDegree] = Scalar(1);
-//    return coeffs;
-//  }
-//
-//  template <typename OtherDerived>
-//  static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
-//                            int min_degree,
-//                            const FunctionX & x)
-//  {
-//    FunctionY y = Eigen::poly_eval(coefficients, x);
-//    for (int i = 0; i < min_degree; ++i)
-//      y *= x;
-//    return y;
-//  }
-//
-//  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-//
+//  public:
+
+//    typedef boost::shared_ptr<Polynomial> Ptr;
+//    typedef boost::shared_ptr<const Polynomial> ConstPtr;
+
+//    typedef MathFunction<Polynomial> Base;
+
+//    typedef typename MathTraits<Polynomial>::Scalar Scalar;
+//    typedef typename MathTraits<Polynomial>::FunctionX FunctionX;
+//    typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
+//    typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
+
+//    explicit Polynomial(size_t degree)
+//      : coefficients_(degree + 1)
+//    {
+//      // Do nothing
+//    }
+
+//    template <typename OtherDerived>
+//      explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients)
+//        : coefficients_(coefficients)
+//      {
+//        // Do nothing
+//      }
+
+//    inline size_t degree() const
+//    {
+//      return coefficients_.size() - 1;
+//    }
+
+//    inline size_t minDegree() const
+//    {
+//      return 0;
+//    }
+
+//    inline size_t size() const
+//    {
+//      return coefficients_.size();
+//    }
+
+//    inline FunctionY evaluate(const FunctionX & x) const
+//    {
+//      return evaluate(coefficients_, x);
+//    }
+
+//    inline Scalar & operator [](size_t index)
+//    {
+//      return coefficients_.coeffRef(index);
+//    }
+
+//    inline const Scalar & operator [](size_t index) const
+//    {
+//      return coefficients_.coeffRef(index);
+//    }
+
+//    template <typename OtherDerived>
+//      inline void setCoefficients(const Eigen::DenseBase<OtherDerived> & coefficients)
+//      {
+//        coefficients_ = coefficients;
+//      }
+
+//    inline const Coefficients & coefficients() const
+//    {
+//      return coefficients_;
+//    }
+
+//    inline Scalar * dataPtr()
+//    {
+//      return coefficients_.data();
+//    }
+
+//    inline const Scalar * dataPtr() const
+//    {
+//      return coefficients_.data();
+//    }
+
+//    inline static const Polynomial Identity(int degree)
+//    {
+//      return Polynomial(IdentityCoefficients(degree));
+//    }
+
+//    inline static const Coefficients IdentityCoefficients(int degree)
+//    {
+//      assert(degree >= 1);
+//      Coefficients coeffs(Coefficients::Zero(degree + 1));
+//      coeffs[1] = Scalar(1);
+//      return coeffs;
+//    }
+
+//    template <typename OtherDerived>
+//      inline static FunctionY evaluate(const Eigen::DenseBase<OtherDerived> & coefficients,
+//                                const FunctionX & x)
+//      {
+//        return Eigen::poly_eval(coefficients, x);
+//      }
+
+//    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
 //  protected:
-//
+
 //    Coefficients coefficients_;
-//  size_t degree_;
-//  size_t min_degree_;
-//
+
+//  };
+
+//template <typename ScalarT_>
+//  class Polynomial<ScalarT_, Eigen::Dynamic, Eigen::Dynamic> : public MathFunction<Polynomial<ScalarT_, Eigen::Dynamic, Eigen::Dynamic> >
+//  {
+//  public:
+
+//    typedef boost::shared_ptr<Polynomial> Ptr;
+//    typedef boost::shared_ptr<const Polynomial> ConstPtr;
+
+//    typedef MathFunction<Polynomial> Base;
+
+//    typedef typename MathTraits<Polynomial>::Scalar Scalar;
+//    typedef typename MathTraits<Polynomial>::FunctionX FunctionX;
+//    typedef typename MathTraits<Polynomial>::FunctionY FunctionY;
+//    typedef typename MathTraits<Polynomial>::Coefficients Coefficients;
+
+//    Polynomial(int degree,
+//               int min_degree = 0)
+//      : coefficients_(degree - min_degree + 1),
+//        degree_(degree),
+//        min_degree_(min_degree)
+//    {
+//      assert(min_degree >= 0);
+//      assert(degree >= min_degree);
+//    }
+
+//    template <typename OtherDerived>
+//      explicit Polynomial(const Eigen::DenseBase<OtherDerived> & coefficients,
+//                          int min_degree = 0)
+//        : coefficients_(coefficients),
+//          degree_(min_degree + coefficients.size() - 1),
+//          min_degree_(min_degree)
+//      {
+//        assert(min_degree >= 0);
+//      }
+
+//    /**
+//     * @brief degree
+//     * @return
+//     */
+//    inline int degree() const
+//    {
+//      return degree_;
+//    }
+
+//    /**
+//     * @brief minDegree
+//     * @return
+//     */
+//    inline int minDegree() const
+//    {
+//      return min_degree_;
+//    }
+
+//    /**
+//     * @brief evaluate
+//     * @param x
+//     * @return
+//     */
+//    inline FunctionY evaluate(const FunctionX & x) const
+//    {
+//      return evaluate(min_degree_, coefficients_, x);
+//    }
+
+//    /**
+//     * @brief coefficients
+//     * @return
+//     */
+//    inline const Coefficients & coefficients() const
+//    {
+//      return coefficients_;
+//    }
+
+//    /**
+//     * @brief coefficients
+//     * @return
+//     */
+//    inline Coefficients & coefficients()
+//    {
+//      return coefficients_;
+//    }
+
+//    /**
+//     * @brief dataPtr
+//     * @return
+//     */
+//    inline Scalar * dataPtr()
+//    {
+//      return coefficients_.data();
+//    }
+
+//    /**
+//     * @brief dataPtr
+//     * @return
+//     */
+//    inline const Scalar * dataPtr() const
+//    {
+//      return coefficients_.data();
+//    }
+
+//    /**
+//     * @brief Identity
+//     * @return
+//     */
+//    inline static const Polynomial Identity(int degree,
+//                                            int min_degree)
+//    {
+//      return Polynomial(IdentityCoefficients(degree, min_degree));
+//    }
+
+//    /**
+//     * @brief size
+//     * @return
+//     */
+//    inline size_t size() const
+//    {
+//      return MathTraits<Polynomial>::Size;
+//    }
+
+//    /**
+//     * @brief IdentityCoefficients
+//     * @return
+//     */
+//    inline static const Coefficients IdentityCoefficients(int degree,
+//                                                          int min_degree)
+//    {
+//      assert(min_degree <= 1 and degree >= 1);
+//      Coefficients coeffs(Coefficients::Zero());
+//      coeffs[1 - min_degree] = Scalar(1);
+//      return coeffs;
+//    }
+
+//    /**
+//     * @brief evaluate
+//     * @param coefficients
+//     * @param x
+//     * @return
+//     */
+//    template <typename OtherDerived>
+//      inline static FunctionY evaluate(int min_degree,
+//                                       const Eigen::DenseBase<OtherDerived> & coefficients,
+//                                       const FunctionX & x)
+//      {
+//        FunctionY y = Eigen::poly_eval(coefficients, x);
+//        for (int i = 0; i < min_degree; ++i)
+//          y *= x;
+//        return y;
+//      }
+
+//    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+
+//  private:
+
+//    Coefficients coefficients_;
+//    int degree_;
+//    int min_degree_;
+
 //};
 
 /** @} */

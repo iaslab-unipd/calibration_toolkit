@@ -57,7 +57,7 @@ template <typename ScalarT_>
       }
     }
     centroid /= count;
-    diff.resize(3, count);
+    diff.conservativeResize(3, count);
     diff.colwise() -= centroid;
 
     Eigen::Matrix<ScalarT_, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(count - 1);

@@ -45,8 +45,13 @@ template <typename PolynomialT_>
 
       typename Types<Scalar>::Point3 point = accumulation_bins_[i].average();
       typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
+      //typename Types<Scalar>::Line line(Types<Scalar>::Vector3::Zero(), point.normalized());
 
       data_bins_[i].push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
+
+      typename Types<Scalar>::Line line2(Types<Scalar>::Vector3::Zero(), point.normalized());
+      std::cout << point.z() << ", " << line.intersectionPoint(plane).z() << " = " << line2.intersectionPoint(plane).z() << std::endl;
+
       accumulation_bins_[i].reset();
     }
   }
@@ -98,7 +103,8 @@ template <typename PolynomialT_, typename ScalarT_>
     if (point.hasNaN())
       return;
 
-    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
+//    typename Types<Scalar>::Line line(point, Types<Scalar>::Vector3::UnitZ());
+    typename Types<Scalar>::Line line(Types<Scalar>::Vector3::Zero(), point.normalized());
     Base::data_bins_(x_index, y_index).push_back(std::make_pair(point.z(), line.intersectionPoint(plane).z()));
   }
 
@@ -123,15 +129,29 @@ template <typename PolynomialT_>
   {
     for (Size1 i = 0; i < accumulation_bins_.elements(); ++i)
     {
+      Scalar x = 0;
+      Scalar y = 0;
+      Scalar weight = 0;
+
       std::vector<AccumulationBinData> & acc_vec = accumulation_bins_[i];
       for (Size1 j = 0; j < acc_vec.size(); ++j)
       {
         const AccumulationBinData & acc_data = acc_vec[j];
-        typename Types<Scalar>::Line line(acc_data.point_, Types<Scalar>::Vector3::UnitZ());
+        typename Types<Scalar>::Line line_old(acc_data.point_, Types<Scalar>::Vector3::UnitZ());
+        typename Types<Scalar>::Line line(Types<Scalar>::Vector3::Zero(), acc_data.point_.normalized());
 
-        data_bins_[i].push_back(Data(acc_data.point_.z(), line.intersectionPoint(plane).z(), acc_data.weight_));
+        x += acc_data.point_.z() * acc_data.weight_;
+        y += line.intersectionPoint(plane).z() * acc_data.weight_;
+        weight += acc_data.weight_;
+
       }
-      acc_vec.clear();
+      if (acc_vec.size() > 0)
+      {
+        x /= weight;
+        y /= weight;
+        data_bins_[i].push_back(Data(x, y, 1));
+        acc_vec.clear();
+      }
     }
   }
 
@@ -151,14 +171,15 @@ template <typename PolynomialT_>
         if (bin_size < 5 * Degree)
           continue;
 
+
         ceres::Problem problem;
+
         for (Size1 i = 0; i < bin_size; ++i)
         {
           const Data & data = data_bin[i];
-          WeightedPolynomialResidual<PolynomialT> * residual = new WeightedPolynomialResidual<PolynomialT>(data.x_,
-                                                                                                           data.y_,
-                                                                                                           data.weight_);
-          problem.AddResidualBlock(new ceres::AutoDiffCostFunction<WeightedPolynomialResidual<PolynomialT>, 1, Size>(residual),
+
+          PolynomialResidual<PolynomialT> * residual = new PolynomialResidual<PolynomialT>(data.x_, data.y_);
+          problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual<PolynomialT>, 1, Size>(residual),
                                    NULL,
                                    model()->polynomial(x_index, y_index).data());
         }

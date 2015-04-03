@@ -57,7 +57,7 @@ template <typename DerivedT_>
       for (Eigen::DenseIndex i = 1; i < polynomial.size(); ++i)
         val = val * inv_x + polynomial[i];
 
-      return pow(x, Scalar(polynomial.size() - 1)) * val;
+      return Eigen::numext::pow(x, Scalar(polynomial.size() - 1)) * val;
     }
   }
 

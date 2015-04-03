@@ -31,6 +31,8 @@
 
 #include <boost/smart_ptr/make_shared.hpp>
 
+#include <pcl/sample_consensus/ransac.h>
+
 #include <calibration_common/algorithms/plane_extraction.h>
 
 #include <Eigen/Geometry>
@@ -44,8 +46,149 @@
 
 #include <vector>
 
+#include <pcl/visualization/pcl_visualizer.h>
+
 namespace calibration
 {
+
+template <typename PointT_>
+  void CheckerboardPlaneExtraction<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
+  {
+    cloud_ = cloud;
+    cloud_tree_->setInputCloud(cloud_);
+
+    NormalEstimator normal_estimator;
+    normal_estimator.setInputCloud(cloud_);
+    normal_estimator.setSearchMethod(cloud_tree_);
+    if (cloud->width > 320)
+      normal_estimator.setKSearch(80);
+    else if (cloud->width > 160)
+      normal_estimator.setKSearch(50);
+    else
+      normal_estimator.setKSearch(30);
+
+    normal_estimator.compute(*cloud_normals_);
+  }
+
+template <typename PointT_>
+  bool CheckerboardPlaneExtraction<PointT_>::extract(PlaneInfo & plane_info) const
+  {
+
+    /*float min_x = corners_.col(0).x(), max_x = min_x;
+    float min_y = corners_.col(0).y(), max_y = min_y;
+    for (int i = 1; i < 4; ++i)
+    {
+      min_x = std::min(min_x, corners_.col(i).x());
+      max_x = std::max(max_x, corners_.col(i).x());
+      min_y = std::min(min_y, corners_.col(i).y());
+      max_y = std::max(max_y, corners_.col(i).y());
+    }
+
+    min_x = std::max(min_x, 0.0f);
+    max_x = std::min(max_x, static_cast<float>(cloud_->width));
+    min_y = std::max(min_y, 0.0f);
+    max_y = std::min(max_y, static_cast<float>(cloud_->height));
+
+    Eigen::ParametrizedLine<float, 2> lines[4];
+    Eigen::Array4f multipliers;
+    for (int i = 0; i < 4; ++i)
+    {
+      lines[i] = Eigen::ParametrizedLine<float, 2>::Through(corners_.col((i + 1) % 4), corners_.col(i));
+      multipliers[i] = (lines[i].signedDistance(corners_.col((i + 2) % 4)) > 0) ? 1.0f : -1.0f;
+    }
+
+
+
+    if (not plane_info.indices_)
+      plane_info.indices_ = boost::make_shared<std::vector<int> >();
+    else
+      plane_info.indices_->clear();
+
+    plane_info.indices_->reserve(static_cast<size_t>((max_x - min_x) * (max_y - min_y)));
+
+    for (float y = std::ceil(min_y); y < max_y; ++y)
+    {
+      for (float x = std::ceil(min_x); x < max_x; ++x)
+      {
+        bool ok = true;
+        for (int i = 0; i < 4; ++i)
+        {
+          if (lines[i].signedDistance(Eigen::Vector2f(x, y)) * multipliers[i] < 0)
+          {
+            ok = false;
+            break;
+          }
+        }
+        if (ok)
+          plane_info.indices_->push_back(static_cast<int>(y * cloud_->width + x));
+      }
+    }
+
+    int indices_size = plane_info.indices_->size();
+    std::cout << "indices_size: " << indices_size << std::endl;
+
+
+    Eigen::VectorXf coefficients(Eigen::VectorXf::Zero(4));
+    ModelNormalPlane model(cloud_);
+    Eigen::VectorXf new_coefficients(4);
+    model.optimizeModelCoefficients(*plane_info.indices_, coefficients, new_coefficients);
+    if (coefficients == new_coefficients)
+      return false;
+    coefficients = new_coefficients;
+
+
+    std::vector<Scalar> distances;
+    model.getDistancesToModel(coefficients, distances);
+    Eigen::Map<Eigen::VectorXd> v = Eigen::Map<Eigen::VectorXd>(&distances[0], distances.size());
+    plane_info.std_dev_ = std::sqrt(v.cwiseAbs2().mean() - std::pow(v.mean(), 2));
+
+    std::cout << "plane_info.std_dev_: " << plane_info.std_dev_ << std::endl;
+
+    model.setIndices(plane_info.indices_);
+    pcl::RandomSampleConsensus<PointT_> ransac(model);
+    ransac.setDistanceThreshold(3 * plane_info.std_dev_);
+    ransac.computeModel();
+    ransac.getModelCoefficients(coefficients);
+    ransac.getInliers(*plane_info.indices_);
+
+
+    indices_size = plane_info.indices_->size();
+    std::cout << "indices_size: " << indices_size << std::endl;
+
+
+    model.setNormalDistanceWeight(0.2);
+    model.setInputNormals(cloud_normals_);
+
+    model.getDistancesToModel(coefficients, distances);
+    v = Eigen::Map<Eigen::VectorXd>(&distances[0], distances.size());
+    double std_dev_normal = std::sqrt(v.cwiseAbs2().mean() - std::pow(v.mean(), 2));
+
+    std::cout << "std_dev_normal: " << std_dev_normal << std::endl;
+    double new_threshold = (1 - model.getNormalDistanceWeight()) * 3 * plane_info.std_dev_
+                           + model.getNormalDistanceWeight() * 10.0 * M_PI / 180.0;
+    std::cout << "std_dev_normal: " << new_threshold << std::endl;
+
+    model.setIndices(boost::make_shared<std::vector<int> >());
+    ransac.setDistanceThreshold(new_threshold);
+    ransac.computeModel();
+    ransac.getModelCoefficients(coefficients);
+    ransac.getInliers(*plane_info.indices_);
+
+
+    indices_size = plane_info.indices_->size();
+    std::cout << "indices_size: " << indices_size << std::endl;
+
+    plane_info.plane_.normal()[0] = coefficients[0];
+    plane_info.plane_.normal()[1] = coefficients[1];
+    plane_info.plane_.normal()[2] = coefficients[2];
+    plane_info.plane_.offset() = coefficients[3];
+
+
+    std::cout << "-------" << std::endl;*/
+  }
+
+
+
 
 template <typename PointT_>
   void PointPlaneExtraction<PointT_>::setInputCloud(const PointCloudConstPtr & cloud)
@@ -56,8 +199,13 @@ template <typename PointT_>
     NormalEstimator normal_estimator;
     normal_estimator.setInputCloud(cloud_);
     normal_estimator.setSearchMethod(cloud_tree_);
-    normal_estimator.setKSearch(100); // TODO setRadiusSearch
-    //normal_estimator.setRadiusSearch(0.05f);
+    if (cloud->width > 320)
+      normal_estimator.setKSearch(512);
+    else if (cloud->width > 160)
+      normal_estimator.setKSearch(144);
+    else
+      normal_estimator.setKSearch(100);
+
     normal_estimator.compute(*cloud_normals_);
   }
 
@@ -69,123 +217,65 @@ template <typename PointT_>
     else
       plane_info.indices_->clear();
 
-    pcl::PointIndices init_indices;
-    std::vector<float> sqr_distances;
-    cloud_tree_->radiusSearch(point_, radius_, init_indices.indices, sqr_distances);
+    std::vector<int> all_indices(cloud_->size());
+    for (size_t i = 0; i < cloud_->size(); ++i)
+      all_indices[i] = i;
 
-    if (init_indices.indices.size() < 50)
+    std::vector<float> sqr_distances;
+    cloud_tree_->radiusSearch(point_, radius_, *plane_info.indices_, sqr_distances);
+
+    if (plane_info.indices_->size() < 50)
     {
       //ROS_ERROR_STREAM("Not enough points found near (" << point_.x << ", " << point_.y << ", " << point_.z << ")");
       return false;
     }
 
-    //    Eigen::Vector4f eigen_centroid;
-    //    pcl::compute3DCentroid(*cloud_, init_indices, eigen_centroid);
-    //    PointT_ centroid(eigen_centroid[0], eigen_centroid[1], eigen_centroid[2]);
-    //
-    //    std::vector<int> nn_indices(1);
-    //    std::vector<float> nn_sqr_distances(1);
-    //    cloud_tree_->nearestKSearch(centroid, 1, nn_indices, nn_sqr_distances);
-    //
-    //    int nn_index = nn_indices[0];
-    //    ROS_INFO_STREAM(
-    //      "Seed point: (" << cloud_->points[nn_index].x << ", " << cloud_->points[nn_index].y << ", "
-    //        << cloud_->points[nn_index].z << ")");
-
     Eigen::VectorXf coefficients(Eigen::VectorXf::Zero(4));
-    ModelNormalPlane model(cloud_);
-    model.setNormalDistanceWeight(0.2);
-    model.setInputNormals(cloud_normals_);
+    boost::shared_ptr<ModelNormalPlane> model = boost::make_shared<ModelNormalPlane>(cloud_);
+    model->setInputNormals(cloud_normals_);
+    model->setIndices(plane_info.indices_);
+
+    model->setNormalDistanceWeight(0.0);
+
     Eigen::VectorXf new_coefficients(4);
-    model.optimizeModelCoefficients(init_indices.indices, coefficients, new_coefficients);
+    model->optimizeModelCoefficients(*plane_info.indices_, coefficients, new_coefficients);
     if (coefficients == new_coefficients)
       return false;
     coefficients = new_coefficients;
 
-    boost::shared_ptr<std::vector<int> > all_cloud_indices = model.getIndices();
 
-    model.setIndices(init_indices.indices);
     std::vector<Scalar> distances;
-    model.getDistancesToModel(coefficients, distances);
-    Eigen::VectorXd v = Eigen::VectorXd::Map(&distances[0], distances.size());
-    plane_info.std_dev_ = 0.0;
+    model->getDistancesToModel(coefficients, distances);
 
-    if (v.size() > 0)
-      plane_info.std_dev_ = std::sqrt(v.cwiseAbs2().mean() - std::pow(v.mean(), 2));
+    Eigen::Map<Eigen::VectorXd> v = Eigen::Map<Eigen::VectorXd>(&distances[0], distances.size());
+    plane_info.std_dev_ = std::sqrt(v.cwiseAbs2().mean() - std::pow(v.mean(), 2));
 
-    model.setIndices(all_cloud_indices);
-    model.selectWithinDistance(coefficients, 5 * plane_info.std_dev_, *plane_info.indices_);
+//    std::cout << "plane_info.std_dev_: " << plane_info.std_dev_ << std::endl;
 
-    model.optimizeModelCoefficients(*plane_info.indices_, coefficients, new_coefficients);
-    if (coefficients == new_coefficients)
-      return false;
-    coefficients = new_coefficients;
+    model->setIndices(all_indices);
+    model->setAxis(Eigen::Vector3f(coefficients[0], coefficients[1], coefficients[2]));
+    model->setEpsAngle(10.0);
+    pcl::RandomSampleConsensus<PointT_> ransac(model);
+    ransac.setDistanceThreshold(25 * plane_info.std_dev_);
+    ransac.computeModel();
+    ransac.getModelCoefficients(coefficients);
+    ransac.getInliers(*plane_info.indices_);
 
-    model.setNormalDistanceWeight(0.05);
-    model.selectWithinDistance(coefficients, 5 * plane_info.std_dev_, *plane_info.indices_);
+    model->setNormalDistanceWeight(1.0);
+    model->setIndices(plane_info.indices_);
+    ransac.setDistanceThreshold(model->getNormalDistanceWeight() * 20.0 * M_PI / 180.0);
+    ransac.computeModel();
+    ransac.getModelCoefficients(coefficients);
+    ransac.getInliers(*plane_info.indices_);
 
-    //    pcl::RegionGrowing<PointT_, pcl::Normal> region_grow;
-    //    region_grow.setMinClusterSize(cloud_->size() / 10);
-    //    region_grow.setMaxClusterSize(cloud_->size());
-    //
-    //    region_grow.setSearchMethod(cloud_tree_);
-    //    region_grow.setNumberOfNeighbours(64);
-    //    region_grow.setInputCloud(cloud_);
-    //    //region_grow.setIndices(plane_indices);
-    //    region_grow.setInputNormals(cloud_normals_);
-    //    region_grow.setSmoothnessThreshold(10.0 / 180.0 * M_PI);
-    //    region_grow.setCurvatureThreshold(0.07);
-    //
-    //    pcl::PointIndices cluster;
-    //    region_grow.getSegmentFromPoint(nn_index, cluster);
 
-    std::vector<pcl::PointIndices> cluster_indices;
-    pcl::EuclideanClusterExtraction<PointT_> ec;
-    ec.setClusterTolerance(radius_ / 8);
-    ec.setMinClusterSize(plane_info.indices_->size() / 8);
-    ec.setMaxClusterSize(plane_info.indices_->size());
-    //ec.setSearchMethod(cloud_tree_);
-    ec.setInputCloud(cloud_);
-    ec.setIndices(plane_info.indices_);
-    ec.extract(cluster_indices);
+//    int indices_size = plane_info.indices_->size();
+//    std::cout << "C indices_size: " << indices_size << std::endl;
 
-    if (cluster_indices.empty())
-      return false;
-
-    Size1 max_index = 0;
-    Size1 max_size = cluster_indices[0].indices.size();
-    for (Size1 i = 1; i < cluster_indices.size(); ++i)
-    {
-      if (cluster_indices[i].indices.size() > max_size)
-      {
-        max_size = cluster_indices[i].indices.size();
-        max_index = i;
-      }
-    }
-
-    *plane_info.indices_ = cluster_indices[max_index].indices;
-
-    //    Eigen::VectorXf coefficients(4);
-    //    ModelNormalPlane model(cloud_);
-    //    model.setInputNormals(cloud_normals_);
-    //    Eigen::VectorXf new_coefficients(4);
-    //    model.optimizeModelCoefficients(cluster.indices, coefficients, new_coefficients);
-    //    if (coefficients == new_coefficients)
-    //      return false;
-    //    coefficients = new_coefficients;
-    //
-    //    if (coefficients[3] > 0)
-    //      coefficients *= -1.0f;
-    //
-    //    *plane_indices = cluster.indices;
-
-    //Plane plane;
     plane_info.plane_.normal()[0] = coefficients[0];
     plane_info.plane_.normal()[1] = coefficients[1];
     plane_info.plane_.normal()[2] = coefficients[2];
     plane_info.plane_.offset() = coefficients[3];
-
-    //planar_object = boost::make_shared<PointCloudPlanarObject<PointT_> >(cloud_, plane_indices, plane);
 
     return true;
   }

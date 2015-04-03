@@ -40,7 +40,7 @@
 #include <pcl/point_types.h>
 #include <pcl/pcl_base.h>
 #include <pcl/point_cloud.h>
-#include <pcl/sample_consensus/sac_model_normal_plane.h>
+#include <pcl/sample_consensus/sac_model_normal_parallel_plane.h>
 #include <pcl/search/kdtree.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/visualization/point_cloud_color_handlers.h>
@@ -99,6 +99,72 @@ template <typename PCLPointT_>
 
   };
 
+template <typename PCLPointT_>
+  class CheckerboardPlaneExtraction : public PlaneExtraction<PCLPointT_>
+  {
+
+    typedef boost::shared_ptr<CheckerboardPlaneExtraction> Ptr;
+    typedef boost::shared_ptr<const CheckerboardPlaneExtraction> ConstPtr;
+
+    typedef pcl::PointCloud<PCLPointT_> PointCloud;
+    typedef typename PointCloud::ConstPtr PointCloudConstPtr;
+
+    typedef pcl::search::KdTree<PCLPointT_> KdTree;
+    typedef typename KdTree::Ptr KdTreePtr;
+    typedef pcl::NormalEstimationOMP<PCLPointT_, pcl::Normal> NormalEstimator;
+    typedef pcl::SampleConsensusModelNormalPlane<PCLPointT_, pcl::Normal> ModelNormalPlane;
+
+    /**
+     * @brief PointPlaneExtractor
+     */
+    CheckerboardPlaneExtraction()
+      : cloud_normals_(boost::make_shared<pcl::PointCloud<pcl::Normal> >()),
+        cloud_tree_(boost::make_shared<KdTree>()),
+        corners_(Eigen::Matrix<float, 2, 4>::Zero())
+    {
+      // Do nothing
+    }
+
+    /**
+     * @brief ~PointPlaneExtractor
+     */
+    virtual ~CheckerboardPlaneExtraction()
+    {
+      // Do nothing
+    }
+
+    /**
+     * @brief setVertices
+     * @param corners
+     */
+    inline void setVertices(const Eigen::Matrix<float, 2, 4> & corners)
+    {
+      corners_ = corners;
+    }
+
+    /**
+     * @brief setInputCloud
+     * @param cloud
+     */
+    virtual void setInputCloud(const PointCloudConstPtr & cloud);
+
+    /**
+     * @brief extract
+     * @param plane_info
+     * @return
+     */
+    virtual bool extract(PlaneInfo & plane_info) const;
+
+  protected:
+
+    PointCloudConstPtr cloud_;
+    pcl::PointCloud<pcl::Normal>::Ptr cloud_normals_;
+    KdTreePtr cloud_tree_;
+
+    Eigen::Matrix<float, 2, 4> corners_;
+
+  };
+
 /**
  * @brief The PointPlaneExtractor class
  * @param PCLPointT_
@@ -133,7 +199,7 @@ template <typename PCLPointT_>
     typedef pcl::search::KdTree<PCLPointT_> KdTree;
     typedef typename KdTree::Ptr KdTreePtr;
     typedef pcl::NormalEstimationOMP<PCLPointT_, pcl::Normal> NormalEstimator;
-    typedef pcl::SampleConsensusModelNormalPlane<PCLPointT_, pcl::Normal> ModelNormalPlane;
+    typedef pcl::SampleConsensusModelNormalParallelPlane<PCLPointT_, pcl::Normal> ModelNormalPlane;
 
     /**
      * @brief PointPlaneExtractor

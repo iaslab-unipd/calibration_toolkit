@@ -34,10 +34,6 @@
 namespace calibration
 {
 
-#ifndef MAX
-#define MAX(a,b)  ((a) < (b) ? (b) : (a))
-#endif
-
 /**
  * @brief The EigenMatrix class
  * @param EigenT_
@@ -60,15 +56,16 @@ template <typename EigenMatrixT_, bool UseArray_>
 template <typename EigenMatrixT_>
   struct ContainerTraits<EigenMatrixT_, true>
   {
-    typedef Eigen::Array<typename EigenMatrixT_::Scalar, EigenMatrixT_::TSize, EigenMatrixT_::Size, Eigen::ColMajor> Container;
+    typedef Eigen::Array<typename EigenMatrixT_::Scalar, EigenMatrixT_::TSize, EigenMatrixT_::Size, (EigenMatrixT_::TSize > 1 ? Eigen::ColMajor : Eigen::RowMajor)> Container;
   };
 
 template <typename EigenMatrixT_>
   struct ContainerTraits<EigenMatrixT_, false>
   {
-    typedef Eigen::Matrix<typename EigenMatrixT_::Scalar, EigenMatrixT_::TSize, EigenMatrixT_::Size, Eigen::ColMajor> Container;
+    typedef Eigen::Matrix<typename EigenMatrixT_::Scalar, EigenMatrixT_::TSize, EigenMatrixT_::Size, (EigenMatrixT_::TSize > 1 ? Eigen::ColMajor : Eigen::RowMajor)> Container;
   };
 
+#define COMPUTE_SIZE(X, Y) ((X == Eigen::Dynamic || Y == Eigen::Dynamic) ? Eigen::Dynamic : X * Y)
 
 template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
   class EigenMatrix
@@ -80,8 +77,8 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
 
     typedef typename EigenT_::Scalar Scalar;
 
-    static const int TSize = MAX(EigenT_::RowsAtCompileTime, EigenT_::ColsAtCompileTime);
-    static const int Size = (XSize_ == Eigen::Dynamic || YSize_ == Eigen::Dynamic) ? Eigen::Dynamic : XSize_ * YSize_;
+    static const int TSize = COMPUTE_SIZE(EigenT_::RowsAtCompileTime, EigenT_::ColsAtCompileTime);
+    static const int Size = COMPUTE_SIZE(XSize_, YSize_);
 
     typedef typename ContainerTraits<EigenMatrix, UseArray_>::Container Container;
 
@@ -92,12 +89,25 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
      * @brief EigenMatrix
      */
     EigenMatrix()
-      : size_(XSize_ == Eigen::Dynamic ? 0 : XSize_, YSize_ == Eigen::Dynamic ? 0 : YSize_)
+      : size_(XSize_ == Eigen::Dynamic ? 0 : XSize_, YSize_ == Eigen::Dynamic ? 0 : YSize_),
+        t_size_(TSize)
     {
       EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
       EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-//      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container);
     }
+
+//    /**
+//     * @brief EigenMatrix
+//     * @param t_size
+//     */
+//    EigenMatrix(Size1 t_size)
+//      : container_(t_size, Size), //TODO XXX!
+//        size_(XSize_ == Eigen::Dynamic ? 0 : XSize_, YSize_ == Eigen::Dynamic ? 0 : YSize_),
+//        t_size_(t_size)
+//    {
+//      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
+//      assert(TSize == Eigen::Dynamic || t_size == TSize);
+//    }
 
     /**
      * @brief EigenMatrix
@@ -113,6 +123,22 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
       assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
       assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
     }
+
+//    /**
+//     * @brief EigenMatrix
+//     * @param t_size
+//     * @param size
+//     */
+//    explicit EigenMatrix(Size1 t_size, const Size2 & size) //TODO XXX!
+//      : container_(t_size, size.x() * size.y()),
+//        size_(size)
+//    {
+//      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
+//      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
+//      EIGEN_STATIC_ASSERT_DYNAMIC_SIZE(Container);
+//      assert(XSize_ == Eigen::Dynamic || size.x() == XSize_);
+//      assert(YSize_ == Eigen::Dynamic || size.y() == YSize_);
+//    }
 
     /**
      * @brief EigenMatrix
@@ -146,20 +172,10 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
       container_.colwise() += value;
     }
 
-//    /**
-//     * @brief EigenMatrix
-//     * @param data
-//     */
-//    explicit EigenMatrix(const Container & container)
-//      : container_(container),
-//        size_(XSize_, YSize_)
-//    {
-//      EIGEN_STATIC_ASSERT_VECTOR_ONLY(EigenT_);
-//      EIGEN_STATIC_ASSERT_FIXED_SIZE(EigenT_);
-//      EIGEN_STATIC_ASSERT_FIXED_SIZE(Container); // TODO also for Dynamic size?
-//      assert(container.size() == Size);
-//    }
-
+    /**
+     * @brief isOrganized
+     * @return
+     */
     bool isOrganized() const
     {
       return size_.y() > 1;
@@ -359,6 +375,7 @@ template <typename EigenT_, int XSize_, int YSize_, bool UseArray_>
 
     Container container_;
     Size2 size_;
+    Size1 t_size_;
 
   };
 

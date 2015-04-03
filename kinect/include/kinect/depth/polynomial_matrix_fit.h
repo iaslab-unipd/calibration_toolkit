@@ -419,6 +419,12 @@ template <typename PolynomialT_>
 
     virtual void update();
 
+    virtual void reset()
+    {
+      data_bins_ = Matrix<DataBin>(model_->matrix()->size());
+      accumulation_bins_ = Matrix<AccumulationBin>(model_->matrix()->size());
+    }
+
   protected:
 
     Matrix<DataBin> data_bins_;

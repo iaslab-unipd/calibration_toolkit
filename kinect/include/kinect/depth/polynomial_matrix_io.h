@@ -121,7 +121,7 @@ template <class Polynomial_>
 
   protected:
 
-    void toColorImage(const cv::Mat & float_image,
+    void toColorImage(cv::Mat & float_image,
                       cv::Mat & image,
                       const Scalar max) const;
 

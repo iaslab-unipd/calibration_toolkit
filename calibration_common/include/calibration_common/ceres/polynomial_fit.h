@@ -179,7 +179,7 @@ template <typename PolynomialT_>
      * @param y
      */
     inline virtual void addData(const Scalar & x,
-                         const Scalar & y)
+                                const Scalar & y)
     {
       data_bin_.push_back(std::make_pair(x, y));
     }
@@ -249,7 +249,7 @@ template <typename PolynomialT_>
       {
         typedef ceres::Polynomial<T, Degree, MinDegree> Polynomial_;
         typedef typename MathTraits<Polynomial_>::Coefficients Coefficients;
-        residual[0] = ceres::sqrt(T(weight_)) * (T(y_) - Polynomial_::evaluate(Eigen::Map<const Coefficients>(coefficients), T(x_)));
+        residual[0] = T(weight_) * (T(y_) - Polynomial_::evaluate(Eigen::Map<const Coefficients>(coefficients), T(x_)));
         return true;
       }
 

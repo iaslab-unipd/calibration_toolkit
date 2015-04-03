@@ -155,7 +155,7 @@ template <class Polynomial_>
   }
 
 template <class Polynomial_>
-  void PolynomialUndistortionMatrixIO<Polynomial_>::toColorImage(const cv::Mat & float_image,
+  void PolynomialUndistortionMatrixIO<Polynomial_>::toColorImage(cv::Mat & float_image,
                                                                  cv::Mat & image,
                                                                  const Scalar max) const
   {
@@ -172,11 +172,16 @@ template <class Polynomial_>
     {
       for (int x = 0; x < float_image.cols; ++x)
       {
-        const float & value = float_image.at<float>(y, x);
+        float & value = float_image.at<float>(y, x);
 //        if (value > 0)
 //          image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, char((1.0f - value) * 255), char((1.0f - value) * 255));
 //        else
 //          image.at<cv::Vec3b>(y, x) = cv::Vec3b(char((1.0f + value) * 255), char((1.0f + value) * 255), 255);
+        if (value > 1.0f)
+          value = 1.0f;
+        else if (value < -1.0f)
+          value = -1.0f;
+
         if (value > 0.5f)
           image.at<cv::Vec3b>(y, x) = cv::Vec3b(char((1.0f - value) * 2 * 255), 0, 0);
         else if (value > 0.0f)
@@ -222,8 +227,36 @@ template <class Polynomial_>
                                                                   cv::Mat & image,
                                                                   Scalar & max) const
     {
-      max = 0;
+//      max = 0;
       cv::Mat float_image(model.imageSize().y(), model.imageSize().x(), CV_32FC1);
+
+      Scalar sum = 0, sum2 = 0;
+
+      for (int y = 0; y < float_image.rows; ++y)
+      {
+        for (int x = 0; x < float_image.cols; ++x)
+        {
+          Scalar z_tmp = z;
+          model.undistort(x, y, z_tmp);
+          z_tmp -= z;
+          float_image.at<float>(y, x) = z_tmp;
+//          if (z_tmp > max or z_tmp < -max)
+//            max = std::fabs(z_tmp);
+
+          sum += std::abs(z_tmp);
+          sum2 += z_tmp * z_tmp;
+        }
+      }
+
+      Scalar ex = sum / (float_image.rows * float_image.cols);
+      Scalar ex2 = sum2 / (float_image.rows * float_image.cols);
+
+      Scalar sigma = std::sqrt(ex2 - ex * ex);
+      max = 3 * sigma;
+
+      sum = 0;
+      sum2 = 0;
+      int n = 0;
 
       for (int y = 0; y < float_image.rows; ++y)
       {
@@ -234,9 +267,19 @@ template <class Polynomial_>
           z_tmp -= z;
           float_image.at<float>(y, x) = z_tmp;
           if (z_tmp > max or z_tmp < -max)
-            max = std::fabs(z_tmp);
+            continue;
+
+          sum += std::abs(z_tmp);
+          sum2 += z_tmp * z_tmp;
+          ++n;
         }
       }
+
+      ex = sum / n;
+      ex2 = sum2 / n;
+
+      sigma = std::sqrt(ex2 - ex * ex);
+      max = 5 * sigma;
 
       toColorImage(float_image, image, max);
 

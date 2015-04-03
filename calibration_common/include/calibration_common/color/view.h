@@ -55,7 +55,7 @@ template <typename ColorSensorT_, typename ObjectT_>
 
     inline virtual Point computeCentroid() const
     {
-      return Base::points().container().rowwise().sum();
+      return Base::points().container().rowwise().mean();
     }
 
   };
