@@ -1,10 +1,10 @@
 # Calibration Toolkit
 
-The package was tested with **Ubuntu 14.04** an **ROS Indigo**.
+The package was tested with **Ubuntu 14.04** and **ROS Indigo**.
 
 ### Dependencies
 
-The package needs **Eigen 3.2+** to compile (not available in the repositories of Ubuntu 12.04).
+The package needs **Eigen 3.2+** to compile (not available in Ubuntu 12.04 repositories).
 
 ### License
 
