@@ -183,13 +183,13 @@ template <class Polynomial_>
           value = -1.0f;
 
         if (value > 0.5f)
-          image.at<cv::Vec3b>(y, x) = cv::Vec3b(char((1.0f - value) * 2 * 255), 0, 0);
+          image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, uchar((value - 0.5f) * 2 * 255), 0);
         else if (value > 0.0f)
-          image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, char((0.5f - value) * 2 * 255), char((0.5f - value) * 2 * 255));
+          image.at<cv::Vec3b>(y, x) = cv::Vec3b(255, uchar((0.5f - value) * 2 * 255), uchar((0.5f - value) * 2 * 255));
         else if (value > -0.5f)
-          image.at<cv::Vec3b>(y, x) = cv::Vec3b(char((0.5f + value) * 2 * 255), char((0.5f + value) * 2 * 255), 255);
+          image.at<cv::Vec3b>(y, x) = cv::Vec3b(uchar((0.5f + value) * 2 * 255), uchar((0.5f + value) * 2 * 255), 255);
         else
-          image.at<cv::Vec3b>(y, x) = cv::Vec3b(0, 0, char((1.0f + value) * 2 * 255));
+          image.at<cv::Vec3b>(y, x) = cv::Vec3b(0, uchar(-(0.5f + value) * 2 * 255), 255);
       }
     }
 
@@ -265,7 +265,6 @@ template <class Polynomial_>
           Scalar z_tmp = z;
           model.undistort(x, y, z_tmp);
           z_tmp -= z;
-          float_image.at<float>(y, x) = z_tmp;
           if (z_tmp > max or z_tmp < -max)
             continue;
 

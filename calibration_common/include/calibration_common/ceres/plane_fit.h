@@ -134,6 +134,8 @@ template <typename ScalarT_>
      */
     static typename T::Plane fit(const typename T::Cloud3 & points);
 
+    static typename T::Plane fit(const PCLCloud3 & cloud);
+
     /**
      * @brief robustFit
      * @param initial_plane

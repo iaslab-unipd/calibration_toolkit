@@ -68,6 +68,36 @@ template <typename ScalarT_>
   }
 
 template <typename ScalarT_>
+  typename Types<ScalarT_>::Plane PlaneFit<ScalarT_>::fit(const PCLCloud3 & cloud)
+  {
+    assert(cloud.size() > 1);
+
+    Types<float>::Point3 centroid = Types<float>::Point3::Zero();
+    Types<float>::Cloud3::Container diff(3, cloud.size());
+
+    Eigen::Map<const Eigen::MatrixXf, Eigen::Aligned, Eigen::OuterStride<> > map = cloud.getMatrixXfMap(3, 4, 0);
+
+    Size1 count = 0;
+    for (Size1 i = 0; i < cloud.size(); ++i)
+    {
+      if (pcl::isFinite(cloud.points[i]))
+      {
+        diff.col(count) = map.row(i).transpose();
+        centroid += diff.col(count++);
+      }
+    }
+    centroid /= count;
+    diff.conservativeResize(3, count);
+    diff.colwise() -= centroid;
+
+    Eigen::Matrix<float, 3, 3> covariance_matrix = diff * diff.transpose() / ScalarT_(count - 1);
+    Eigen::SelfAdjointEigenSolver<Eigen::Matrix3f> solver(covariance_matrix, Eigen::ComputeEigenvectors);
+
+    Types<float>::Point3 eigen_vector = solver.eigenvectors().col(0);
+    return typename Types<ScalarT_>::Plane(eigen_vector.template cast<ScalarT_>(), -eigen_vector.dot(centroid));
+  }
+
+template <typename ScalarT_>
   typename Types<ScalarT_>::Plane PlaneFit<ScalarT_>::robustFit(const typename Types<ScalarT_>::Plane & initial_plane,
                                                                 const typename Types<ScalarT_>::Cloud3 & points,
                                                                 ScalarT_ scale)

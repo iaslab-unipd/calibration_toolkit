@@ -302,7 +302,7 @@ template <typename PolynomialT_>
 
           for (Size1 i = 0; i < 2; ++i)
             for (Size1 j = 0; j < 2; ++j)
-              if (weight(0, i) * weight(1, j) > 0)
+              //if (weight(0, i) * weight(1, j) > 0)
                 lt_data.push_back(LookupTableData(Size2(bin(0, i), bin(1, j)), weight(0, i) * weight(1, j)));
 
         }

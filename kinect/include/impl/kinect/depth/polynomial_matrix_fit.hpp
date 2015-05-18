@@ -145,7 +145,7 @@ template <typename PolynomialT_>
         weight += acc_data.weight_;
 
       }
-      if (acc_vec.size() > 0)
+      if (acc_vec.size() > 0 and weight > 0)
       {
         x /= weight;
         y /= weight;
