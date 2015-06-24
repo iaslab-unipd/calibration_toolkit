@@ -71,7 +71,7 @@ ROSDepthSensor::ROSDepthSensor (const ros::NodeHandle & node_handle)
 void
 ROSDepthSensor::subscribe (int topic)
 {
-  if (topic & Topic::IMAGE and topic & Topic::CAMERA_INFO)
+  if ((topic & Topic::IMAGE) and (topic & Topic::CAMERA_INFO))
   {
     image_sub_ = image_transport_.subscribeCamera("image", 1, &ROSDepthSensor::imageCallback, this);
     ROS_DEBUG_STREAM(log_ << "Subscribed to [" << image_sub_.getTopic() << "] topic.");
