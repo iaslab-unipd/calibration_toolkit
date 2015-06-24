@@ -262,8 +262,8 @@ template <int R_, int t_>
 
     OnPlaneDepthError_ (const std::shared_ptr<const Checkerboard> & checkerboard,
                         const std::shared_ptr<const PlanarObject> & plane,
-                        const std::shared_ptr<const PinholeSensor> & sensor,
-                        const std::shared_ptr<const IntensityData> & data)
+                        const std::shared_ptr<const DepthSensor> & sensor,
+                        const std::shared_ptr<const DepthData> & data)
       : DepthError_<R_, t_>(checkerboard, sensor, data),
         plane_(plane)
     {
@@ -285,8 +285,8 @@ template <int R_, int t_>
         Cloud3_<T> corners = checkerboard_->corners().template cast<T>();
         corners.transform(sensor_pose.inverse() * plane_pose * checkerboard_transform);
 
-        Plane3_<T> depth_plane = data_->plane.cast<T>();
-        PolynomialX_<T> error = sensor_->error().cast<T>();
+        Plane3_<T> depth_plane = data_->plane.template cast<T>();
+        PolynomialX_<T> error = sensor_->error().template cast<T>();
 
         Eigen::Map<typename Cloud3_<T>::Container> residuals_map(residuals, 3, corners.elements());
         for (Size1 i = 0; i < corners.elements(); ++i)
