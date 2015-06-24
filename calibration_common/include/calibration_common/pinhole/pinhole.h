@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,11 +26,11 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_PINHOLE_PINHOLE_H_
-#define CALIBRATION_COMMON_PINHOLE_PINHOLE_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_PINHOLE_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_PINHOLE_H_
 
 #include "camera_model.h"
 #include "sensor.h"
 #include "view.h"
 
-#endif /* CALIBRATION_COMMON_PINHOLE_PINHOLE_H_ */
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_PINHOLE_H_

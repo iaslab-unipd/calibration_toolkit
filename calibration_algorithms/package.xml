@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>calibration_algorithms</name>
+  <version>1.0.0</version>
+  <description>
+    The calibration_algorithms package
+  </description>
+  <maintainer email="bassofil@gmail.com">Filippo Basso</maintainer>
+  <license>BSD</license>
+  <!-- <url type="website">http://wiki.ros.org/calibration_algorithms</url> -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>calibration_common</depend>
+  <depend>calibration_pcl</depend>
+
+  <export>
+  </export>
+
+</package>

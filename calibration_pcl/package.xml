@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<package format="2">
+
+  <name>calibration_pcl</name>
+  <version>1.0.0</version>
+  <description>
+    The calibration_pcl package
+  </description>
+  <maintainer email="bassofil@gmail.com">Filippo Basso</maintainer>
+  <license>BSD</license>
+  <!-- <url type="website">http://wiki.ros.org/calibration_pcl</url> -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>calibration_common</depend>
+
+  <depend>boost</depend>
+
+  <build_export_depend>libpcl-all-dev</build_export_depend>
+  <exec_depend>libpcl-all</exec_depend>
+
+  <export>
+  </export>
+
+</package>

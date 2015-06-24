@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,55 +26,130 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_DEPTH_SENSOR_H_
-#define CALIBRATION_COMMON_DEPTH_SENSOR_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_DEPTH_SENSOR_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_DEPTH_SENSOR_H_
 
-#include <boost/make_shared.hpp>
-#include <calibration_common/base/math.h>
-#include <calibration_common/depth/undistortion_model.h>
 #include <calibration_common/objects/sensor.h>
-#include <calibration_common/depth/traits.h>
+#include <calibration_common/base/polynomial.h>
+#include <calibration_common/pinhole/camera_model.h>
 
-namespace calibration
+namespace unipd
+{
+namespace calib
 {
 
-/**
- * @brief The DepthSensor class
- */
+class DepthSensor;
+class PinholeDepthSensor;
+
+template <>
+struct SensorTraits<DepthSensor>
+{
+  using Polynomial = PolynomialX_<Scalar>;
+};
+
+template <>
+struct SensorTraits<PinholeDepthSensor> : public SensorTraits<DepthSensor>
+{
+  using CameraModel = PinholeCameraModel;
+  using Polynomial = SensorTraits<DepthSensor>::Polynomial;
+};
+
 class DepthSensor : public Sensor
 {
 public:
 
-  typedef boost::shared_ptr<DepthSensor> Ptr;
-  typedef boost::shared_ptr<const DepthSensor> ConstPtr;
+  DepthSensor () = default;
 
-  DepthSensor()
-    : depth_error_function_(Vector3(0.05, 0.0, 0.0)) // Vector3(0.0, 0.0, 0.0035) - Vector3(0.02, 0.0, 0.0)
+  DepthSensor (const DepthSensor & other) = default;
+
+  DepthSensor (DepthSensor && other) = default;
+
+  DepthSensor & operator = (const DepthSensor & other) = default;
+
+  DepthSensor & operator = (DepthSensor && other) = default;
+
+  using Sensor::Sensor;
+
+  explicit
+  DepthSensor (const PolynomialX_<Scalar> & error_polynomial)
+    : error_polynomial_(error_polynomial)
   {
     // Do nothing
   }
 
-  DepthSensor(const Vector3 & error_function_coefficients)
-    : depth_error_function_(error_function_coefficients)
+  const PolynomialX_<Scalar> &
+  error () const
   {
-    // Do nothing
+    return error_polynomial_;
   }
 
-  const Polynomial<Scalar, 2> & depthErrorFunction() const
+  void
+  setError (const PolynomialX_<Scalar> & error_polynomial)
   {
-    return depth_error_function_;
+    error_polynomial_ = error_polynomial;
   }
 
-  void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
+  void
+  setError (const PolynomialX_<Scalar> & error_polynomial,
+            const std::vector<Scalar> & coefficients)
   {
-    depth_error_function_ = depth_error_function;
+    assert(error_polynomial.size() == coefficients.size());
+    error_polynomial_ = error_polynomial;
+    error_polynomial_.setCoefficients(PolynomialX_<Scalar>::Coefficients::Map(coefficients.data(), coefficients.size()));
+  }
+
+  Scalar
+  estimateError (const Scalar & x)
+  {
+    return error_polynomial_.evaluate(x);
   }
 
 private:
 
-  Polynomial<Scalar, 2> depth_error_function_;
+  PolynomialX_<Scalar> error_polynomial_;
 
 };
 
-} /* namespace calibration */
-#endif /* CALIBRATION_COMMON_SENSOR_H_ */
+class PinholeDepthSensor : public DepthSensor
+{
+public:
+
+  PinholeDepthSensor () = default;
+
+  PinholeDepthSensor (const PinholeDepthSensor & other) = default;
+
+  PinholeDepthSensor (PinholeDepthSensor && other) = default;
+
+  PinholeDepthSensor & operator = (const PinholeDepthSensor & other) = default;
+
+  PinholeDepthSensor & operator = (PinholeDepthSensor && other) = default;
+
+  using DepthSensor::DepthSensor;
+
+  const PinholeCameraModel &
+  cameraModel () const
+  {
+    return camera_model_;
+  }
+
+  void
+  setCameraModel (const PinholeCameraModel & camera_model)
+  {
+    camera_model_ = camera_model;
+  }
+
+  void
+  setCameraModel (PinholeCameraModel && camera_model)
+  {
+    camera_model_ = camera_model;
+  }
+
+private:
+
+  PinholeCameraModel camera_model_;
+
+};
+
+} // namespace calib
+} // namespace unipd
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_DEPTH_SENSOR_H_

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,117 +26,186 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef IMPL_CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_HPP_
-#define IMPL_CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_HPP_
+#ifndef IMPL_UNIPD_CALIBRATION_CALIBRATON_COMMON_PINHOLE_CAMERA_MODEL_HPP_
+#define IMPL_UNIPD_CALIBRATION_CALIBRATON_COMMON_PINHOLE_CAMERA_MODEL_HPP_
 
 #include <calibration_common/pinhole/camera_model.h>
-#include <calibration_common/base/opencv_conversion.h>
+#include <calibration_common/base/opencv_eigen_conversions.h>
+#include <calibration_common/base/polynomial.h>
 
-namespace calibration
+namespace unipd
+{
+namespace calib
 {
 
-template <typename Scalar>
-  typename Types<Scalar>::Point3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const
+template <typename ScalarT_>
+  Point3_<ScalarT_>
+  PinholeCameraModel::projectPixelTo3dRay (const Point2_<ScalarT_> & pixel_point) const
   {
     assert(initialized());
 
-    typename Types<Scalar>::Point3 ray;
-    ray[0] = Scalar((pixel_point[0] - cx() - Tx()) / fx());
-    ray[1] = Scalar((pixel_point[1] - cy() - Ty()) / fy());
-    ray[2] = Scalar(1.0);
-    ray.normalize();
+    Point3_<ScalarT_> ray;
+    ray.template head<2>() = f_inv_.template cast<ScalarT_>().asDiagonal() * (pixel_point - (c_ + T_).template cast<ScalarT_>());
+    ray[2] = ScalarT_(1.0);
 
-    return ray;
+    return ray.normalized();
   }
 
-template <typename Scalar>
-  typename Types<Scalar>::Point2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const
+template <typename ScalarT_>
+  Point2_<ScalarT_>
+  PinholeCameraModel::project3dToPixel (const Point3_<ScalarT_> & world_point) const
   {
     assert(initialized());
     assert(P_(2, 3) == 0.0);
 
-    typename Types<Scalar>::Point2 uv_rect;
-    uv_rect[0] = Scalar((fx() * world_point[0] + Tx()) / world_point[2] + cx());
-    uv_rect[1] = Scalar((fy() * world_point[1] + Ty()) / world_point[2] + cy());
-
-    return uv_rect;
+    Point2_<ScalarT_> pixel_point = f_.template cast<ScalarT_>().asDiagonal() * world_point.template head<2>() + T_.template cast<ScalarT_>();
+    return pixel_point / world_point[2] + c_.template cast<ScalarT_>();
   }
 
-template <typename Scalar>
-  void PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
-                                               typename Types<Scalar>::Cloud3 & world_points) const
+template <typename ScalarT_>
+  void
+  PinholeCameraModel::projectPixelTo3dRay (const Cloud2_<ScalarT_> & pixel_points,
+                                           Cloud3_<ScalarT_> & world_points) const
   {
     assert(initialized());
-    assert(((pixel_points.size() == world_points.size()).all()));
+    assert(pixel_points.size() == world_points.size());
 
-    Eigen::Array<Scalar, 2, 1> sub(Scalar(-cx() - Tx()), Scalar(-cy() - Ty()));
-    Eigen::Array<Scalar, 2, 1> div(Scalar(fx()), Scalar(fy()));
-
-    world_points.container().template topRows<2>() = (pixel_points.container().array().colwise() + sub).colwise() / div;
-    world_points.container().template bottomRows<1>().setOnes();
-    world_points.container().array().rowwise() /= world_points.container().colwise().norm().array();
+    world_points.container().setOnes();
+    world_points.container().template topRows<2>() = f_inv_.template cast<ScalarT_>().asDiagonal() * (pixel_points.container().colwise() - (c_ + T_).template cast<ScalarT_>());
+    world_points.container().colwise().normalize();
   }
 
-template <typename Scalar>
-  inline typename Types<Scalar>::Cloud3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const
+template <typename ScalarT_>
+  inline Cloud3_<ScalarT_>
+  PinholeCameraModel::projectPixelTo3dRay (const Cloud2_<ScalarT_> & pixel_points) const
   {
-    typename Types<Scalar>::Cloud3 world_points(pixel_points.xSize(), pixel_points.ySize());
-    projectPixelTo3dRay<Scalar>(pixel_points, world_points);
+    Cloud3_<ScalarT_> world_points(pixel_points.size());
+    projectPixelTo3dRay<ScalarT_>(pixel_points, world_points);
     return world_points;
   }
 
-template <typename Scalar>
-  void PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
-                                            typename Types<Scalar>::Cloud2 & pixel_points) const
+template <typename ScalarT_>
+  void
+  PinholeCameraModel::project3dToPixel (const Cloud3_<ScalarT_> & world_points,
+                                        Cloud2_<ScalarT_> & pixel_points) const
   {
     assert(initialized());
     assert(P_(2, 3) == 0.0);
-    assert((pixel_points.size() == world_points.size()).all());
+    assert(pixel_points.size() == world_points.size());
 
-    Eigen::Array<double, 2, 1> prod(fx(), fy());
-    Types<double>::Point2 sum(Tx(), Ty());
-    Types<double>::Point2 sum_final(cx(), cy());
+    Eigen::Matrix<ScalarT_, 2, Eigen::Dynamic> tmp = world_points.container().template topRows<2>();
 
-    pixel_points.container() = world_points.container().template topRows<2>();
-    pixel_points.container().array().colwise() *= prod.template cast<Scalar>();
-    pixel_points.container().colwise() += sum.template cast<Scalar>();
+    pixel_points.container() = f_.template cast<ScalarT_>().asDiagonal() * tmp;
+    pixel_points.container().colwise() += T_.template cast<ScalarT_>();
     pixel_points.container().array().rowwise() /= world_points.container().array().template bottomRows<1>();
-    pixel_points.container().colwise() += sum_final.template cast<Scalar>();
+    pixel_points.container().colwise() += c_.template cast<ScalarT_>();
   }
 
-template <typename Scalar>
-  inline typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const
+template <typename ScalarT_>
+  inline Cloud2_<ScalarT_>
+  PinholeCameraModel::project3dToPixel (const Cloud3_<ScalarT_> & world_points) const
   {
-    typename Types<Scalar>::Cloud2 pixel_points(world_points.size());
-    project3dToPixel<Scalar>(world_points, pixel_points);
+    Cloud2_<ScalarT_> pixel_points(world_points.size());
+    project3dToPixel<ScalarT_>(world_points, pixel_points);
     return pixel_points;
   }
 
-template <typename Scalar>
-  typename Types<Scalar>::Pose PinholeCameraModel::estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
-                                                                const typename Types<Scalar>::Cloud3 & points_object) const
+template <typename ScalarT_>
+  Point2_<ScalarT_>
+  PinholeCameraModel::distortPoint (const Point2_<ScalarT_> & pixel_point) const
   {
-    assert((points_image.size() == points_object.size()).all());
+    Point2_<ScalarT_> xy = f_inv_.template cast<ScalarT_>().asDiagonal() * (pixel_point - (c_ + T_).template cast<ScalarT_>());
 
-    cv::Mat_<cv::Vec<Scalar, 2> > cv_points_image;
-    cv::Mat_<cv::Vec<Scalar, 3> > cv_points_object;
-    OpenCVConversion<Scalar>::toOpenCV(points_image.container(), cv_points_image);
-    OpenCVConversion<Scalar>::toOpenCV(points_object.container(), cv_points_object);
+    Point3_<ScalarT_> XYZ = R_.transpose().template cast<ScalarT_>() * xy.homogeneous();
+    Point2_<ScalarT_> xyp = XYZ.hnormalized().template head<2>();
 
-    cv::Vec<Scalar, 3> cv_r, cv_t;
-    cv::solvePnP(cv_points_object, cv_points_image, intrinsicMatrix(), distortionCoeffs(), cv_r, cv_t);
+    Point2_<ScalarT_> xyp2 = xyp.cwiseAbs2();
+    Point3_<ScalarT_> r;
+    r[0] = xyp2.sum();
+    r[1] = r[0] * r[0];
+    r[2] = r[1] * r[0];
 
-    Vector3 r;
-    r << cv_r[0], cv_r[1], cv_r[2];
-    Vector3 t;
-    t << cv_t[0], cv_t[1], cv_t[2];
+    ScalarT_ barrel_correction = ScalarT_(1.0) + k_.template head<3>() * r;
+    if (Base::D_.cols == 8)
+      barrel_correction /= ScalarT_(1.0) + k_.template tail<3>() * r;
 
-    AngleAxis rotation(r.norm(), r.normalized());
-    Translation3 translation(t);
+    Eigen::Matrix<ScalarT_, 2, 2> a;
+    a(0, 0) = a(1, 1) = 2 * xyp.prod();
+    a(0, 1) = r[0] + 2 * xyp2[0];
+    a(1, 0) = r[0] + 2 * xyp2[1];
 
-    return translation * rotation;
+    Point2_<ScalarT_> xypp = xyp * barrel_correction + a * p_.template cast<ScalarT_>();
+    return Point2_<ScalarT_>(f_.template cast<ScalarT_>().asDiagonal() * xypp + c_.template cast<ScalarT_>());
   }
 
-} /* namespace calibration */
+template <typename ScalarT_>
+  Cloud2_<ScalarT_>
+  PinholeCameraModel::distortPoints (const Cloud2_<ScalarT_> & pixel_points) const
+  {
+    using Matrix1X = Eigen::Matrix<ScalarT_, 1, Eigen::Dynamic>;
+    using Matrix2X = Eigen::Matrix<ScalarT_, 2, Eigen::Dynamic>;
+    using Matrix3X = Eigen::Matrix<ScalarT_, 3, Eigen::Dynamic>;
 
-#endif /* IMPL_CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_HPP_ */
+    Matrix2X xy = f_inv_.template cast<ScalarT_>().asDiagonal()
+                  * (pixel_points.container().colwise() - (c_ + T_).template cast<ScalarT_>());
+
+    Matrix3X XYZ = R_.transpose().template cast<ScalarT_>() * xy.colwise().homogeneous();
+    Matrix2X xyp = (XYZ.array().rowwise() / XYZ.array().row(2)).template topRows<2>();
+
+    Matrix2X xyp2 = xyp.cwiseAbs2();
+    Matrix3X r(3, xyp.cols());
+    r.row(0) = xyp2.colwise().sum();
+    r.row(1) = r.row(0).cwiseProduct(r.row(0));
+    r.row(2) = r.row(1).cwiseProduct(r.row(0));
+
+    Matrix1X barrel_correction = (k_.template head<3>().template cast<ScalarT_>() * r).array() + ScalarT_(1.0);
+    if (Base::D_.cols == 8)
+      barrel_correction.array() /= (k_.template tail<3>().template cast<ScalarT_>() * r).array() + ScalarT_(1.0);
+
+    Matrix2X a1(2, xyp.cols());
+    a1.row(0) = ScalarT_(2) * xyp.colwise().prod();
+    a1.row(1) = r.row(0) + ScalarT_(2) * xyp2.row(1);
+
+    Matrix2X a2(2, xyp.cols());
+    a2.row(0) = r.row(0) + ScalarT_(2) * xyp2.row(0);
+    a2.row(1) = a1.row(0);
+
+    Matrix2X xypp = (xyp.array().rowwise() * barrel_correction.array()).matrix()
+                    + a1 * static_cast<ScalarT_>(p_.x()) + a2 * static_cast<ScalarT_>(p_.y());
+
+    Cloud2_<ScalarT_> dist_points(pixel_points.size());
+    dist_points.container() = (f_.template cast<ScalarT_>().asDiagonal() * xypp).colwise() + c_.template cast<ScalarT_>();
+
+    return dist_points;
+  }
+
+
+template <typename ScalarT_>
+  Pose3_<ScalarT_>
+  PinholeCameraModel::estimatePose (const Cloud2_<ScalarT_> & points_image,
+                                    const Cloud3_<ScalarT_> & points_object) const
+  {
+    assert(points_image.size() == points_object.size());
+
+    cv::Mat_<cv::Vec<ScalarT_, 2> > cv_points_image = eigen2opencv(points_image.container());
+    cv::Mat_<cv::Vec<ScalarT_, 3> > cv_points_object = eigen2opencv(points_object.container());
+
+    cv::Vec<ScalarT_, 3> cv_r, cv_t;
+    cv::solvePnP(cv_points_object, cv_points_image, intrinsicMatrix(), distortionCoeffs(), cv_r, cv_t);
+
+    Vector3_<ScalarT_> r(cv_r[0], cv_r[1], cv_r[2]);
+    Vector3_<ScalarT_> t(cv_t[0], cv_t[1], cv_t[2]);
+
+    Vector3_<ScalarT_> r_normalized = r.normalized();
+    AngleAxis_<ScalarT_> rotation(r.norm(), r_normalized);
+    Translation3_<ScalarT_> translation(t);
+
+    if (r_normalized.allFinite())
+      return translation * rotation;
+    else
+      return Pose3_<ScalarT_>(translation);
+  }
+
+} // namespace calib
+} // namespace unipd
+#endif // IMPL_UNIPD_CALIBRATION_CALIBRATON_COMMON_PINHOLE_CAMERA_MODEL_HPP_

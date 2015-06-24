@@ -1,0 +1,19 @@
+uint8 INTENSITY=1
+uint8 DEPTH=2
+uint8 ALL=3
+
+uint8 requested_types
+
+---
+
+uint8 UNDEFINED=0
+uint8 INTENSITY=1
+uint8 DEPTH=2
+
+uint8[]                          sensor_types
+sensor_msgs/CameraInfo[]         camera_infos
+Polynomial[]                     error_polynomials
+
+geometry_msgs/TransformStamped[] initial_transforms
+geometry_msgs/TransformStamped[] fixed_transforms
+

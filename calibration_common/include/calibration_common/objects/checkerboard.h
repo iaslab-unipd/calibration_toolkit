@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,283 +26,188 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_OBJECTS_CHECKERBOARD_H_
-#define CALIBRATION_COMMON_OBJECTS_CHECKERBOARD_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_CHECKERBOARD_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_CHECKERBOARD_H_
 
+#include <calibration_common/base/eigen_cloud.h>
 #include <calibration_common/objects/planar_object.h>
-#include <calibration_common/color/view.h>
+#include <calibration_common/objects/with_points.h>
+#include <calibration_common/pinhole/view.h>
 
-namespace calibration
+namespace unipd
+{
+namespace calib
 {
 
-/**
- * @brief The Checkerboard class
- */
-class Checkerboard : public PlanarObject
+class Checkerboard : public PlanarObject,
+                     public WithPoints
 {
 public:
 
-  typedef boost::shared_ptr<Checkerboard> Ptr;
-  typedef boost::shared_ptr<const Checkerboard> ConstPtr;
+  Checkerboard (const Checkerboard & other) = default;
 
-  typedef Cloud3::Element Element;
-  typedef Cloud3::ConstElement ConstElement;
+  Checkerboard (Checkerboard && other) = default;
 
-  /**
-   * @brief Checkerboard
-   * @param cols
-   * @param rows
-   * @param cell_width
-   * @param cell_height
-   */
-  Checkerboard(Size1 cols,
-               Size1 rows,
-               Scalar cell_width,
-               Scalar cell_height)
-    : PlanarObject(),
-      corners_(Size2(cols, rows)),
+  Checkerboard & operator = (const Checkerboard & other) = default;
+
+  Checkerboard & operator = (Checkerboard && other) = default;
+
+  Checkerboard (Size1 cols,
+                Size1 rows,
+                Scalar cell_width,
+                Scalar cell_height)
+    : PlanarObject(Plane3(Vector3::UnitZ(), 0)),
+      corners_(Size2{cols, rows}),
+      external_corners_(Size2{2, 2}),
       cell_width_(cell_width),
       cell_height_(cell_height)
   {
-    assert(cols > 0);
-    assert(rows > 0);
-    assert(cell_width > 0);
-    assert(cell_height > 0);
-    for (Size1 r = 0; r < rows; ++r)
-      for (Size1 c = 0; c < cols; ++c)
-        corners_(c, r) << c * cell_width, r * cell_height, Scalar(0);
+    assert(cell_width > 0.0);
+    assert(cell_height > 0.0);
+    resetCorners();
   }
 
-  /**
-   * @brief Checkerboard
-   * @param view
-   */
-  template <typename ColorSensor>
-    Checkerboard(const ColorView<ColorSensor, Checkerboard> & view)
-      : PlanarObject(),
-        corners_(view.object()->corners()),
-        cell_width_(view.object()->cellWidth()),
-        cell_height_(view.object()->cellHeight())
+  Checkerboard (const std::string & frame_id,
+                Size1 cols,
+                Size1 rows,
+                Scalar cell_width,
+                Scalar cell_height)
+    : Checkerboard(cols, rows, cell_width, cell_height)
+  {
+    setFrameId(frame_id);
+  }
 
-    {
-      setParent(view.sensor());
-      setPlane(view.object()->plane());
+  Checkerboard (const PinholePointsView<Checkerboard> & view)
+    : Checkerboard(*view.object())
+  {
+    setParent(view.sensor());
 
-      std::stringstream ss;
-      ss << view.object()->frameId() << "_" << view.id();
-      setFrameId(ss.str());
+    std::stringstream ss;
+    ss << view.object()->frameId() << "_" << view.id();
+    setFrameId(ss.str());
 
-      transform(view.sensor()->cameraModel()->estimatePose(view.points(), view.object()->corners()));
-    }
+    transform(view.sensor()->cameraModel().estimatePose(view.points(), view.object()->corners()));
+  }
 
-  /**
-   * @brief ~Checkerboard
-   */
-  virtual ~Checkerboard()
+  virtual
+  ~Checkerboard ()
   {
     // Do nothing
   }
 
-  /**
-   * @brief transform
-   * @param transform
-   */
-  inline virtual void transform(const Transform & transform)
+  virtual void
+  reset () override
+  {
+    PlanarObject::reset();
+    resetCorners();
+  }
+
+  virtual void
+  setPose (const Pose3 & pose) override
+  {
+    PlanarObject::setPose(pose);
+    resetCorners();
+    corners_.transform(pose);
+    external_corners_.transform(pose);
+  }
+
+  virtual void
+  transform (const Transform3 & transform) override
   {
     PlanarObject::transform(transform);
     corners_.transform(transform);
+    external_corners_.transform(transform);
   }
 
-  /**
-   * @brief points
-   * @return
-   */
-  inline virtual const Cloud3 & points() const
+  const Cloud3 &
+  corners() const
   {
-    return corners();
+    return corners_;
   }
 
-  /**
-   * @brief center
-   * @return
-   */
-  inline Point3 center() const
+  virtual const Cloud3 &
+  points() const override
+  {
+    return corners_;
+  }
+
+  const Cloud3 &
+  externalCorners() const
+  {
+    return external_corners_;
+  }
+
+  Point3
+  center () const
   {
     return Point3((corners_(0, 0) + corners_(cols() - 1, rows() - 1)) / 2);
   }
 
-  /**
-   * @brief corners
-   * @return
-   */
-  inline Cloud3 & corners()
+  Size1
+  rows() const
   {
-    return corners_;
+    return corners_.size().y;
   }
 
-  /**
-   * @brief corners
-   * @return
-   */
-  inline const Cloud3 & corners() const
+  Size1
+  cols() const
   {
-    return corners_;
+    return corners_.size().x;
   }
 
-  /**
-   * @brief size
-   * @return
-   */
-  inline Size1 size() const
-  {
-    return corners_.elements();
-  }
-
-  /**
-   * @brief rows
-   * @return
-   */
-  inline Size1 rows() const
-  {
-    return corners_.size().y();
-  }
-
-  /**
-   * @brief cols
-   * @return
-   */
-  inline Size1 cols() const
-  {
-    return corners_.size().x();
-  }
-
-  /**
-   * @brief cellWidth
-   * @return
-   */
-  inline Scalar cellWidth() const
+  Scalar
+  cellWidth () const
   {
     return cell_width_;
   }
 
-  /**
-   * @brief cellHeight
-   * @return
-   */
-  inline Scalar cellHeight() const
+  Scalar
+  cellHeight () const
   {
     return cell_height_;
   }
 
-  /**
-   * @brief area
-   * @return
-   */
-  inline Scalar area() const
+  Scalar
+  area () const
   {
     return width() * height();
   }
 
-  /**
-   * @brief width
-   * @return
-   */
-  inline Scalar width() const
+  Scalar
+  width () const
   {
     return cellWidth() * (cols() + 1);
   }
 
-  /**
-   * @brief height
-   * @return
-   */
-  inline Scalar height() const
+  Scalar
+  height () const
   {
     return cellHeight() * (rows() + 1);
   }
 
-  /**
-   * @brief operator []
-   * @param index
-   * @return
-   */
-  inline Element operator [](Size1 index)
-  {
-    return corners_[index];
-  }
-
-  /**
-   * @brief operator []
-   * @param index
-   * @return
-   */
-  inline const ConstElement operator [](Size1 index) const
-  {
-    return corners_[index];
-  }
-
-  /**
-   * @brief at
-   * @param col
-   * @param row
-   * @return
-   */
-  inline const ConstElement at(Size1 col,
-                               Size1 row) const
-  {
-    return corners_.at(Size2(col, row));
-  }
-
-  /**
-   * @brief at
-   * @param col
-   * @param row
-   * @return
-   */
-  inline Element at(Size1 col,
-                    Size1 row)
-  {
-    return corners_.at(Size2(col, row));
-  }
-
-  /**
-   * @brief operator ()
-   * @param col
-   * @param row
-   * @return
-   */
-  inline const ConstElement operator ()(Size1 col,
-                                        Size1 row) const
-  {
-    return corners_(Size2(col, row));
-  }
-
-  /**
-   * @brief operator ()
-   * @param col
-   * @param row
-   * @return
-   */
-  inline Element operator ()(Size1 col,
-                             Size1 row)
-  {
-    return corners_(Size2(col, row));
-  }
-
-  /**
-   * @brief toMarker
-   * @param marker
-   */
-  void toMarker(visualization_msgs::Marker & marker) const;
-
 private:
+
+  void
+  resetCorners ()
+  {
+    for (Size1 y = 0; y < corners_.size().y; ++y)
+      for (Size1 x = 0; x < corners_.size().x; ++x)
+        corners_(x, y) << x * cell_width_, y * cell_height_, Scalar(0);
+
+    external_corners_(0, 0) << -cell_width_, -cell_height_, Scalar(0);
+    external_corners_(0, 1) << -cell_width_, corners_.size().y * cell_height_, Scalar(0);
+    external_corners_(1, 0) << corners_.size().x * cell_width_, -cell_height_, Scalar(0);
+    external_corners_(1, 1) << corners_.size().x * cell_width_, corners_.size().y * cell_height_, Scalar(0);
+  }
 
   Scalar cell_width_;
   Scalar cell_height_;
 
   Cloud3 corners_;
-
+  Cloud3 external_corners_;
+  
 };
 
-} /* namespace calibration */
-#endif /* CALIBRATION_COMMON_OBJECTS_CHECKERBOARD_H_ */
+} // namespace calib
+} // namespace unipd
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_CHECKERBOARD_H_

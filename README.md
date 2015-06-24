@@ -9,7 +9,7 @@ The package needs **Eigen 3.2+** to compile (not available in Ubuntu 12.04 repos
 ### License
 
 ```
-Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+Copyright (c) 2013-, Filippo Basso <bassofil@gmail.com>
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

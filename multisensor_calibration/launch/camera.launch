@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="debug"         default="false" />
+  <arg name="launch-prefix" value="gdb -ex run --args" if="$(arg debug)" />
+  <arg name="launch-prefix" value="" unless="$(arg debug)" />
+
+  <arg name="pc_name"       default="$(env ROS_PC_NAME)" />
+  <arg name="camera_name"   default="camera" />
+  <arg name="image_topic" />
+  <arg name="camera_info_topic" />
+  
+  <group ns="$(arg pc_name)">
+    
+    <node launch-prefix="$(arg launch-prefix)" pkg="multisensor_calibration" type="device_node" 
+          name="$(arg camera_name)_node" output="screen">
+      
+      <rosparam param="device" subst_value="true">
+        name: "$(arg camera_name)"
+        sensors: 
+          intensity: [rgb]
+          depth: []
+        rgb:
+          frame_id: "/$(arg pc_name)/$(arg camera_name)/rgb"
+      </rosparam>
+      
+      <remap from="~device/rgb/image"       to="$(arg image_topic)" />
+      <remap from="~device/rgb/camera_info" to="$(arg camera_info_topic)" />
+      
+    </node>
+  
+  </group>
+
+</launch>

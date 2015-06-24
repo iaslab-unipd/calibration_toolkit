@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,82 +26,73 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_PINHOLE_SENSOR_H_
-#define CALIBRATION_COMMON_PINHOLE_SENSOR_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_SENSOR_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_SENSOR_H_
 
-#include <calibration_common/color/sensor.h>
+#include <calibration_common/objects/sensor.h>
 #include <calibration_common/pinhole/camera_model.h>
 
-namespace calibration
+namespace unipd
+{
+namespace calib
 {
 
-/**
- * @brief The PinholeSensor class
- */
-class PinholeSensor : public ColorSensor
+class PinholeSensor;
+
+template <>
+struct SensorTraits<PinholeSensor>
+{
+  using CameraModel = PinholeCameraModel;
+};
+
+class PinholeSensor : public Sensor
 {
 public:
 
-  typedef boost::shared_ptr<PinholeSensor> Ptr;
-  typedef boost::shared_ptr<const PinholeSensor> ConstPtr;
+  PinholeSensor () = default;
 
-  /**
-   * @brief PinholeSensor
-   */
-  PinholeSensor()
-    : ColorSensor()
-  {
-    // Do nothing
-  }
+  PinholeSensor (const PinholeSensor & other) = default;
 
-  /**
-   * @brief cameraModel
-   * @return
-   */
-  inline const PinholeCameraModel::ConstPtr & cameraModel() const
+  PinholeSensor (PinholeSensor && other) = default;
+
+  PinholeSensor & operator = (const PinholeSensor & other) = default;
+
+  PinholeSensor & operator = (PinholeSensor && other) = default;
+
+  using Sensor::Sensor;
+
+  const PinholeCameraModel &
+  cameraModel () const
   {
     return camera_model_;
   }
 
-  /**
-   * @brief setCameraModel
-   * @param camera_model
-   */
-  inline void setCameraModel(const PinholeCameraModel::ConstPtr & camera_model)
+  void
+  setCameraModel (const PinholeCameraModel & camera_model)
   {
     camera_model_ = camera_model;
   }
 
-  /**
-   * @brief estimatePose
-   * @param points_image
-   * @param points_object
-   * @return
-   */
-  inline Pose estimatePose(const Cloud2 & points_image,
-                           const Cloud3 & points_object) const
+  void
+  setCameraModel (PinholeCameraModel && camera_model)
   {
-    return camera_model_->estimatePose(points_image, points_object);
+    camera_model_ = camera_model;
   }
 
-  /**
-   * @brief estimatePose
-   * @param points_image
-   * @param points_object
-   * @return
-   */
   template <typename ScalarT_>
-    inline typename Types<ScalarT_>::Pose estimatePose(const typename Types<ScalarT_>::Cloud2 & points_image,
-                                                const typename Types<ScalarT_>::Cloud3 & points_object) const
+    inline Pose3_<ScalarT_>
+    estimatePose (const Cloud2_<ScalarT_> & points_image,
+                  const Cloud3_<ScalarT_> & points_object) const
     {
-      return camera_model_->estimatePose(points_image, points_object);
+      return camera_model_.estimatePose(points_image, points_object);
     }
 
 private:
 
-  typename PinholeCameraModel::ConstPtr camera_model_;
+  PinholeCameraModel camera_model_;
 
 };
 
-} /* namespace calibration */
-#endif /* CALIBRATION_COMMON_PINHOLE_SENSOR_H_ */
+} // namespace calib
+} // namespace unipd
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_SENSOR_H_

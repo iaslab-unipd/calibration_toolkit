@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,13 +26,12 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_BASE_BASE_H_
-#define CALIBRATION_COMMON_BASE_BASE_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_BASE_BASE_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_BASE_BASE_H_
 
-#include "math.h"
-#include "matrix.h"
-#include "point_matrix.h"
-#include "opencv_conversion.h"
-#include "pcl_conversion.h"
+#include "definitions.h"
+#include "eigen_cloud.h"
+#include "geometry.h"
+#include "polynomial.h"
 
-#endif /* CALIBRATION_COMMON_BASE_BASE_H_ */
+#endif /* UNIPD_CALIBRATION_CALIBRATION_COMMON_BASE_BASE_H_ */

@@ -1,27 +1,39 @@
 /*
- *  Copyright (C) 2013 - Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
- *  This program is free software: you can redistribute it and/or modify
- *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ *  All rights reserved.
  *
- *  This program is distributed in the hope that it will be useful,
- *  but WITHOUT ANY WARRANTY; without even the implied warranty of
- *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- *  GNU General Public License for more details.
+ *  Redistribution and use in source and binary forms, with or without
+ *  modification, are permitted provided that the following conditions are met:
+ *     1. Redistributions of source code must retain the above copyright
+ *        notice, this list of conditions and the following disclaimer.
+ *     2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ *     3. Neither the name of the copyright holder(s) nor the
+ *        names of its contributors may be used to endorse or promote products
+ *        derived from this software without specific prior written permission.
  *
- *  You should have received a copy of the GNU General Public License
- *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ *  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ *  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *  DISCLAIMED. IN NO EVENT SHALL <COPYRIGHT HOLDER> BE LIABLE FOR ANY
+ *  DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ *  (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ *  LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ *  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATON_COMMON_OBJECTS_VIEW_H_
-#define CALIBRATON_COMMON_OBJECTS_VIEW_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATON_COMMON_OBJECTS_VIEW_H_
+#define UNIPD_CALIBRATION_CALIBRATON_COMMON_OBJECTS_VIEW_H_
 
-#include <calibration_common/base/point_matrix.h>
-#include <calibration_common/objects/globals.h>
+#include <calibration_common/objects/with_points.h>
 
-namespace calibration
+namespace unipd
+{
+namespace calib
 {
 
 /**
@@ -31,23 +43,26 @@ class View
 {
 public:
 
-  typedef boost::shared_ptr<View> Ptr;
-  typedef boost::shared_ptr<const View> ConstPtr;
+  View () = default;
+  View (const View & other) = default;
+  View (View && other) = default;
+  View & operator = (const View & other) = default;
+  View & operator = (View && other) = default;
 
-  /**
-   * @brief setId
-   * @param id
-   */
-  inline void setId(const std::string & id)
+  View (const std::string & id)
+    : id_(id)
+  {
+    // Do nothing
+  }
+
+  void
+  setId (const std::string & id)
   {
     id_ = id;
   }
 
-  /**
-   * @brief id
-   * @return
-   */
-  inline const std::string & id() const
+  const std::string &
+  id () const
   {
     return id_;
   }
@@ -58,140 +73,206 @@ protected:
 
 };
 
-/**
- * @brief The View_ class
- * @param SensorT_
- * @param DataT_
- * @param ObjectT_
- * @param Dimension_
- */
-template <typename SensorT_, typename DataT_, typename PointT_, typename ObjectT_, int Dimension_>
-  class View_ : public View
+template <typename SensorT_, typename ObjectT_>
+  class ObjectView_ : public View
   {
   public:
 
-    typedef boost::shared_ptr<View_> Ptr;
-    typedef boost::shared_ptr<const View_> ConstPtr;
+    ObjectView_ () = default;
+    ObjectView_ (const ObjectView_ & other) = default;
+    ObjectView_ (ObjectView_ && other) = default;
+    ObjectView_ & operator = (const ObjectView_ & other) = default;
+    ObjectView_ & operator = (ObjectView_ && other) = default;
 
-    typedef Eigen::Matrix<Scalar, Dimension_, 1> Point;
+    using View::View;
 
-    /**
-     * @brief View_
-     */
-    View_()
-      : centroid_(Point::Zero()),
-        centroid_need_recompute_(false)
+    virtual
+    ~ObjectView_ ()
     {
       // Do nothing
     }
 
-    /**
-     * @brief setData
-     * @param data
-     */
-    inline void setData(const DataT_ & data)
-    {
-      data_ = data;
-    }
-
-    /**
-     * @brief data
-     * @return
-     */
-    inline const DataT_ & data() const
-    {
-      assert(data_);
-      return data_;
-    }
-
-    /**
-     * @brief setPoints
-     * @param points
-     */
-    inline void setPoints(const PointT_ & points)
-    {
-      points_ = points;
-      centroid_need_recompute_ = true;
-    }
-
-    /**
-     * @brief points
-     * @return
-     */
-    inline const PointT_ & points() const
-    {
-      return points_;
-    }
-
-    /**
-     * @brief setObject
-     * @param object
-     */
-    inline void setObject(const typename ObjectT_::ConstPtr & object)
+    void
+    setObject (const std::shared_ptr<const ObjectT_> & object)
     {
       object_ = object;
     }
 
-    /**
-     * @brief object
-     * @return
-     */
-    inline const typename ObjectT_::ConstPtr & object() const
+    const std::shared_ptr<const ObjectT_> &
+    object () const
     {
       assert(object_);
       return object_;
     }
 
-    /**
-     * @brief setSensor
-     * @param sensor
-     */
-    inline void setSensor(const typename SensorT_::ConstPtr & sensor)
+    void
+    setSensor (const std::shared_ptr<const SensorT_> & sensor)
     {
       sensor_ = sensor;
     }
 
-    /**
-     * @brief sensor
-     * @return
-     */
-    inline const typename SensorT_::ConstPtr & sensor() const
+    const std::shared_ptr<const SensorT_> &
+    sensor () const
     {
       assert(sensor_);
       return sensor_;
     }
 
-    /**
-     * @brief centroid
-     * @return
-     */
-    inline Point centroid() const
+  protected:
+
+    std::shared_ptr<const SensorT_> sensor_;
+    std::shared_ptr<const ObjectT_> object_;
+
+  };
+
+template <typename SensorT_, typename ObjectT_, typename DataT_>
+  class DataView_ : public ObjectView_<SensorT_, ObjectT_>
+  {
+  public:
+
+    using Base = ObjectView_<SensorT_, ObjectT_>;
+
+    DataView_ () = default;
+    DataView_ (const DataView_ & other) = default;
+    DataView_ (DataView_ && other) = default;
+    DataView_ & operator = (const DataView_ & other) = default;
+    DataView_ & operator = (DataView_ && other) = default;
+
+    using Base::ObjectView_;
+
+    virtual
+    ~DataView_ ()
     {
-      if (centroid_need_recompute_)
-      {
-        centroid_ = computeCentroid();
-        centroid_need_recompute_ = false;
-      }
-      return centroid_;
+      // Do nothing
+    }
+
+    void
+    setData (const DataT_ & data)
+    {
+      data_ = data;
+    }
+
+    const DataT_ &
+    data () const
+    {
+      assert(data_);
+      return data_;
     }
 
   protected:
 
-    /**
-     * @brief computeCentroid
-     * @return
-     */
-    virtual Point computeCentroid() const = 0;
-
-    typename SensorT_::ConstPtr sensor_;
-    typename ObjectT_::ConstPtr object_;
     DataT_ data_;
-    PointT_ points_;
-
-    mutable Point centroid_;
-    mutable bool centroid_need_recompute_;
 
   };
 
-} /* namespace calibration */
-#endif /* CALIBRATON_COMMON_OBJECTS_VIEW_H_ */
+template <typename SensorT_, typename ObjectT_, typename DataT_, typename IndicesT_>
+  class IndicesView_ : public DataView_<SensorT_, ObjectT_, DataT_>
+  {
+  public:
+
+    using Base = DataView_<SensorT_, ObjectT_, DataT_>;
+
+    IndicesView_ () = default;
+    IndicesView_ (const IndicesView_ & other) = default;
+    IndicesView_ (IndicesView_ && other) = default;
+    IndicesView_ & operator = (const IndicesView_ & other) = default;
+    IndicesView_ & operator = (IndicesView_ && other) = default;
+
+    using Base::ObjectView_;
+
+    virtual
+    ~IndicesView_ ()
+    {
+      // Do nothing
+    }
+
+    void
+    setIndices (const std::shared_ptr<IndicesT_> & indices)
+    {
+      indices_ = indices;
+    }
+
+    const std::shared_ptr<IndicesT_> &
+    indices () const
+    {
+      return indices_;
+    }
+
+  protected:
+
+    std::shared_ptr<IndicesT_> indices_;
+
+  };
+
+template <typename SensorT_, typename ObjectWithPointsT_, typename PointsT_>
+  class PointsView_ : public ObjectView_<SensorT_, ObjectWithPointsT_>
+  {
+  public:
+
+    static_assert (std::is_base_of<WithPoints, ObjectWithPointsT_>::value, "ObjectWithPointsT_ must be a subclass of WithPoints");
+
+    using Base = ObjectView_<SensorT_, ObjectWithPointsT_>;
+    using Point = Eigen::Matrix<Scalar, Dimension<PointsT_>::value, 1>;
+
+    PointsView_ () = default;
+    PointsView_ (const PointsView_ & other) = default;
+    PointsView_ (PointsView_ && other) = default;
+    PointsView_ & operator = (const PointsView_ & other) = default;
+    PointsView_ & operator = (PointsView_ && other) = default;
+
+    using Base::ObjectView_;
+
+    virtual
+    ~PointsView_ ()
+    {
+      // Do nothing
+    }
+
+    void
+    setPoints (const PointsT_ & points)
+    {
+      points_ = points;
+      recompute_centroid_ = true;
+    }
+
+    void
+    setPoints (PointsT_ && points)
+    {
+      points_ = points;
+      recompute_centroid_ = true;
+    }
+
+    const PointsT_ &
+    points () const
+    {
+      return points_;
+    }
+
+    const Point &
+    centroid () const
+    {
+      if (recompute_centroid_)
+      {
+        centroid_ = computeCentroid();
+        recompute_centroid_ = false;
+      }
+      return centroid_;
+    }
+
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF_VECTORIZABLE_FIXED_SIZE(Scalar, Dimension<PointsT_>::value)
+
+  protected:
+
+    virtual Point
+    computeCentroid () const = 0;
+
+    PointsT_ points_;
+
+    mutable Point centroid_ = Point(Point::Zero());
+    mutable bool recompute_centroid_ = false;
+
+  };
+
+} // namespace calib
+} // namespace unipd
+#endif // UNIPD_CALIBRATION_CALIBRATON_COMMON_OBJECTS_VIEW_H_

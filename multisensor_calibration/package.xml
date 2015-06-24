@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2"
+>
+  <name>multisensor_calibration</name>
+  <version>1.0.0</version>
+  <description>The multisensor_calibration package</description>
+  <maintainer email="bassofil@gmail.com">Filippo Basso</maintainer>
+  <license>BSD</license>
+  <!-- <url type="website">http://wiki.ros.org/multisensor_calibration</url> -->
+  <!-- <author email="jane.doe@example.com">Jane Doe</author> -->
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>calibration_ros</depend>
+  <depend>calibration_msgs</depend>
+  <depend>calibration_algorithms</depend>
+
+  <depend>libyaml-cpp-dev</depend>
+
+  <export>
+  </export>
+
+</package>

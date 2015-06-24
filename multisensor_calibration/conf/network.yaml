@@ -1,0 +1,7 @@
+# Camera network configuration
+
+network:
+  - pc: "Phoenix"
+    sensors: [{id: "camera"}]
+  - pc: "Gemini"
+    sensors: [{id: "camera"}]

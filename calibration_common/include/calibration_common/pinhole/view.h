@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,28 +26,66 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATON_COMMON_PINHOLE_VIEW_H_
-#define CALIBRATON_COMMON_PINHOLE_VIEW_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATON_COMMON_PINHOLE_VIEW_H_
+#define UNIPD_CALIBRATION_CALIBRATON_COMMON_PINHOLE_VIEW_H_
 
-#include <calibration_common/color/view.h>
+#include <calibration_common/objects/view.h>
 #include <calibration_common/pinhole/sensor.h>
 
-namespace calibration
+namespace cv
+{
+  class Mat;
+}
+
+namespace unipd
+{
+namespace calib
 {
 
-/**
- * @brief The PinholeView class
- * @param ObjectT_
- */
 template <typename ObjectT_>
-  class PinholeView : public ColorView<PinholeSensor, ObjectT_>
+  class PinholeView : public IndicesView_<PinholeSensor, ObjectT_, cv::Mat, Indices2>
   {
   public:
 
-    typedef boost::shared_ptr<PinholeView> Ptr;
-    typedef boost::shared_ptr<const PinholeView> ConstPtr;
+    using Base = IndicesView_<PinholeSensor, ObjectT_, cv::Mat, Indices2>;
+    using Point = typename Base::Point;
+
+    using Base::Base;
+
+    virtual
+    ~PinholeView ()
+    {
+      // Do nothing
+    }
 
   };
 
-} /* namespace calibration */
-#endif /* CALIBRATON_COMMON_PINHOLE_VIEW_H_ */
+template <typename ObjectT_>
+  class PinholePointsView : public PointsView_<PinholeSensor, ObjectT_, Cloud2>
+  {
+  public:
+
+    using Base = PointsView_<PinholeSensor, ObjectT_, Cloud2>;
+    using Point = typename Base::Point;
+
+    using Base::Base;
+
+    virtual
+    ~PinholePointsView ()
+    {
+      // Do nothing
+    }
+
+  protected:
+
+    inline virtual Point
+    computeCentroid () const
+    {
+      return Base::points().container().rowwise().mean();
+    }
+
+  };
+
+} // namespace calib
+} // namespace unipd
+#endif // UNIPD_CALIBRATION_CALIBRATON_COMMON_PINHOLE_VIEW_H_

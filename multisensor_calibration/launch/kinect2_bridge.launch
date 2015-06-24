@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <node name="kinect2_bridge" pkg="kinect2_bridge" type="kinect2_bridge" args="-raw" respawn="true" output="screen" />
+
+</launch>

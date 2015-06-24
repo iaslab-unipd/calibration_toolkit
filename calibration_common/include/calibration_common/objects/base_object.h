@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,145 +26,121 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_
-#define CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_
 
-#include <sstream>
-#include <calibration_common/objects/globals.h>
+#include <ostream>
+#include <calibration_common/base/geometry.h>
 
-namespace geometry_msgs
+namespace unipd
 {
-template <class ContainerAllocator>
-  struct TransformStamped_;
-
-typedef TransformStamped_<std::allocator<void> > TransformStamped;
-}
-
-namespace calibration
+namespace calib
 {
 
-/**
- * @brief The BaseObject class
- */
 class BaseObject
 {
 public:
 
-  typedef boost::shared_ptr<BaseObject> Ptr;
-  typedef boost::shared_ptr<const BaseObject> ConstPtr;
+  BaseObject () = default;
 
-  static Size1 count_;
+  BaseObject (const BaseObject & other) = default;
 
-  /**
-   * @brief BaseObject
-   */
-  BaseObject()
-    : pose_(Pose::Identity())
-  {
-    ++count_;
-    std::stringstream ss;
-    ss << "object_" << count_;
-    frame_id_ = ss.str();
-  }
+  BaseObject (BaseObject && other) = default;
 
-  /**
-   * @brief BaseObject
-   * @param frame_id
-   */
-  explicit BaseObject(const std::string & frame_id)
-    : pose_(Pose::Identity()),
-      frame_id_(frame_id)
-  {
-    ++count_;
-  }
+  BaseObject & operator = (const BaseObject & other) = default;
 
-  /**
-   * @brief ~BaseObject
-   */
-  virtual ~BaseObject()
+  BaseObject & operator = (BaseObject && other) = default;
+
+  explicit
+  BaseObject (const std::string & frame_id)
+    : frame_id_(frame_id)
   {
     // Do nothing
   }
 
-  /**
-   * @brief transform
-   * @param transform
-   */
-  inline virtual void transform(const Transform & transform)
+  virtual
+  ~BaseObject ()
+  {
+    // Do nothing
+  }
+
+  virtual void
+  transform (const Transform3 & transform)
   {
     pose_ = transform * pose_;
   }
 
-  /**
-   * @brief pose
-   * @return
-   */
-  inline const Pose & pose() const
+  const Pose3 &
+  pose () const
   {
     return pose_;
   }
 
-  /**
-   * @brief frameId
-   * @return
-   */
-  inline const std::string & frameId() const
+  const std::string &
+  frameId () const
   {
     return frame_id_;
   }
 
-  /**
-   * @brief parent
-   * @return
-   */
-  inline const ConstPtr & parent() const
+  const std::shared_ptr<const BaseObject> &
+  parent () const
   {
     return parent_;
   }
 
-  /**
-   * @brief setFrameId
-   * @param frame_id
-   */
-  inline void setFrameId(const std::string & frame_id)
+  bool
+  hasParent () const
+  {
+    return static_cast<bool>(parent_);
+  }
+
+  void
+  setFrameId (const std::string & frame_id)
   {
     frame_id_ = frame_id;
   }
 
-  /**
-   * @brief setParent
-   * @param parent
-   */
-  inline void setParent(const ConstPtr & parent)
+  void
+  setParent (const std::shared_ptr<const BaseObject> & parent)
   {
     parent_ = parent;
   }
 
-  /**
-   * @brief setPose
-   * @param pose
-   */
-  inline void setPose(const Pose & pose)
+  virtual void
+  reset ()
+  {
+    pose_ = Pose3::Identity();
+    parent_.reset();
+  }
+
+  virtual void
+  setPose (const Pose3 & pose)
   {
     pose_ = pose;
   }
 
-  /**
-   * @brief toTF
-   * @param transform_msg
-   * @return
-   */
-  bool toTF(geometry_msgs::TransformStamped & transform_msg) const;
+  friend std::ostream &
+  operator << (std::ostream & stream,
+               const BaseObject & object)
+  {
+    stream << "frame_id: " << object.frame_id_ << ", "
+           << "parent: " << (object.hasParent() ? object.parent_->frameId() : "null") << ", "
+           << "pose: {"
+           << "rotation: [" << Quaternion(object.pose_.rotation()).coeffs().transpose() << "], "
+           << "translation: [" << object.pose_.translation().transpose() << "]}";
+    return stream;
+  }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
 private:
 
-  Pose pose_;
+  Pose3 pose_ = Pose3::Identity();
   std::string frame_id_;
-  ConstPtr parent_;
+  std::shared_ptr<const BaseObject> parent_;
 
 };
 
-} /* namespace calibration */
-#endif /* CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_ */
+} // namespace calib
+} // namespace unipd
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_BASE_OBJECT_H_

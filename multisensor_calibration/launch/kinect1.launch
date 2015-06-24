@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="debug"         default="false" />
+  <arg name="launch-prefix" value="gdb -ex run --args" if="$(arg debug)" />
+  <arg name="launch-prefix" value="" unless="$(arg debug)" />
+
+  <arg name="pc_name"       default="$(env ROS_PC_NAME)" />
+  <arg name="kinect_name"   default="kinect1" />
+  <arg name="kinect_serial" default="#1" />
+  
+  <arg name="rgb_only"      default="false" />
+  
+  <group ns="$(arg pc_name)">
+    
+    <include file="$(find openni_launch)/launch/openni.launch">
+      <arg name="camera"                value="$(arg kinect_name)_driver" />
+      <arg name="device_id"             value="$(arg kinect_serial)" />
+      <arg name="depth_registration"    value="false" />
+      <arg name="publish_tf"            value="false" />
+    </include>
+
+    <node launch-prefix="$(arg launch-prefix)" pkg="multisensor_calibration" type="device_node" 
+          name="$(arg kinect_name)_node" output="screen">
+      
+      <rosparam param="device" subst_value="true" unless="$(arg rgb_only)">
+        name: "$(arg kinect_name)"
+        sensors: 
+          intensity: [rgb]
+          depth: [depth]
+        rgb:
+          frame_id: "/$(arg pc_name)/$(arg kinect_name)/rgb"
+        depth:
+          frame_id: "/$(arg pc_name)/$(arg kinect_name)/depth"
+          image_type: uint16
+          error:
+            max_degree: 2
+            min_degree: 2
+            coefficients: [0.0035]
+        transforms:
+          depth:
+            parent: rgb
+            position: {x: -0.025, y: 0.0, z: 0.0}
+            orientation: {x: 0.0, y: 0.0, z: 0.0, w: 1.0}
+      </rosparam>
+      
+      <rosparam param="device" subst_value="true" if="$(arg rgb_only)">
+        name: "$(arg kinect_name)"
+        sensors: 
+          intensity: [rgb]
+          depth: []
+        rgb:
+          frame_id: "/$(arg pc_name)/$(arg kinect_name)/rgb"
+      </rosparam>
+      
+      <remap from="~device/rgb/image"         to="$(arg kinect_name)_driver/rgb/image_color" />
+      <remap from="~device/rgb/camera_info"   to="$(arg kinect_name)_driver/rgb/camera_info" />
+      <remap from="~device/depth/cloud"       to="$(arg kinect_name)_driver/depth/points" unless="$(arg rgb_only)" />
+      <remap from="~device/depth/image"       to="$(arg kinect_name)_driver/depth/image_raw" unless="$(arg rgb_only)" />
+      <remap from="~device/depth/camera_info" to="$(arg kinect_name)_driver/depth/camera_info" unless="$(arg rgb_only)" />
+      
+    </node>
+  
+  </group>
+
+</launch>

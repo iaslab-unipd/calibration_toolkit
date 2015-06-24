@@ -1,0 +1,33 @@
+#goal
+
+uint8 EXTRACT_FROM_NONE=0
+uint8 EXTRACT_FROM_IMAGE=1
+uint8 EXTRACT_FROM_DEPTH=2
+uint8 EXTRACT_FROM_ALL=3
+
+int32 ALL_POINTS=-1
+int32 PLANE_ONLY=0
+
+Header header
+
+Checkerboard checkerboard
+uint8 extract_from
+int32 max_depth_points
+
+# max_depth_points must be in the interval [3, +inf[
+# or be one of the special values ALL_POINTS, PLANE_ONLY
+
+---
+
+#result
+
+calibration_msgs/Point2DArray[] image_corners
+calibration_msgs/PointArray[]   depth_points
+
+# If depth_points[i] size is 2:
+#  - depth_points[i][0] = point on the plane
+#  - depth_points[i][1] = plane normal
+
+---
+
+#feedback

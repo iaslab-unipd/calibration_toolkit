@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,13 +26,13 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_OBJECTS_OBJECTS_H_
-#define CALIBRATION_COMMON_OBJECTS_OBJECTS_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_OBJECTS_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_OBJECTS_H_
 
-#include "globals.h"
 #include "base_object.h"
 #include "checkerboard.h"
 #include "planar_object.h"
 #include "sensor.h"
+#include "view.h"
 
-#endif /* CALIBRATION_COMMON_OBJECTS_OBJECTS_H_ */
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_OBJECTS_OBJECTS_H_

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2013-2014, Filippo Basso <bassofil@dei.unipd.it>
+ *  Copyright (c) 2015-, Filippo Basso <bassofil@gmail.com>
  *
  *  All rights reserved.
  *
@@ -26,138 +26,104 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_H_
-#define CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_H_
+#ifndef UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_H_
+#define UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_H_
 
+#include <calibration_common/base/eigen_cloud.h>
 #include <image_geometry/pinhole_camera_model.h>
-#include <calibration_common/color/camera_model.h>
 
-namespace calibration
+namespace unipd
+{
+namespace calib
 {
 
-/**
- * @brief The PinholeCameraModel class
- */
-class PinholeCameraModel : public image_geometry::PinholeCameraModel,
-                           virtual public ColorCameraModel
+class PinholeCameraModel : public image_geometry::PinholeCameraModel
 {
 public:
 
-  typedef boost::shared_ptr<PinholeCameraModel> Ptr;
-  typedef boost::shared_ptr<const PinholeCameraModel> ConstPtr;
-
   typedef image_geometry::PinholeCameraModel Base;
 
-  /**
-   * @brief PinholeCameraModel
-   */
-  PinholeCameraModel()
-    : Base()
-  {
+  PinholeCameraModel () = default;
 
-  }
+  PinholeCameraModel (const PinholeCameraModel & other) = default;
 
-  /**
-   * @brief PinholeCameraModel
-   * @param msg
-   */
-  PinholeCameraModel(const sensor_msgs::CameraInfo & msg)
-    : Base()
+  PinholeCameraModel (PinholeCameraModel && other) = default;
+
+  PinholeCameraModel & operator = (const PinholeCameraModel & other) = default;
+
+  PinholeCameraModel & operator = (PinholeCameraModel && other) = default;
+
+  explicit
+  PinholeCameraModel (const sensor_msgs::CameraInfo & msg)
+    : PinholeCameraModel()
   {
     Base::fromCameraInfo(msg);
+
+    f_ << fx(), fy();
+    f_inv_ << 1.0 / fx(), 1.0 / fy();
+    c_ << cx(), cy();
+    T_ << Tx(), Ty();
+    p_ << D_(0, 2), D_(0, 3);
+    k_ << D_(0, 0), D_(0, 1), D_(0, 4), D_(0, 5), D_(0, 6), D_(0, 7);
+    R_ = Eigen::Map<Eigen::Matrix<Scalar, 3, 3, Eigen::RowMajor>>(&Base::R_(0, 0));
   }
 
-  /**
-   * @brief PinholeCameraModel
-   * @param other
-   */
-  PinholeCameraModel(const PinholeCameraModel & other)
-    : Base(other)
-  {
-    // Do nothing
-  }
+  template <typename ScalarT_>
+    Point3_<ScalarT_>
+    projectPixelTo3dRay (const Point2_<ScalarT_> & pixel_point) const;
 
-  virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const;
+  template <typename ScalarT_>
+    Point2_<ScalarT_>
+    project3dToPixel (const Point3_<ScalarT_> & world_point) const;
 
-  virtual Point2 project3dToPixel(const Point3 & world_point) const;
+  template <typename ScalarT_>
+    void
+    projectPixelTo3dRay (const Cloud2_<ScalarT_> & pixel_points,
+                         Cloud3_<ScalarT_> & world_points) const;
 
-  virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
-                                   Cloud3 & world_points) const;
+  template <typename ScalarT_>
+    Cloud3_<ScalarT_>
+    projectPixelTo3dRay (const Cloud2_<ScalarT_> & pixel_points) const;
 
-  virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const;
+  template <typename ScalarT_>
+    void
+    project3dToPixel (const Cloud3_<ScalarT_> & world_points,
+                      Cloud2_<ScalarT_> & pixel_points) const;
 
-  virtual void project3dToPixel(const Cloud3 & world_points,
-                                Cloud2 & pixel_points) const;
+  template <typename ScalarT_>
+    Cloud2_<ScalarT_>
+    project3dToPixel (const Cloud3_<ScalarT_> & world_points) const;
 
-  virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const;
+  template <typename ScalarT_>
+    Point2_<ScalarT_>
+    distortPoint (const Point2_<ScalarT_> & pixel_point) const;
 
-  virtual Pose estimatePose(const Cloud2 & points_image,
-                            const Cloud3 & points_object) const;
+  template <typename ScalarT_>
+    Cloud2_<ScalarT_>
+    distortPoints (const Cloud2_<ScalarT_> & pixel_points) const;
 
-  /**
-   * @brief projectPixelTo3dRay
-   * @param pixel_point
-   * @return
-   */
-  template <typename Scalar>
-    typename Types<Scalar>::Point3 projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const;
+  template <typename ScalarT_>
+    Pose3_<ScalarT_>
+    estimatePose (const Cloud2_<ScalarT_> & points_image,
+                  const Cloud3_<ScalarT_> & points_object) const;
 
-  /**
-   * @brief project3dToPixel
-   * @param world_point
-   * @return
-   */
-  template <typename Scalar>
-    typename Types<Scalar>::Point2 project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const;
+    EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 
-  /**
-   * @brief projectPixelTo3dRay
-   * @param pixel_points
-   * @param world_points
-   */
-  template <typename Scalar>
-    void projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
-                             typename Types<Scalar>::Cloud3 & world_points) const;
+  private:
 
-  /**
-   * @brief projectPixelTo3dRay
-   * @param pixel_points
-   * @return
-   */
-  template <typename Scalar>
-    typename Types<Scalar>::Cloud3 projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const;
-
-  /**
-   * @brief project3dToPixel
-   * @param world_points
-   * @param pixel_points
-   */
-  template <typename Scalar>
-    void project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
-                          typename Types<Scalar>::Cloud2 & pixel_points) const;
-
-  /**
-   * @brief project3dToPixel
-   * @param world_points
-   * @return
-   */
-  template <typename Scalar>
-    typename Types<Scalar>::Cloud2 project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const;
-
-  /**
-   * @brief estimatePose
-   * @param points_image
-   * @param points_object
-   * @return
-   */
-  template <typename Scalar>
-    typename Types<Scalar>::Pose estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
-                                              const typename Types<Scalar>::Cloud3 & points_object) const;
+    Eigen::Matrix<double, 2, 1> f_;
+    Eigen::Matrix<double, 2, 1> f_inv_;
+    Eigen::Matrix<double, 2, 1> c_;
+    Eigen::Matrix<double, 2, 1> T_;
+    Eigen::Matrix<double, 2, 1> p_;
+    Eigen::Matrix<double, 1, 6> k_;
+    Eigen::Matrix<double, 3, 3, Eigen::RowMajor> R_;
 
 };
 
-} /* namespace calibration */
+} // namespace calib
+} // namespace unipd
 
 #include <impl/calibration_common/pinhole/camera_model.hpp>
 
-#endif /* CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_H_ */
+#endif // UNIPD_CALIBRATION_CALIBRATION_COMMON_PINHOLE_CAMERA_MODEL_H_

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="debug"         default="false" />
+  <arg name="launch-prefix" value="gdb -ex run --args" if="$(arg debug)" />
+  <arg name="launch-prefix" value="" unless="$(arg debug)" />
+
+  <arg name="pc_name"       default="$(env ROS_PC_NAME)" />
+  <arg name="kinect_name"   default="kinect2" />
+  <arg name="kinect_serial" default="#1" />
+  
+  <group ns="$(arg pc_name)">
+    
+    <!-- Convert: Depth to Point Cloud -->
+    <node pkg="nodelet" type="nodelet" name="$(arg kinect_name)_depth_to_points_xyz_nodelet" 
+          args="standalone depth_image_proc/point_cloud_xyz">
+      <remap from="image_rect" to="/kinect2_head/depth/image" />
+      <remap from="points"     to="/kinect2_head/depth/points" />
+      <param name="queue_size" type="int" value="2" />
+    </node>
+
+    <node launch-prefix="$(arg launch-prefix)" pkg="multisensor_calibration" type="device_node" 
+          name="$(arg kinect_name)_node" output="screen">
+      
+      <rosparam param="device" subst_value="true">
+        name: "$(arg kinect_name)"
+        sensors: 
+          intensity: [rgb]
+          depth: []
+        rgb:
+          frame_id: "/$(arg pc_name)/$(arg kinect_name)/rgb"
+      </rosparam>
+      
+      <remap from="~device/rgb/image"         to="/kinect2_head/rgb/image" />
+      <remap from="~device/rgb/camera_info"   to="/kinect2_head/rgb/camera_info" />
+      
+    </node>
+  
+  </group>
+
+</launch>

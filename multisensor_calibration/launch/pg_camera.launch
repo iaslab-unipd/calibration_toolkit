@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="camera_name"   default="camera" />
+  <arg name="camera_serial" default="13252871" />
+  <arg name="conf_file"     default="$(find multisensor_calibration)/conf/pointgrey_camera_default.yaml" />
+    
+  <group ns="$(arg camera_name)">
+  
+    <node pkg="nodelet" type="nodelet" name="nodelet_manager" args="manager" />
+
+    <node pkg="nodelet" type="nodelet" name="driver"
+          args="load pointgrey_camera_driver/PointGreyCameraNodelet nodelet_manager" >
+      <param name="frame_id"        value="/$(arg camera_name)" />
+      <param name="serial"          value="$(arg camera_serial)" />
+      <param name="camera_info_url" value="file://$(env HOME)/.ros/camera_info/$(arg camera_serial).yaml" />
+      <rosparam command="load"      file="$(arg conf_file)" />
+    </node>
+    
+    <node pkg="nodelet" type="nodelet" name="debayer" 
+          args="load image_proc/debayer nodelet_manager" />
+    
+  </group>
+
+</launch>
