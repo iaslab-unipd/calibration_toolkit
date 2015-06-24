@@ -34,6 +34,7 @@ catkin_package(
     include
   LIBRARIES
     ${PROJECT_NAME}
+    plane_to_plane_calibration
   CATKIN_DEPENDS
     calibration_common
     calibration_pcl
@@ -48,6 +49,8 @@ add_custom_target(${PROJECT_NAME}_HEADERS
   SOURCES
   include/${PROJECT_NAME}/plane_fit.h
   include/impl/${PROJECT_NAME}/plane_fit.hpp
+  
+  include/${PROJECT_NAME}/plane_to_plane_calibration.h
 
   include/${PROJECT_NAME}/checkerboard_corners_extraction.h
   include/${PROJECT_NAME}/checkerboard_extraction.h
@@ -67,6 +70,10 @@ include_directories(
 add_library(${PROJECT_NAME}
   src/${PROJECT_NAME}/checkerboard_corners_extraction.cpp
   src/${PROJECT_NAME}/checkerboard_extraction.cpp
+)
+
+add_library(plane_to_plane_calibration
+  src/${PROJECT_NAME}/plane_to_plane_calibration.cpp
 )
 
 ## Declare a cpp executable
