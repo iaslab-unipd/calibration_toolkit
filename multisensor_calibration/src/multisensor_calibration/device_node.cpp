@@ -176,6 +176,8 @@ DeviceNode::extractCheckerboard (const msgs::CheckerboardExtractionGoal::ConstPt
       if (image_result.extracted)
       {
         result_msg.image_corners.push_back(toMessage(image_result.view->points()));
+        msgs::Point2DArray & points_msg = result_msg.image_corners.back();
+        points_msg.header.frame_id = sensor->sensor()->frameId();
         result_map[sensor->sensor()] = image_result;
       }
     }
