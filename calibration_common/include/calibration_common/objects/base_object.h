@@ -124,7 +124,7 @@ public:
                const BaseObject & object)
   {
     stream << "frame_id: " << object.frame_id_ << ", "
-           << "parent: " << (object.hasParent() ? object.parent_->frameId() : "null") << ", "
+           << "parent: " << object.parent_ << " (= " << (object.hasParent() ? object.parent_->frameId() : "null") << "), "
            << "pose: {"
            << "rotation: [" << Quaternion(object.pose_.rotation()).coeffs().transpose() << "], "
            << "translation: [" << object.pose_.translation().transpose() << "]}";
