@@ -50,12 +50,10 @@ public:
     for (const std::shared_ptr<ROSPinholeCamera> & sensor : intensity_sensors_)
     {
       received = received and sensor->allMessagesReceived();
-      ROS_INFO_STREAM_COND(received, *sensor->sensor());
     }
     for (const std::shared_ptr<ROSDepthSensor> & sensor : depth_sensors_)
     {
       received = received and sensor->allMessagesReceived();
-      ROS_INFO_STREAM_COND(received, *sensor->sensor());
     }
     return received;
   }
