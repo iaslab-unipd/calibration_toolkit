@@ -48,7 +48,7 @@ CalibrationMasterNode::CalibrationMasterNode (const ros::NodeHandle & node_handl
     plane_flag_(false)
 {
   action_sub_ = node_handle_.subscribe("action", 10, &CalibrationMasterNode::actionCallback, this);
-  acquisition_sub_ = node_handle_.subscribe("acquisition", 1, &CalibrationMasterNode::actionCallback, this);
+  acquisition_sub_ = node_handle_.subscribe("acquisition", 1, &CalibrationMasterNode::acquisitionCallback, this);
   marker_pub_ = node_handle_.advertise<visualization_msgs::Marker>("markers", 10);
 
   result_service_ = node_handle_.advertiseService("get_results", &CalibrationMasterNode::getResultsCallback, this);
@@ -102,7 +102,6 @@ CalibrationMasterNode::parseNetworkFile (const std::string & filename)
   {
     return false;
   }
-
 }
 
 bool
@@ -126,6 +125,8 @@ CalibrationMasterNode::callGetDeviceInfo (Device & device,
         auto sensor = fromMessage<PinholeSensor>(msg.response.camera_infos[i]);
         sensor_map.emplace(sensor->frameId(), sensor);
         pinhole_sensors.push_back(sensor);
+        frame_ids_[SENSORS].push_back(sensor->frameId());
+        calibration_.addSensor(*sensor);
       }
       else if (msg.response.sensor_types[i] == msgs::GetDeviceInfo::Response::DEPTH)
       {
@@ -133,6 +134,8 @@ CalibrationMasterNode::callGetDeviceInfo (Device & device,
         sensor->setError(fromMessage<Scalar>(msg.response.error_polynomials[i]));
         sensor_map.emplace(sensor->frameId(), sensor);
         depth_sensors.push_back(sensor);
+        frame_ids_[SENSORS].push_back(sensor->frameId());
+        calibration_.addSensor(*sensor);
       }
       else // (msg.response.sensor_types[i] == msgs::GetDeviceInfo::Response::UNDEFINED)
       {
@@ -170,6 +173,7 @@ CalibrationMasterNode::callGetDeviceInfo (Device & device,
           Transform3 transform;
           tf::transformMsgToEigen(transform_msg.transform, transform);
           sensor->transform(transform);
+          calibration_.addSensorConstraint(sensor->frameId(), parent->frameId(), transform);
         }
       }
     }
@@ -239,18 +243,6 @@ CalibrationMasterNode::initialize ()
       if (not callGetDeviceInfo(device, pinhole_sensors, depth_sensors))
         return false;
 
-  // Add sensors
-  for (const auto & sensor : pinhole_sensors)
-  {
-    frame_ids_[SENSORS].push_back(sensor->frameId());
-    calibration_.addSensor(*sensor);
-  }
-  for (const auto & sensor : depth_sensors)
-  {
-    frame_ids_[SENSORS].push_back(sensor->frameId());
-    calibration_.addSensor(*sensor);
-  }
-
   ROS_INFO_STREAM(log_ << "Initialization complete.");
 
   return true;
@@ -262,16 +254,26 @@ CalibrationMasterNode::actionCallback (const std_msgs::String::ConstPtr & msg)
   if (msg->data == "begin plane")
   {
     if (not plane_flag_)
+    {
       frame_ids_[PLANES].push_back(calibration_.beginPlane());
+      plane_flag_ = true;
+    }
     else
+    {
       ROS_ERROR_STREAM(log_ << "Action \"begin plane\" already called. Ignoring.");
+    }
   }
   else if (msg->data == "end plane")
   {
     if (plane_flag_)
+    {
       calibration_.endPlane();
+      plane_flag_ = false;
+    }
     else
+    {
       ROS_ERROR_STREAM(log_ << "Action \"end plane\" already called or \"begin plane\" never called. Ignoring.");
+    }
   }
 }
 
@@ -305,19 +307,34 @@ CalibrationMasterNode::getResultsCallback (msgs::GetCalibrationResults::Request 
   return true;
 }
 
+
+void
+CalibrationMasterNode::spin ()
+{
+  auto rate = ros::Rate(10.0);
+  while (ros::ok())
+  {
+    spinOnce();
+    rate.sleep();
+  }
+}
+
 void
 CalibrationMasterNode::spinOnce ()
 {
   ros::spinOnce();
 
-  publish(*std::static_pointer_cast<const Checkerboard>(calibration_.get(frame_ids_[CHECKERBOARDS].back())), "checkerboard", 0);
+  if (not frame_ids_[CHECKERBOARDS].empty() and calibration_.isPoseEstimated(frame_ids_[CHECKERBOARDS].back()))
+    publish(*std::static_pointer_cast<const Checkerboard>(calibration_.get(frame_ids_[CHECKERBOARDS].back())), "checkerboard", 0);
 
-  if (plane_flag_)
+  if (plane_flag_ and not frame_ids_[PLANES].empty() and calibration_.isPoseEstimated(frame_ids_[PLANES].back()))
     publish(*std::static_pointer_cast<const PlanarObject>(calibration_.get(frame_ids_[PLANES].back())), "plane", 0);
 
   int index = 0;
   for (auto sensor_frame : frame_ids_[SENSORS])
-    publish(*calibration_.get(sensor_frame), "sensor", index++);
+    if (calibration_.isPoseEstimated(sensor_frame))
+      publish(*calibration_.get(sensor_frame), "sensor", index++);
+
 }
 
 void
@@ -362,7 +379,6 @@ CalibrationMasterNode::performAcquisition ()
           Vector3 normal(view_msg.points[1].x, view_msg.points[1].y, view_msg.points[1].z);
           calibration_.addDepthData(view_msg.header.frame_id, Plane3(normal, point_on_plane));
         }
-
       }
     }
   }
@@ -381,7 +397,7 @@ main (int argc, char ** argv)
   if (not calib_node.initialize())
     return 1;
 
-  ros::spin();
+  calib_node.spin();
 
   return 0;
 }

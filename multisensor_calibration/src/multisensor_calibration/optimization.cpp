@@ -40,6 +40,7 @@ Optimization::addObject (const std::shared_ptr<BaseObject> & object)
   std::shared_ptr<RawTransform> raw_transform = std::make_shared<RawTransform>(Pose3::Identity());
   transform_map_.emplace(object, raw_transform);
   problem_.AddParameterBlock(raw_transform->data, 7);
+  ROS_DEBUG_STREAM(log_ << "[" << object->frameId() << "] added.");
 }
 
 void
@@ -74,7 +75,7 @@ void
 Optimization::set3DOFTransform (const std::shared_ptr<BaseObject> & object)
 {
   assert(transform_map_.count(object) > 0);
-  assert(object->hasParent() and transform_map_.count(std::const_pointer_cast<BaseObject>(object->parent())) > 0);
+  assert(object->hasParent() and transform_map_.count(object->parent()) > 0);
   assert((object->pose().matrix().bottomRightCorner<2, 2>()).isApprox(Eigen::Matrix<Scalar, 2, 2>::Identity()));
 
   problem_.SetParameterization(transform_map_[object]->data, new Pose2DParameterization());
@@ -91,7 +92,7 @@ Optimization::addConstraint (const std::shared_ptr<Checkerboard> & checkerboard,
   IntensityError * error = new IntensityError(checkerboard, sensor, data);
   using IntensityErrorFunction = ceres::AutoDiffCostFunction<IntensityError, ceres::DYNAMIC, 7, 7>;
   ceres::CostFunction * cost_function = new IntensityErrorFunction(error, error->residualSize());
-  problem_.AddResidualBlock(cost_function, NULL, transform_map_[sensor]->data, transform_map_[checkerboard]->data);
+  problem_.AddResidualBlock(cost_function, nullptr, transform_map_[sensor]->data, transform_map_[checkerboard]->data);
 }
 
 void
@@ -105,7 +106,7 @@ Optimization::addConstraint (const std::shared_ptr<Checkerboard> & checkerboard,
   DepthError * error = new DepthError(checkerboard, sensor, data);
   using DepthErrorFunction = ceres::AutoDiffCostFunction<DepthError, ceres::DYNAMIC, 7, 7>;
   ceres::CostFunction * cost_function = new DepthErrorFunction(error, error->residualSize());
-  problem_.AddResidualBlock(cost_function, NULL, transform_map_[sensor]->data, transform_map_[checkerboard]->data);
+  problem_.AddResidualBlock(cost_function, nullptr, transform_map_[sensor]->data, transform_map_[checkerboard]->data);
 }
 
 void
@@ -121,7 +122,7 @@ Optimization::addConstraint (const std::shared_ptr<Checkerboard> & checkerboard,
   OnPlaneIntensityError * error = new OnPlaneIntensityError(checkerboard, plane, sensor, data);
   using IntensityErrorFunction = ceres::AutoDiffCostFunction<OnPlaneIntensityError, ceres::DYNAMIC, 7, 7, 7>;
   ceres::CostFunction * cost_function = new IntensityErrorFunction(error, error->residualSize());
-  problem_.AddResidualBlock(cost_function, NULL, transform_map_[sensor]->data, transform_map_[checkerboard]->data, transform_map_[plane]->data);
+  problem_.AddResidualBlock(cost_function, nullptr, transform_map_[sensor]->data, transform_map_[checkerboard]->data, transform_map_[plane]->data);
 }
 
 void
@@ -134,10 +135,10 @@ Optimization::addConstraint (const std::shared_ptr<Checkerboard> & checkerboard,
   assert(transform_map_.count(plane) > 0);
   assert(transform_map_.count(sensor) > 0);
 
-//  OnPlaneDepthError * error = new OnPlaneDepthError(checkerboard, plane, sensor, data);
-//  using DepthErrorFunction = ceres::AutoDiffCostFunction<OnPlaneDepthError, ceres::DYNAMIC, 7, 7, 7>;
-//  ceres::CostFunction * cost_function = new DepthErrorFunction(error, error->residualSize());
-//  problem_.AddResidualBlock(cost_function, NULL, transform_map_[sensor]->data, transform_map_[checkerboard]->data, transform_map_[plane]->data);
+  OnPlaneDepthError * error = new OnPlaneDepthError(checkerboard, plane, sensor, data);
+  using DepthErrorFunction = ceres::AutoDiffCostFunction<OnPlaneDepthError, ceres::DYNAMIC, 7, 7, 7>;
+  ceres::CostFunction * cost_function = new DepthErrorFunction(error, error->residualSize());
+  problem_.AddResidualBlock(cost_function, nullptr, transform_map_[sensor]->data, transform_map_[checkerboard]->data, transform_map_[plane]->data);
 }
 
 void
@@ -145,21 +146,33 @@ Optimization::perform ()
 {
   ceres::Solver::Options options;
   options.linear_solver_type = ceres::SPARSE_SCHUR;
-  options.max_num_iterations = 200;
+  options.max_num_iterations = 100;
 //  options.minimizer_progress_to_stdout = true;
   options.num_threads = 8;
 
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem_, &summary);
 
+//  for (auto & pair : transform_map_)
+//  {
+//    Transform3 t = parser_.toPose3(pair.second->data);
+//    ROS_DEBUG_STREAM(log_ << pair.first->frameId() << ": " << t.translation().transpose());
+//  }
+}
+
+Transform3
+Optimization::estimatedTransform (const std::shared_ptr<const BaseObject> & object) const
+{
+  assert(transform_map_.count(object) > 0);
+  return parser_.toPose3(transform_map_.at(object)->data);
+}
+
+void
+Optimization::reset ()
+{
   for (auto & pair : transform_map_)
   {
-//    Scalar * data = pair.second->data;
-    pair.first->transform(parser_.toPose3(pair.second->data));
     parser_.fromPose3(Pose3::Identity(), pair.second->data);
-//    Scalar data[6]; fromPose3(pair.first->pose(), data);
-    if (pair.first->frameId().substr(0, 13) != "/checkerboard")
-      ROS_INFO_STREAM(log_ << "Pose optimized {" << *pair.first << "}");
   }
 }
 

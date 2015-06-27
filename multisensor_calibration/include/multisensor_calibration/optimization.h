@@ -64,6 +64,7 @@ public:
   using IntensityError = IntensityError_<4, 3>;
   using DepthError = DepthError_<4, 3>;
   using OnPlaneIntensityError = OnPlaneIntensityError_<4, 3>;
+  using OnPlaneDepthError = OnPlaneDepthError_<4, 3>;
   using PlaneParameterization = PlaneParameterization_<4, 3>;
   using Pose2DParameterization = Pose2DParameterization_<4, 3>;
   using Pose3DParameterization = Pose3DParameterization_<4, 3>;
@@ -111,11 +112,17 @@ public:
   void
   perform ();
 
+  Transform3
+  estimatedTransform (const std::shared_ptr<const BaseObject> & object) const;
+
+  void
+  reset ();
+
 private:
 
   std::string log_ = "[/optimization] ";
 
-  std::map<std::shared_ptr<BaseObject>, std::shared_ptr<RawTransform>> transform_map_;
+  std::map<const std::shared_ptr<const BaseObject>, std::shared_ptr<RawTransform>> transform_map_;
 
   ceres::Problem problem_;
   Pose3Parser<4, 3> parser_;

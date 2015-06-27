@@ -45,9 +45,10 @@ namespace unipd
 namespace calib
 {
 
+enum class State {NO, IN_QUEUE, YES};
+
 struct SensorInfo
 {
-  enum State : int {NO_POSE = 0, ESTIMATING_POSE, YES_POSE, OPTIMIZING_POSE};
   enum class Type {INTENSITY, DEPTH};
 
   SensorInfo (int index, const std::shared_ptr<Sensor> & sensor, Type type) : index(index), sensor(sensor), type(type) {}
@@ -57,25 +58,24 @@ struct SensorInfo
   const int index;
   const std::shared_ptr<Sensor> sensor;
   const Type type;
-  State state = State::NO_POSE;
+
   std::vector<int> steps;
 };
 
 struct StepInfo
 {
-  enum State : int {NO_POSE = 0, ESTIMATING_POSE, YES_POSE, OPTIMIZING_POSE};
-  enum class Type {NORMAL, PLANE};
+  enum class Type {NORMAL, ON_PLANE};
 
   StepInfo (int index, const std::shared_ptr<Checkerboard> & checkerboard)
     : index(index), checkerboard(checkerboard), plane(), type(Type::NORMAL) {}
   StepInfo (int index, const std::shared_ptr<Checkerboard> & checkerboard, const std::shared_ptr<PlanarObject> & plane)
-    : index(index), checkerboard(checkerboard), plane(plane), type(Type::PLANE) {}
+    : index(index), checkerboard(checkerboard), plane(plane), type(Type::ON_PLANE) {assert(plane);}
 
   const int index;
   const std::shared_ptr<Checkerboard> checkerboard;
   const std::shared_ptr<PlanarObject> plane;
   const Type type;
-  State state = State::NO_POSE;
+
   std::vector<int> sensors;
 
   Cloud3
@@ -92,18 +92,26 @@ class CalibrationMatrix
 public:
 
   template <typename SensorT_>
-  int
-  addSensor (const std::shared_ptr<SensorT_> & sensor)
-  {
-    sensor_info_.push_back(std::make_shared<SensorInfo>(sensor_info_.size(), sensor));
-    return sensor_info_.size() - 1;
-  }
+    int
+    addSensor (const std::shared_ptr<SensorT_> & sensor)
+    {
+      sensor_info_.push_back(std::make_shared<SensorInfo>(sensor_info_.size(), sensor));
+      return sensor_info_.size() - 1;
+    }
 
   int
   newStep (const std::shared_ptr<Checkerboard> & checkerboard,
            const std::shared_ptr<PlanarObject> & plane)
   {
     step_info_.push_back(std::make_shared<StepInfo>(step_info_.size(), checkerboard, plane));
+    data_.resize(data_.size() + sensor_info_.size());
+    return step_info_.size() - 1;
+  }
+
+  int
+  newStep (const std::shared_ptr<Checkerboard> & checkerboard)
+  {
+    step_info_.push_back(std::make_shared<StepInfo>(step_info_.size(), checkerboard));
     data_.resize(data_.size() + sensor_info_.size());
     return step_info_.size() - 1;
   }
@@ -160,6 +168,11 @@ public:
     void
     addSensor (const SensorT_ & sensor);
 
+  void
+  addSensorConstraint (const std::string & sensor_id,
+                       const std::string & parent_id,
+                       const Transform3 & transform);
+
   template <typename Cloud2T_>
     void
     addPinholeData (const std::string & sensor_id,
@@ -182,16 +195,17 @@ public:
   void
   endPlane ();
 
-  const std::shared_ptr<const BaseObject> &
-  get (const std::string & frame_id);
+  std::shared_ptr<const BaseObject>
+  get (const std::string & frame_id) const;
 
   bool
-  isPoseEstimated (const std::string & frame_id);
+  isPoseEstimated (const std::string & frame_id) const;
 
 protected:
 
   struct EstimatedPose
   {
+    bool estimated;
     std::shared_ptr<const BaseObject> parent;
     Transform3 transform;
   };
@@ -202,52 +216,86 @@ protected:
   virtual EstimatedPose
   estimateCheckerboardPose (const StepInfo & step_info);
 
+  void
+  projectCheckerboardOnPlane (const std::shared_ptr<Checkerboard> checkerboard,
+                              const std::shared_ptr<const PlanarObject> plane) const;
+
 private:
 
   // Methods
+
+  std::shared_ptr<Checkerboard>
+  createCheckerboard_ (const Checkerboard & checkerboard,
+                      int id) const;
+
+  std::shared_ptr<PlanarObject>
+  createPlane_ (int id) const;
 
   void
   addOptimizationConstraint (int step,
                              int sensor_index);
 
   bool
-  tryAddSensorToTree (int sensor_index);
+  tryEstimateSensorPose_ (int sensor_index);
 
   bool
-  tryAddCheckerboardToTree (int step);
+  tryEstimateCheckerboardPose_ (int step);
 
-  bool
-  inTree (const std::shared_ptr<const BaseObject> & object) const;
+  inline void
+  addObject_ (const std::shared_ptr<BaseObject> & object)
+  {
+    assert(all_objects_.count(object->frameId()) == 0);
+    all_objects_[object->frameId()] = object;
+    assert(pose_estimated_.count(object) == 0);
+    pose_estimated_[object] = State::NO;
+  }
+
+  inline bool
+  isPoseEstimated_ (const std::shared_ptr<const BaseObject> & object) const
+  {
+    assert(pose_estimated_.count(object) > 0);
+    return pose_estimated_.at(object) == State::YES;
+  }
+
+  inline void
+  setPoseState_ (const std::shared_ptr<const BaseObject> & object,
+                 State state)
+  {
+    assert(pose_estimated_.count(object) > 0);
+    pose_estimated_[object] = state;
+  }
+
+  inline bool
+  inQueue_ (const std::shared_ptr<const BaseObject> & object)
+  {
+    assert(pose_estimated_.count(object) > 0);
+    return pose_estimated_.at(object) == State::IN_QUEUE;
+  }
 
   void
-  addToTree (const std::shared_ptr<BaseObject> & object,
-             const std::shared_ptr<const BaseObject> & parent,
-             const Pose3 & pose);
-
-  void
-  addToTree (const std::shared_ptr<BaseObject> & object);
-
-  void
-  initTree (const std::shared_ptr<Sensor> & sensor);
+  transformToWorldCoordinates_ (const std::shared_ptr<BaseObject> & object);
 
   // Variables
 
   Optimization optimization_;
   std::string log_ = "[/calibration] ";
 
+  bool initialized_ = false;
+
   CalibrationMatrix matrix_;
   std::map<std::string, int> sensor_index_;
 
   std::shared_ptr<BaseObject> world_ = std::make_shared<BaseObject>("/world");
-  std::set<std::shared_ptr<const BaseObject>> tree_;
-  std::map<std::string, std::shared_ptr<const BaseObject>> all_objects_;
+  std::map<std::shared_ptr<const BaseObject>, State> pose_estimated_;
+  std::map<std::string, std::shared_ptr<BaseObject>> all_objects_;
 
   int current_step_ = -1;
   std::shared_ptr<PlanarObject> current_plane_;
-  std::vector<int> current_plane_steps_;
 
-  std::queue<int> update_queue_;
   int fixed_sensor_index_;
+
+  std::queue<int> step_update_queue_;
+  std::queue<int> sensor_update_queue_;
 
 };
 
@@ -257,13 +305,13 @@ template <typename SensorT_>
   {
     assert(sensor_index_.count(sensor.frameId()) == 0);
     auto new_sensor = std::make_shared<SensorT_>(sensor);
+    new_sensor->reset();
     sensor_index_[sensor.frameId()] = matrix_.addSensor(new_sensor);
-    all_objects_[new_sensor->frameId()] = new_sensor;
 
-    optimization_.addObject(new_sensor);
-    optimization_.set6DOFTransform(new_sensor);
-    optimization_.setFixed(new_sensor);
-    ROS_INFO_STREAM(log_ << "Sensor [" << sensor.frameId() << "] added.");
+    addObject_(new_sensor);
+    setPoseState_(new_sensor, State::NO);
+
+    ROS_INFO_STREAM(log_ << "Sensor [" << sensor << "] added.");
   }
 
 template <typename Cloud2T_>
@@ -273,15 +321,25 @@ template <typename Cloud2T_>
   {
     assert(sensor_index_.count(sensor_id) > 0);
     int sensor_index = sensor_index_[sensor_id];
-    auto sensor = matrix_.sensorInfo(sensor_index)->sensor;
+    auto & sensor = matrix_.sensorInfo(sensor_index)->sensor;
     auto data = std::make_shared<IntensityData>(std::forward<Cloud2T_>(corners));
 
     matrix_.addData(current_step_, sensor_index, data);
 
-    if (tree_.empty() and not sensor->hasParent())
+    if (not initialized_ and not sensor->hasParent() and sensor->pose().isApprox(Pose3::Identity()))
     {
       fixed_sensor_index_ = sensor_index;
-      initTree(sensor);
+      sensor->setParent(world_);
+      addObject_(world_);
+      setPoseState_(world_, State::YES);
+      setPoseState_(sensor, State::YES);
+      optimization_.addObject(sensor);
+      optimization_.set6DOFTransform(sensor);
+      optimization_.setFixed(sensor);
+      initialized_ = true;
+      ROS_INFO_STREAM(log_ << " +  Object [" << world_->frameId() << "] created.");
+      ROS_INFO_STREAM(log_ << " +  Object [" << sensor->frameId() << "] pose estimated:\n"
+                           << *sensor);
     }
 
     ROS_DEBUG_STREAM(log_ << "Data from sensor [" << sensor_id << "] added.");

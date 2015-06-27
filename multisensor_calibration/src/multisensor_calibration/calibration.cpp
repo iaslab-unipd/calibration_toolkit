@@ -26,26 +26,53 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <calibration_algorithms/plane_to_plane_calibration.h>
 #include <multisensor_calibration/calibration.h>
 
 namespace unipd
 {
 namespace calib
 {
+void
+Calibration::addSensorConstraint (const std::string & sensor_id,
+                                  const std::string & parent_id,
+                                  const Transform3 & transform)
+{
+  assert(sensor_index_.count(sensor_id) > 0);
+  int sensor_index = sensor_index_[sensor_id];
+  auto sensor = matrix_.sensorInfo(sensor_index)->sensor;
+
+  assert(sensor_index_.count(parent_id) > 0);
+  int parent_index = sensor_index_[parent_id];
+  auto parent = matrix_.sensorInfo(parent_index)->sensor;
+
+  sensor->setParent(parent);
+  sensor->transform(transform);
+}
+
+std::shared_ptr<Checkerboard>
+Calibration::createCheckerboard_ (const Checkerboard & checkerboard,
+                                  int id) const
+{
+  auto new_checkerboard = std::make_shared<Checkerboard>(checkerboard);
+  std::stringstream ss;
+  ss << checkerboard.frameId() << "_" << id;
+  new_checkerboard->setFrameId(ss.str());
+  return new_checkerboard;
+}
 
 const std::string &
 Calibration::beginStep (const Checkerboard & checkerboard)
 {
-  auto new_checkerboard = std::make_shared<Checkerboard>(checkerboard);
-  std::stringstream ss;
-  ss << checkerboard.frameId() << "_" << current_step_;
-  new_checkerboard->setFrameId(ss.str());
-
-  current_step_ = matrix_.newStep(new_checkerboard, current_plane_);
-  all_objects_[new_checkerboard->frameId()] = new_checkerboard;
+  auto new_checkerboard = createCheckerboard_(checkerboard, current_step_ + 1);
+  addObject_(new_checkerboard);
+  setPoseState_(new_checkerboard, State::NO);
 
   if (current_plane_)
-    current_plane_steps_.push_back(current_step_);
+    current_step_ = matrix_.newStep(new_checkerboard, current_plane_);
+  else
+    current_step_ = matrix_.newStep(new_checkerboard);
+
   ROS_DEBUG_STREAM(log_ << "==> Begin step " << current_step_ << " [" << new_checkerboard->frameId() << "]");
   return new_checkerboard->frameId();
 }
@@ -53,36 +80,134 @@ Calibration::beginStep (const Checkerboard & checkerboard)
 void
 Calibration::endStep ()
 {
-  assert(current_step_ >= 0);
-  if (tryAddCheckerboardToTree(current_step_))
-  {
-    auto step_info = matrix_.stepInfo(current_step_);
-    for (int sensor_index : step_info->sensors)
-    {
-      bool in_tree = inTree(matrix_.sensorInfo(sensor_index)->sensor);
-      if (not in_tree)
-        in_tree = tryAddSensorToTree(sensor_index);
+  step_update_queue_.push(current_step_);
+  auto step_info = matrix_.stepInfo(current_step_);
+  setPoseState_(step_info->checkerboard, State::IN_QUEUE);
 
-      if (in_tree)
-        addOptimizationConstraint(current_step_, sensor_index);
+  bool need_to_optimize = false;
+
+  while (not step_update_queue_.empty())
+  {
+    while (not step_update_queue_.empty())
+    {
+      int step_index = step_update_queue_.front();
+      step_update_queue_.pop();
+      auto step_info = matrix_.stepInfo(step_index);
+
+      if (tryEstimateCheckerboardPose_(current_step_))
+      {
+        need_to_optimize = true;
+        setPoseState_(step_info->checkerboard, State::YES);
+        optimization_.addObject(step_info->checkerboard);
+
+        if (step_info->type == StepInfo::Type::ON_PLANE)
+        {
+          if (not isPoseEstimated_(step_info->plane))
+          {
+            setPoseState_(step_info->plane, State::YES);
+            optimization_.addObject(step_info->plane);
+            optimization_.setPlaneTransform(step_info->plane);
+          }
+          optimization_.set3DOFTransform(step_info->checkerboard);
+        }
+        else
+        {
+          optimization_.set6DOFTransform(step_info->checkerboard);
+        }
+
+        for (int sensor_index : step_info->sensors)
+        {
+          auto sensor_info = matrix_.sensorInfo(sensor_index);
+          if (not isPoseEstimated_(sensor_info->sensor) and not inQueue_(sensor_info->sensor))
+          {
+            sensor_update_queue_.push(sensor_index);
+            setPoseState_(sensor_info->sensor, State::IN_QUEUE);
+          }
+          else
+          {
+            addOptimizationConstraint(step_index, sensor_index);
+          }
+        }
+      }
+      else
+      {
+        setPoseState_(step_info->checkerboard, State::NO);
+      }
     }
+
+    while (not sensor_update_queue_.empty())
+    {
+      int sensor_index = sensor_update_queue_.front();
+      sensor_update_queue_.pop();
+      auto sensor_info = matrix_.sensorInfo(sensor_index);
+
+      if (tryEstimateSensorPose_(sensor_index))
+      {
+        need_to_optimize = true;
+        setPoseState_(sensor_info->sensor, State::YES);
+        optimization_.addObject(sensor_info->sensor);
+        optimization_.set6DOFTransform(sensor_info->sensor);
+        ROS_INFO_STREAM(log_ << " +  Object [" << sensor_info->sensor->frameId() << "] pose estimated:\n"
+                             << *sensor_info->sensor);
+
+        for (int step_index : sensor_info->steps)
+        {
+          auto step_info = matrix_.stepInfo(step_index);
+          if (not isPoseEstimated_(step_info->checkerboard) and not inQueue_(step_info->checkerboard))
+          {
+            step_update_queue_.push(step_index);
+            setPoseState_(step_info->checkerboard, State::IN_QUEUE);
+          }
+          else
+          {
+            addOptimizationConstraint(step_index, sensor_index);
+          }
+        }
+      }
+      else
+      {
+        setPoseState_(sensor_info->sensor, State::NO);
+      }
+    }
+  }
+
+  if (need_to_optimize)
+  {
     optimization_.perform();
+    for (auto pair : all_objects_)
+    {
+      if (pair.second != world_ and isPoseEstimated_(pair.second))
+      {
+        Transform3 t = optimization_.estimatedTransform(pair.second);
+        pair.second->transform(t);
+      }
+    }
+
+    optimization_.reset();
   }
 
   ROS_DEBUG_STREAM(log_ << "<== End step " << current_step_ << " [" << matrix_.stepInfo(current_step_)->checkerboard->frameId() << "]");
+}
+
+std::shared_ptr<PlanarObject>
+Calibration::createPlane_ (int id) const
+{
+  auto new_plane = std::make_shared<PlanarObject>(Plane3(Vector3::UnitZ(), 0));
+  std::stringstream ss;
+  ss << "/plane_" << id;
+  new_plane->setFrameId(ss.str());
+  return new_plane;
 }
 
 const std::string &
 Calibration::beginPlane ()
 {
   assert(not current_plane_);
-  current_plane_ = std::make_shared<PlanarObject>(Plane3(Vector3::UnitZ(), 0));
-  std::stringstream ss;
-  ss << "plane_" << current_step_;
-  current_plane_->setFrameId(ss.str());
-  current_plane_steps_.clear();
-  all_objects_[current_plane_->frameId()] = current_plane_;
-  ROS_INFO_STREAM(log_ << "--> Begin plane [" << current_plane_->frameId() << "]");
+  current_plane_ = createPlane_(current_step_);
+  addObject_(current_plane_);
+  setPoseState_(current_plane_, State::NO);
+
+  ROS_DEBUG_STREAM(log_ << "--> Begin plane [" << current_plane_->frameId() << "]");
   return current_plane_->frameId();
 }
 
@@ -90,23 +215,23 @@ void
 Calibration::endPlane ()
 {
   assert(current_plane_);
-  ROS_INFO_STREAM(log_ << *current_plane_);
-  current_plane_->reset();
-  ROS_INFO_STREAM(log_ << "<-- End plane [" << current_plane_->frameId() << "]");
+  ROS_DEBUG_STREAM(log_ << "<-- End plane [" << current_plane_->frameId() << "]");
+  current_plane_.reset();
 }
 
-const std::shared_ptr<const BaseObject> &
-Calibration::get (const std::string & frame_id)
+std::shared_ptr<const BaseObject>
+Calibration::get (const std::string & frame_id) const
 {
   assert(all_objects_.count(frame_id) > 0);
-  return all_objects_[frame_id];
+  return all_objects_.at(frame_id);
 }
 
 bool
-Calibration::isPoseEstimated (const std::string & frame_id)
+Calibration::isPoseEstimated (const std::string & frame_id) const
 {
-  assert(all_objects_.count(frame_id) > 0);
-  return inTree(all_objects_[frame_id]);
+  if (all_objects_.count(frame_id) == 0)
+    return false;
+  return pose_estimated_.at(all_objects_.at(frame_id)) == State::YES;
 }
 
 // protected:
@@ -119,22 +244,37 @@ Calibration::estimateSensorPose (const SensorInfo & sensor_info)
     for (int step : sensor_info.steps)
     {
       std::shared_ptr<StepInfo> & step_info = matrix_.stepInfo(step);
-      if (inTree(step_info->checkerboard))
+      if (isPoseEstimated_(step_info->checkerboard))
       {
         std::shared_ptr<const IntensityData> data = matrix_.data<IntensityData>(step, sensor_info.index);
         std::shared_ptr<PinholeSensor> sensor = std::static_pointer_cast<PinholeSensor>(sensor_info.sensor);
         Transform3 inverse_transform = sensor->cameraModel().estimatePose(data->corners, step_info->initialCorners());
-        return EstimatedPose{step_info->checkerboard, inverse_transform.inverse()};
+        return EstimatedPose{true, step_info->checkerboard, inverse_transform.inverse()};
       }
     }
   }
   else // (sensor_info.type == SensorInfo::Type::DEPTH)
   {
-    // TODO
-    return EstimatedPose();
+    PlaneToPlaneCalibration calibration_alg;
+    for (int step : sensor_info.steps)
+    {
+      std::shared_ptr<StepInfo> & step_info = matrix_.stepInfo(step);
+      if (isPoseEstimated_(step_info->checkerboard))
+      {
+        std::shared_ptr<const DepthData> data = matrix_.data<DepthData>(step, sensor_info.index);
+        if (step_info->type == StepInfo::Type::NORMAL)
+          calibration_alg.addPlanePair(std::make_pair(step_info->checkerboard->plane(), data->plane));
+        else //(step_info->type == StepInfo::Type::ON_PLANE)
+          calibration_alg.addPlanePair(std::make_pair(step_info->plane->plane(), data->plane));
+
+      }
+    }
+    if (calibration_alg.canEstimateTransform())
+      return EstimatedPose{true, world_, calibration_alg.estimateTransform()};
+
   }
 
-  return EstimatedPose();
+  return EstimatedPose{false};
 }
 
 Calibration::EstimatedPose
@@ -143,188 +283,148 @@ Calibration::estimateCheckerboardPose (const StepInfo & step_info)
   for (int sensor_index : step_info.sensors)
   {
     std::shared_ptr<SensorInfo> & sensor_info = matrix_.sensorInfo(sensor_index);
-    if (sensor_info->type == SensorInfo::Type::INTENSITY and inTree(sensor_info->sensor))
+    if (sensor_info->type == SensorInfo::Type::INTENSITY and isPoseEstimated_(sensor_info->sensor))
     {
       std::shared_ptr<const IntensityData> data = matrix_.data<IntensityData>(step_info.index, sensor_index);
       std::shared_ptr<PinholeSensor> sensor = std::static_pointer_cast<PinholeSensor>(sensor_info->sensor);
       Transform3 transform = sensor->cameraModel().estimatePose(data->corners, step_info.checkerboard->corners());
-      return EstimatedPose{sensor, transform};
+      return EstimatedPose{true, sensor, transform};
     }
   }
 
-  return EstimatedPose();
+  return EstimatedPose{false};
 }
 
-
+void
+Calibration::projectCheckerboardOnPlane (const std::shared_ptr<Checkerboard> checkerboard,
+                                         const std::shared_ptr<const PlanarObject> plane) const
+{
+  checkerboard->transform(plane->pose().inverse());
+  Quaternion q = Quaternion::FromTwoVectors(checkerboard->pose().rotation().col(2), Vector3::UnitZ());
+  checkerboard->transform(Transform3::Identity() * q);
+  Vector3 t = Plane3(Vector3::UnitZ(), 0).projection(checkerboard->pose().translation()) - checkerboard->pose().translation();
+  checkerboard->transform(Transform3::Identity() * Translation3(t));
+  checkerboard->setParent(plane);
+}
 
 // private:
 
 bool
-Calibration::tryAddSensorToTree (int sensor_index)
+Calibration::tryEstimateSensorPose_ (int sensor_index)
 {
   std::shared_ptr<SensorInfo> & sensor_info = matrix_.sensorInfo(sensor_index);
-  assert(not inTree(sensor_info->sensor));
+  assert(not isPoseEstimated_(sensor_info->sensor));
 
-  if (sensor_info->sensor->hasParent() and not inTree(sensor_info->sensor->parent()))
+  if (sensor_info->sensor->hasParent() and not isPoseEstimated_(sensor_info->sensor->parent()))
     return false;
 
-  bool added_to_tree = false;
-  if (sensor_info->sensor->hasParent() and inTree(sensor_info->sensor->parent()))
+  bool pose_estimated = false;
+  if (sensor_info->sensor->hasParent() and isPoseEstimated_(sensor_info->sensor->parent()))
   {
-    addToTree(sensor_info->sensor);
-    added_to_tree = true;
+    transformToWorldCoordinates_(sensor_info->sensor);
+    pose_estimated = true;
   }
   else
   {
     EstimatedPose pose = estimateSensorPose(*sensor_info);
-    if (pose.parent)
+    if (pose.estimated)
     {
-      addToTree(sensor_info->sensor, pose.parent, pose.transform);
-      added_to_tree = true;
+      sensor_info->sensor->transform(pose.transform);
+      sensor_info->sensor->setParent(pose.parent);
+      transformToWorldCoordinates_(sensor_info->sensor);
+      pose_estimated = true;
     }
   }
 
-  return added_to_tree;
+  return pose_estimated;
 }
 
 bool
-Calibration::tryAddCheckerboardToTree (int step)
+Calibration::tryEstimateCheckerboardPose_ (int step)
 {
   std::shared_ptr<StepInfo> & step_info = matrix_.stepInfo(step);
-  assert(not inTree(step_info->checkerboard));
+  assert(not isPoseEstimated_(step_info->checkerboard));
 
-  bool added_to_tree = false;
+  bool pose_estimated = false;
 
   EstimatedPose pose = estimateCheckerboardPose(*step_info);
-  if (pose.parent)
+  if (pose.estimated)
   {
-    addToTree(step_info->checkerboard, pose.parent, pose.transform);
-    added_to_tree = true;
+    step_info->checkerboard->transform(pose.transform);
+    step_info->checkerboard->setParent(pose.parent);
+    transformToWorldCoordinates_(step_info->checkerboard);
+    pose_estimated = true;
 
-    optimization_.addObject(step_info->checkerboard);
-
-    if (current_plane_)
+    if (step_info->type == StepInfo::Type::ON_PLANE)
     {
-      if (not inTree(current_plane_))
+      if (not isPoseEstimated_(step_info->plane))
       {
-        ROS_INFO_STREAM("***");
-        addToTree(current_plane_, pose.parent, pose.transform);
-        optimization_.addObject(current_plane_);
-        optimization_.setPlaneTransform(current_plane_);
+        step_info->plane->transform(pose.transform);
+        step_info->plane->setParent(pose.parent);
+        transformToWorldCoordinates_(step_info->plane);
       }
-
-      ROS_INFO_STREAM("------ \n" << current_plane_->pose().matrix() << "\n" << step_info->checkerboard->pose().matrix());
-
-      step_info->checkerboard->transform(current_plane_->pose().inverse());
-      Quaternion q = Quaternion::FromTwoVectors(step_info->checkerboard->pose().rotation().col(2), Vector3::UnitZ());
-      step_info->checkerboard->transform(Transform3::Identity() * q);
-      Vector3 t = Plane3(Vector3::UnitZ(), 0).projection(step_info->checkerboard->pose().translation()) - step_info->checkerboard->pose().translation();
-      step_info->checkerboard->transform(Transform3::Identity() * Translation3(t));
-      step_info->checkerboard->setParent(current_plane_);
-
-      ROS_INFO_STREAM(step_info->checkerboard->pose().translation().transpose() << "\n" << step_info->checkerboard->pose().matrix());
-
-      optimization_.set3DOFTransform(step_info->checkerboard);
-    }
-    else
-    {
-      optimization_.set6DOFTransform(step_info->checkerboard);
+      projectCheckerboardOnPlane(step_info->checkerboard, step_info->plane);
     }
 
   }
 
-  return added_to_tree;
+  return pose_estimated;
 }
 
 void
-Calibration::addOptimizationConstraint (int step,
+Calibration::addOptimizationConstraint (int step_index,
                                         int sensor_index)
 {
-  assert (matrix_.data<Data>(step, sensor_index));
+  assert (matrix_.data<Data>(step_index, sensor_index));
+
+  ROS_DEBUG_STREAM(log_ << " +  addOptimizationConstraint(" << step_index << ", " << sensor_index << ")");
 
   const std::shared_ptr<SensorInfo> & sensor_info = matrix_.sensorInfo(sensor_index);
-  const std::shared_ptr<StepInfo> & step_info = matrix_.stepInfo(step);
+  const std::shared_ptr<StepInfo> & step_info = matrix_.stepInfo(step_index);
   if (sensor_info->type == SensorInfo::Type::INTENSITY)
   {
-    if (current_plane_)
+    if (step_info->type == StepInfo::Type::ON_PLANE)
     {
-      optimization_.addConstraint(step_info->checkerboard, step_info->plane,
+      optimization_.addConstraint(step_info->checkerboard,
+                                  step_info->plane,
                                   std::static_pointer_cast<PinholeSensor>(sensor_info->sensor),
-                                  matrix_.data<IntensityData>(step, sensor_index));
+                                  matrix_.data<IntensityData>(step_index, sensor_index));
     }
     else
     {
       optimization_.addConstraint(step_info->checkerboard,
                                   std::static_pointer_cast<PinholeSensor>(sensor_info->sensor),
-                                  matrix_.data<IntensityData>(step, sensor_index));
+                                  matrix_.data<IntensityData>(step_index, sensor_index));
     }
   }
   else
   {
-//    if (current_plane_)
-//    {
-//      // TODO
-//    }
-//    else
-//    {
+    if (step_info->type == StepInfo::Type::ON_PLANE)
+    {
+      optimization_.addConstraint(step_info->checkerboard,
+                                  step_info->plane,
+                                  std::static_pointer_cast<DepthSensor>(sensor_info->sensor),
+                                  matrix_.data<DepthData>(step_index, sensor_index));
+    }
+    else
+    {
       optimization_.addConstraint(step_info->checkerboard,
                                   std::static_pointer_cast<DepthSensor>(sensor_info->sensor),
-                                  matrix_.data<DepthData>(step, sensor_index));
-//    }
-  }
-
-  if (sensor_index != fixed_sensor_index_)
-  {
-    optimization_.setVariable(sensor_info->sensor);
-    ROS_INFO_STREAM(log_ << " +  Object [" << sensor_info->sensor->frameId() << "] pose is now variable.");
+                                  matrix_.data<DepthData>(step_index, sensor_index));
+    }
   }
 }
 
-bool
-Calibration::inTree (const std::shared_ptr<const BaseObject> & object) const
-{
-  return tree_.count(object) > 0;
-}
-
 void
-Calibration::addToTree (const std::shared_ptr<BaseObject> & object,
-                        const std::shared_ptr<const BaseObject> & parent,
-                        const Pose3 & pose)
+Calibration::transformToWorldCoordinates_ (const std::shared_ptr<BaseObject> & object)
 {
-  assert(not object->hasParent());
-  object->reset();
-  object->transform(pose);
-  object->setParent(parent);
-  addToTree(object);
-}
-
-void
-Calibration::addToTree (const std::shared_ptr<BaseObject> & object)
-{
-  assert(object->hasParent() and not inTree(object) and inTree(object->parent()));
+  assert(object->hasParent() and not isPoseEstimated_(object) and isPoseEstimated_(object->parent()));
 
   while (object->parent()->hasParent())
   {
     object->transform(object->parent()->pose());
     object->setParent(object->parent()->parent());
   }
-
-  tree_.insert(object);
-  ROS_INFO_STREAM(log_ << " +  Object [" << object->frameId() << "] added to tree.");
-}
-
-void
-Calibration::initTree (const std::shared_ptr<Sensor> & sensor)
-{
-  assert(tree_.empty() and not sensor->hasParent());
-
-  sensor->reset();
-  sensor->setParent(world_);
-
-  tree_.insert(world_);
-  ROS_INFO_STREAM(log_ << " +  Object [" << world_->frameId() << "] is the tree root.");
-  tree_.insert(sensor);
-  ROS_INFO_STREAM(log_ << " +  Object [" << sensor->frameId() << "] added to tree.");
 }
 
 } // namespace calib
