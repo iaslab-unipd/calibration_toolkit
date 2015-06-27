@@ -38,10 +38,10 @@ Transform3
 PlaneToPlaneCalibration::estimateTransform (const std::vector<std::pair<Plane3, Plane3>> & plane_pair_vector)
 {
   const Size1 SIZE = plane_pair_vector.size();
-  assert(SIZE >= 3);
+  assert(SIZE >= 10);
 
-  Eigen::Matrix<Scalar, 3, Eigen::Dynamic> normals_1(3, SIZE);
-  Eigen::Matrix<Scalar, 3, Eigen::Dynamic> normals_2(3, SIZE);
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> normals_1(SIZE, 3);
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> normals_2(SIZE, 3);
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> distances_1(SIZE);
   Eigen::Matrix<Scalar, Eigen::Dynamic, 1> distances_2(SIZE);
 
@@ -52,38 +52,41 @@ PlaneToPlaneCalibration::estimateTransform (const std::vector<std::pair<Plane3, 
 
     if (plane_1.offset() > 0)
     {
-      normals_1.col(i) = -plane_1.normal();
+      normals_1.row(i) = -plane_1.normal();
       distances_1(i) = plane_1.offset();
     }
     else
     {
-      normals_1.col(i) = plane_1.normal();
+      normals_1.row(i) = plane_1.normal();
       distances_1(i) = -plane_1.offset();
     }
 
     if (plane_2.offset() > 0)
     {
-      normals_2.col(i) = -plane_2.normal();
+      normals_2.row(i) = -plane_2.normal();
       distances_2(i) = plane_2.offset();
     }
     else
     {
-      normals_2.col(i) = plane_2.normal();
+      normals_2.row(i) = plane_2.normal();
       distances_2(i) = -plane_2.offset();
     }
   }
 
-  Eigen::Matrix<Scalar, 3, 3> USV = normals_2 * normals_1.transpose();
+  Transform3 transform;
+
+  Eigen::Matrix<Scalar, 3, 3> USV = normals_2.transpose() * normals_1;
   Eigen::JacobiSVD<Eigen::Matrix<Scalar, 3, 3> > svd;
   svd.compute(USV, Eigen::ComputeFullU | Eigen::ComputeFullV);
-
-  // Use QR decomposition for ill-conditioned matrices
-  Eigen::ColPivHouseholderQR<Eigen::Matrix<Scalar, Eigen::Dynamic, 3> > qr(normals_1.transpose().rows(), 3);
-  qr.compute(normals_1.transpose());
-
-  Transform3 transform;
-  transform.translation() = (qr.colsPermutation() * qr.matrixR().transpose() * qr.matrixR() * qr.colsPermutation().transpose()).inverse() * normals_1 * (distances_1 - distances_2);
   transform.linear() = svd.matrixV() * svd.matrixU().transpose();
+
+//  transform.translation() = (normals_1.transpose() * normals_1).inverse() * normals_1.transpose() * (distances_1 - distances_2);
+
+  // Use QR decomposition
+  Eigen::ColPivHouseholderQR<Eigen::Matrix<Scalar, Eigen::Dynamic, 3> > qr(normals_1.rows(), 3);
+  qr.compute(normals_1);
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> R = qr.matrixR().template triangularView<Eigen::Upper>();
+  transform.translation() = (qr.colsPermutation() * R.transpose() * R * qr.colsPermutation().transpose()).inverse() * normals_1.transpose() * (distances_1 - distances_2);
 
   return transform;
 }

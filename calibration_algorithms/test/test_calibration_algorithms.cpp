@@ -26,52 +26,11 @@
  *  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef UNIPD_CALIBRATION_CALIBRATION_ALGORITHMS_PLANE_TO_PLANE_CALIBRATION_H_
-#define UNIPD_CALIBRATION_CALIBRATION_ALGORITHMS_PLANE_TO_PLANE_CALIBRATION_H_
+#include <gtest/gtest.h>
 
-#include <calibration_common/base/geometry.h>
-
-namespace unipd
+int
+main(int argc, char ** argv)
 {
-namespace calib
-{
-
-/**
- * @brief The PlaneToPlaneCalibration class
- * C++ implementation of:
- *    R. Unnikrishnan and M. Hebert, “Fast extrinsic calibration of a laser rangefinder to a camera,” Tech. Rep., 2005.
- */
-class PlaneToPlaneCalibration
-{
-public:
-
-  void
-  addPlanePair (const std::pair<Plane3, Plane3> & pair)
-  {
-    plane_pair_vec_.push_back(pair);
-  }
-
-  bool
-  canEstimateTransform () const
-  {
-    return plane_pair_vec_.size() >= 10;
-  }
-
-  Transform3
-  estimateTransform () const
-  {
-    return estimateTransform(plane_pair_vec_);
-  }
-
-  static Transform3
-  estimateTransform (const std::vector<std::pair<Plane3, Plane3>> & plane_pair_vec);
-
-protected:
-
-  std::vector<std::pair<Plane3, Plane3>> plane_pair_vec_;
-
-};
-
-} // namespace calib
-} // namespace unipd
-#endif // UNIPD_CALIBRATION_CALIBRATION_ALGORITHMS_PLANE_TO_PLANE_CALIBRATION_H_
+ ::testing::InitGoogleTest(&argc, argv);
+ return RUN_ALL_TESTS();
+}
