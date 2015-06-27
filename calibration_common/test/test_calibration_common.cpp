@@ -27,25 +27,10 @@
  */
 
 #include <gtest/gtest.h>
-//#include <iostream>
-#include <Eigen/Core>
-
-void
-prova()
-{
-  Eigen::Matrix3Xd points = Eigen::Matrix3Xd::Zero(3, 2);
-  Eigen::DiagonalMatrix<double, 2> diagonal(2, 2);
-  std::cout << points << std::endl;
-  std::cout << diagonal.diagonal().transpose() << std::endl;
-  Eigen::Matrix2Xd tmp = points.topRows<2>();
-  Eigen::Matrix2Xd result = diagonal * tmp;
-}
 
 int
 main(int argc, char ** argv)
 {
  ::testing::InitGoogleTest(&argc, argv);
  return RUN_ALL_TESTS();
- //prova();
- //return 0;
 }
