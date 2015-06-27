@@ -279,7 +279,7 @@ template <int R_, int t_>
         reprojected_corners = sensor_->cameraModel().distortPoints<T>(reprojected_corners);
 
         Eigen::Map<typename Cloud2_<T>::Container> residuals_map(residuals, 2, data_->corners.elements());
-        residuals_map = (reprojected_corners.container() - data_->corners.container().cast<T>()) / T(0.5);
+        residuals_map = (reprojected_corners.container() - data_->corners.container().cast<T>()) / T(0.2);
         residuals_map.cwiseAbs();
 
         return true;
