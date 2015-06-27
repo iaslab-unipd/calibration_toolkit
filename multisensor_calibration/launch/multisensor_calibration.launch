@@ -11,7 +11,7 @@
   <arg name="network_file"  default="$(find multisensor_calibration)/conf/network.yaml" />
 
   <node pkg="rostopic" type="rostopic" name="trigger" if="$(arg trigger_acquisition)"
-        args="pub /master_node/action std_msgs/String &quot;get data&quot; -r $(arg trigger_rate)" />
+        args="pub /master_node/acquisition std_msgs/Empty -r $(arg trigger_rate)" />
 
   <node launch-prefix="$(arg launch-prefix)" pkg="multisensor_calibration"
         type="master_node"  name="master_node" output="screen">

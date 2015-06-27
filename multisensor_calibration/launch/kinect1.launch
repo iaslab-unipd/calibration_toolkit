@@ -4,6 +4,8 @@
   <arg name="debug"         default="false" />
   <arg name="launch-prefix" value="gdb -ex run --args" if="$(arg debug)" />
   <arg name="launch-prefix" value="" unless="$(arg debug)" />
+  
+  <arg name="launch_driver" default="true" />
 
   <arg name="pc_name"       default="$(env ROS_PC_NAME)" />
   <arg name="kinect_name"   default="kinect1" />
@@ -13,7 +15,7 @@
   
   <group ns="$(arg pc_name)">
     
-    <include file="$(find openni_launch)/launch/openni.launch">
+    <include file="$(find openni_launch)/launch/openni.launch" if="$(arg launch_driver)">
       <arg name="camera"                value="$(arg kinect_name)_driver" />
       <arg name="device_id"             value="$(arg kinect_serial)" />
       <arg name="depth_registration"    value="false" />
@@ -32,7 +34,6 @@
           frame_id: "/$(arg pc_name)/$(arg kinect_name)/rgb"
         depth:
           frame_id: "/$(arg pc_name)/$(arg kinect_name)/depth"
-          image_type: uint16
           error:
             max_degree: 2
             min_degree: 2
