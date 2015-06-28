@@ -76,13 +76,13 @@ ROSDevice::ROSDevice (ros::NodeHandle node_handle)
         if (sensor_map.find(parent) == sensor_map.end())
           ROS_FATAL_STREAM(log_ << "Unknown sensor \"" << parent<< "\" in \"transforms\"!");
 
-        std::map<std::string, Scalar> position;
-        std::map<std::string, Scalar> orientation;
-        node_handle.getParam("transforms/" + sensor_name + "/position", position);
-        node_handle.getParam("transforms/" + sensor_name + "/orientation", orientation);
+        std::map<std::string, Scalar> translation;
+        std::map<std::string, Scalar> rotation;
+        node_handle.getParam("transforms/" + sensor_name + "/translation", translation);
+        node_handle.getParam("transforms/" + sensor_name + "/rotation", rotation);
 
-        Translation3 t = Translation3(position["x"], position["y"], position["z"]);
-        Quaternion q = Quaternion(orientation["w"], orientation["x"], orientation["y"], orientation["z"]);
+        Translation3 t = Translation3(translation["x"], translation["y"], translation["z"]);
+        Quaternion q = Quaternion(rotation["w"], rotation["x"], rotation["y"], rotation["z"]);
 
         sensor_map[sensor_name]->setParent(sensor_map[parent]);
         sensor_map[sensor_name]->setPose(t * q);
