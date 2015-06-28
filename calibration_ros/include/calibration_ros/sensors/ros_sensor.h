@@ -52,6 +52,9 @@ template <typename TopicT_, typename MessagesT_, typename DataT_>
       // Do nothing
     }
 
+    virtual
+    ~ROSSensor () {}
+
     virtual void
     subscribe (int topic) = 0;
     

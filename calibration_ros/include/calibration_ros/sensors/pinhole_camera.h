@@ -82,8 +82,11 @@ public:
 
   ROSPinholeCamera (const ros::NodeHandle & node_handle);
 
+  virtual
+  ~ROSPinholeCamera () {};
+
   virtual void
-  subscribe (int topic);
+  subscribe (int topic) override;
 
   inline const std::shared_ptr<PinholeSensor> &
   sensor () const

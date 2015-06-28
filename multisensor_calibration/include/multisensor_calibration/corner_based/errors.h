@@ -126,22 +126,22 @@ template <int R_, int t_>
   public:
 
     virtual
-    ~Pose3DParameterization_ ();
+    ~Pose3DParameterization_ () override;
 
     virtual bool
     Plus (const double * x,
           const double * delta,
-          double * x_plus_delta) const;
+          double * x_plus_delta) const override;
 
     virtual bool
     ComputeJacobian (const double * x,
-                     double * jacobian) const;
+                     double * jacobian) const override;
 
     virtual int
-    GlobalSize() const;
+    GlobalSize() const override;
 
     virtual int
-    LocalSize() const;
+    LocalSize() const override;
 
   };
 
@@ -158,7 +158,7 @@ template <>
     virtual bool
     Plus (const double * x,
           const double * delta,
-          double * x_plus_delta) const
+          double * x_plus_delta) const override
     {
       Eigen::Map<const Eigen::Vector3d> r_axis_delta(&delta[0]);
       double r_angle_delta = r_axis_delta.norm();
@@ -194,7 +194,7 @@ template <>
      */
     virtual bool
     ComputeJacobian (const double * x,
-                     double * jacobian) const
+                     double * jacobian) const override
     {
       for (int i = 0; i < 42; ++i)
         jacobian[i] = 0;
@@ -212,13 +212,13 @@ template <>
     }
 
     virtual int
-    GlobalSize() const
+    GlobalSize() const override
     {
       return 7;
     }
 
     virtual int
-    LocalSize() const
+    LocalSize() const override
     {
       return 6;
     }
@@ -336,10 +336,6 @@ template <int R_, int t_>
         {
           Line3_<T> line = Line3_<T>(Point3_<T>::Zero(), corners[i]);
           Point3_<T> diff = (line.intersectionPoint(depth_plane) - corners[i]);
-//          diff /= error.evaluate(corners[i].z());
-//          residuals[3 * i] = diff.x();
-//          residuals[3 * i + 1] = diff.y();
-//          residuals[3 * i + 2] = diff.z();
           residuals_map.col(i) = diff / error.evaluate(corners[i].z());
         }
 

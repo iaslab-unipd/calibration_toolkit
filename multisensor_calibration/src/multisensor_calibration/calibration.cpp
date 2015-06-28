@@ -266,7 +266,6 @@ Calibration::estimateSensorPose (const SensorInfo & sensor_info)
           calibration_alg.addPlanePair(std::make_pair(step_info->checkerboard->plane(), data->plane));
         else //(step_info->type == StepInfo::Type::ON_PLANE)
           calibration_alg.addPlanePair(std::make_pair(step_info->plane->plane(), data->plane));
-
       }
     }
     if (calibration_alg.canEstimateTransform())
