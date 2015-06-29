@@ -2,6 +2,6 @@
 
 network:
   - pc: "Phoenix"
-    sensors: [{id: "camera"}]
+    sensors: ["camera"]
   - pc: "Gemini"
-    sensors: [{id: "camera"}]
+    sensors: ["camera"]

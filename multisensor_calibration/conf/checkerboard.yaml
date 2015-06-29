@@ -1,0 +1,6 @@
+# Checkerboard configuration
+checkerboard :
+  cols : 6
+  rows : 5
+  cell_width : 0.12
+  cell_height : 0.12

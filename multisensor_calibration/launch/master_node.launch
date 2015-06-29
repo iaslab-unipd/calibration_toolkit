@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="debug"         default="false" />
+  <arg name="launch-prefix" value="gdb -ex run --args" if="$(arg debug)" />
+  <arg name="launch-prefix" value=""                   unless="$(arg debug)" />
+  
+  <arg name="trigger_acquisition" default="false" />
+  <arg name="trigger_rate"        default="1.0" />
+
+  <arg name="network_file"        default="$(find multisensor_calibration)/conf/network.yaml" />
+  <arg name="checkerboard_file"   default="$(find multisensor_calibration)/conf/checkerboard.yaml" />
+
+  <arg name="pc_name"       default="$(env ROS_PC_NAME)" />
+  
+  <group ns="$(arg pc_name)">
+  
+    <node pkg="rostopic" type="rostopic" name="trigger" if="$(arg trigger_acquisition)"
+          args="pub /$(arg pc_name)/master_node/acquisition std_msgs/Empty -r $(arg trigger_rate)" />
+
+    <node launch-prefix="$(arg launch-prefix)" pkg="multisensor_calibration"
+          type="master_node" name="master_node" output="screen">
+      <param name="network_file" value="$(arg network_file)" />
+      <rosparam command="load" file="$(arg checkerboard_file)" />    
+    </node>
+  
+  </group>
+
+
+</launch>

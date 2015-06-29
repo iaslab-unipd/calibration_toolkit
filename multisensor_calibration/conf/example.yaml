@@ -1,8 +1,0 @@
-# Camera network parameters
-# Supported sensor types: 
-#  * Kinect 1st version (type: kinect1)
-#  * Kinect 2st version (type: kinect2)
-#  * PointGrey cameras (type: pointgrey)
-
-network:
-  - pc: "Phoenix"

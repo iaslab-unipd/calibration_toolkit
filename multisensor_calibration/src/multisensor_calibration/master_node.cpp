@@ -91,9 +91,8 @@ CalibrationMasterNode::parseNetworkFile (const std::string & filename)
     {
       PC pc{pc_node["pc"].as<std::string>()};
       for (const YAML::Node & sensor_node : pc_node["sensors"])
-      {
-        pc.device_vec.push_back(Device{sensor_node["id"].as<std::string>()});
-      }
+        pc.device_vec.push_back(Device{sensor_node.as<std::string>()});
+
       pcs_.push_back(pc);
     }
     return true;
