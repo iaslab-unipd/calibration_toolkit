@@ -46,12 +46,6 @@ add_custom_target(${PROJECT_NAME}_HEADERS
   include/${PROJECT_NAME}/base/pcl_eigen_conversions.h
 
   include/${PROJECT_NAME}/depth/view.h
-
-  include/${PROJECT_NAME}/utilities/plane_extraction.h
-  include/${PROJECT_NAME}/utilities/point_plane_extraction.h
-  include/${PROJECT_NAME}/utilities/point_plane_extraction_gui.h
-  include/impl/${PROJECT_NAME}/utilities/point_plane_extraction.hpp
-  include/impl/${PROJECT_NAME}/utilities/point_plane_extraction_gui.hpp
 )
 
 ## Specify additional locations of header files
