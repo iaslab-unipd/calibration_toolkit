@@ -202,7 +202,7 @@ template <>
       jacobian[0]  =  0.5 * x[3]; jacobian[1]  =  0.5 * x[2]; jacobian[2]  = -0.5 * x[1];  // NOLINT
       jacobian[6]  = -0.5 * x[2]; jacobian[7]  =  0.5 * x[3]; jacobian[8]  =  0.5 * x[0];  // NOLINT
       jacobian[12] =  0.5 * x[1]; jacobian[13] = -0.5 * x[0]; jacobian[14] =  0.5 * x[3];  // NOLINT
-      jacobian[18] = -0.5 * x[0]; jacobian[10] = -0.5 * x[1]; jacobian[11] = -0.5 * x[2];  // NOLINT
+      jacobian[18] = -0.5 * x[0]; jacobian[19] = -0.5 * x[1]; jacobian[20] = -0.5 * x[2];  // NOLINT
 
       jacobian[25] =        x[6]; jacobian[26] =       -x[5]; jacobian[27] =  1.0       ;  // NOLINT
       jacobian[30] =       -x[6]; jacobian[32] =        x[4]; jacobian[34] =  1.0       ;  // NOLINT
