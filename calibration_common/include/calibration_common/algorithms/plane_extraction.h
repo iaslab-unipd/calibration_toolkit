@@ -261,6 +261,11 @@ template <typename PCLPointT_>
      */
     virtual bool extract(PlaneInfo & plane_info) const;
 
+    inline virtual pcl::PointCloud<pcl::Normal>::ConstPtr cloudNormals () const
+    {
+      return cloud_normals_;
+    }
+
   protected:
 
     PointCloudConstPtr cloud_;

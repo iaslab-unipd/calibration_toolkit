@@ -63,9 +63,9 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
   }
   if (pattern_found)
   {
-    cv::drawChessboardCorners(image_, pattern_size, cv::Mat(corners_float_), pattern_found);
+    /*cv::drawChessboardCorners(image_, pattern_size, cv::Mat(corners_float_), pattern_found);
     cv::imshow("SELECT CHECKERBOARD", image_);
-    cv::waitKey(500);
+    cv::waitKey(500);*/
   }
   else
   {
@@ -76,7 +76,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
 
   while (/*ros::ok() and */not pattern_found)
   {
-    for (int i = 1; /*ros::ok() and not*/pattern_found and i <= 5; ++i)
+    for (int i = 1; /*ros::ok() and*/ not pattern_found and i <= 1; ++i)
     {
       corners_float_.clear();
 
@@ -100,7 +100,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
       if (pattern_found)
         cv::cornerSubPix(gray,
                          corners_float_,
-                         cv::Size(i * 2, i * 2),
+                         cv::Size(i * 6, i * 6),
                          cv::Size(-1, -1),
                          cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 100, 0.01));
 
@@ -110,12 +110,12 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
         corners_float_[j].y = corners_float_[j].y / i + sub_image_rect_.y;
       }
 
-      if (pattern_found)
+      /*if (pattern_found)
       {
         cv::drawChessboardCorners(image_, pattern_size, cv::Mat(corners_float_), pattern_found);
         cv::imshow("SELECT CHECKERBOARD", image_);
         cv::waitKey(500);
-      }
+      }*/
     }
 
     if (not pattern_found)
@@ -132,7 +132,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
     corners.push_back(cv::Point2d(corners_float_[j].x, corners_float_[j].y));
   }
 
-  cv::destroyAllWindows();
+  //cv::destroyAllWindows();
 
   return pattern_found;
 }

@@ -425,12 +425,18 @@ template <typename PolynomialT_>
       accumulation_bins_ = Matrix<AccumulationBin>(model_->matrix()->size());
     }
 
+    void setDepthErrorFunction(const Polynomial<Scalar, 2> & depth_error_function)
+    {
+      depth_error_function_ = depth_error_function;
+    }
+
   protected:
 
     Matrix<DataBin> data_bins_;
     Matrix<AccumulationBin> accumulation_bins_;
 
     typename ModelT::Ptr model_;
+    Polynomial<Scalar, 2> depth_error_function_;
 
   };
 

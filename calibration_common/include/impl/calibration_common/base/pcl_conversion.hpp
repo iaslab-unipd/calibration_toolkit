@@ -30,6 +30,7 @@
 #define CALIBRATION_COMMON_IMPL_BASE_PCL_CONVERSION_HPP_
 
 #include <calibration_common/base/pcl_conversion.h>
+#include <pcl/point_types.h>
 
 namespace calibration
 {

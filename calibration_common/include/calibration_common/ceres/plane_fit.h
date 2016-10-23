@@ -49,10 +49,10 @@ template <typename ScalarT_>
       bool operator()(const T * const plane,
                       T * residual) const
       {
-//    Eigen::Map<const typename Types<ScalarT_>::Vector4> plane_eigen(plane);
-//    residual[0] = point_.dot(plane_eigen) / plane_eigen.template head<3>().norm();
-        residual[0] = point_[0] * plane[0] + point_[1] * plane[1] + point_[2] * plane[2] + plane[3];
-        residual[0] /= ceres::sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
+        Eigen::Map<const typename Types<T>::Vector4> plane_eigen(plane);
+        residual[0] = point_.template cast<T>().dot(plane_eigen) / plane_eigen.template head<3>().norm();
+        //residual[0] = point_[0] * plane[0] + point_[1] * plane[1] + point_[2] * plane[2] + plane[3];
+        //residual[0] /= ceres::sqrt(plane[0] * plane[0] + plane[1] * plane[1] + plane[2] * plane[2]);
         return true;
       }
 

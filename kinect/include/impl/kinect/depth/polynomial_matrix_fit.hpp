@@ -137,7 +137,7 @@ template <typename PolynomialT_>
       for (Size1 j = 0; j < acc_vec.size(); ++j)
       {
         const AccumulationBinData & acc_data = acc_vec[j];
-        typename Types<Scalar>::Line line_old(acc_data.point_, Types<Scalar>::Vector3::UnitZ());
+        //typename Types<Scalar>::Line line_old(acc_data.point_, Types<Scalar>::Vector3::UnitZ());
         typename Types<Scalar>::Line line(Types<Scalar>::Vector3::Zero(), acc_data.point_.normalized());
 
         x += acc_data.point_.z() * acc_data.weight_;
@@ -149,7 +149,7 @@ template <typename PolynomialT_>
       {
         x /= weight;
         y /= weight;
-        data_bins_[i].push_back(Data(x, y, 1));
+        data_bins_[i].push_back(Data(x, y, 1.0 / depth_error_function_.evaluate(y)));
         acc_vec.clear();
       }
     }
@@ -178,8 +178,8 @@ template <typename PolynomialT_>
         {
           const Data & data = data_bin[i];
 
-          PolynomialResidual<PolynomialT> * residual = new PolynomialResidual<PolynomialT>(data.x_, data.y_);
-          problem.AddResidualBlock(new ceres::AutoDiffCostFunction<PolynomialResidual<PolynomialT>, 1, Size>(residual),
+          WeightedPolynomialResidual<PolynomialT> * residual = new WeightedPolynomialResidual<PolynomialT>(data.x_, data.y_, data.weight_);
+          problem.AddResidualBlock(new ceres::AutoDiffCostFunction<WeightedPolynomialResidual<PolynomialT>, 1, Size>(residual),
                                    NULL,
                                    model()->polynomial(x_index, y_index).data());
         }

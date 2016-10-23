@@ -49,7 +49,7 @@ public:
   typedef boost::shared_ptr<const DepthSensor> ConstPtr;
 
   DepthSensor()
-    : depth_error_function_(Vector3(0.05, 0.0, 0.0)) // Vector3(0.0, 0.0, 0.0035) - Vector3(0.02, 0.0, 0.0)
+    : depth_error_function_(Vector3(0.02, 0.0, 0.0)) // Vector3(0.0, 0.0, 0.0035) - Vector3(0.02, 0.0, 0.0)
   {
     // Do nothing
   }

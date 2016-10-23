@@ -60,6 +60,8 @@ void RGBDData::setDepthData(const PCLCloud3 & depth_data)
     fused_data_->points.push_back(point_rgb);
   }
 
+  registered_depth_data_ = boost::make_shared<PCLCloud3>(depth_data);
+  registered_depth_data_->header.frame_id = depth_sensor_->frameId();
 }
 
 PCLCloudRGB::Ptr RGBDData::fusedData() const
@@ -71,11 +73,17 @@ void RGBDData::fuseData() const
 {
   assert(depth_sensor_ and color_sensor_);
   fused_data_->header.stamp = depth_data_->header.stamp;
+  //registered_depth_data_->header.frame_id = color_sensor_->frameId();
 
   Transform t = color_sensor_->pose().inverse();
 
 //  pcl::PointCloud<pcl::PointXYZ> depth_data_tmp(*depth_data_);
 //  depth_sensor_->undistortion()->undistort(depth_data_tmp);
+
+  cv::Mat rectified;
+  color_sensor_->cameraModel()->rectifyImage(color_data_, rectified);
+
+  cv::Mat_<int> count_mat = cv::Mat_<int>(depth_data_->height, depth_data_->width, 0);
 
 #pragma omp parallel for
   for (Size1 i = 0; i < depth_data_->size(); ++i)
@@ -93,13 +101,21 @@ void RGBDData::fuseData() const
     int x = static_cast<int>(point_image[0]);
     int y = static_cast<int>(point_image[1]);
 
-    if (x >= 0 and x < color_data_.cols and y >= 0 and y < color_data_.rows)
+    if (x >= 0 and x < rectified.cols and y >= 0 and y < rectified.rows)
     {
       cv::Point p(x, y);
-      const cv::Vec3b & image_data = color_data_.at<cv::Vec3b>(p);
+      const cv::Vec3b & image_data = rectified.at<cv::Vec3b>(p);
       point_rgb.b = image_data[0];
       point_rgb.g = image_data[1];
       point_rgb.r = image_data[2];
+
+      /*if (count_mat.at<int>(y, x) == 0)
+        registered_depth_data_->at(x, y).getArray3fMap() = point_eigen.cast<float>();
+      else
+      {
+        registered_depth_data_->at(x, y).getArray3fMap() = Eigen::Vector3f(registered_depth_data_->at(x, y).getArray3fMap()) + point_eigen.cast<float>();
+        count_mat.at<int>(y, x)++;
+      }*/
     }
     else
     {
@@ -109,6 +125,20 @@ void RGBDData::fuseData() const
     }
   }
 
+  float nan = std::numeric_limits<float>::quiet_NaN();
+
+/*#pragma omp parallel for
+  for (int y = 0; y < count_mat.rows; ++y)
+  {
+    for (int x = 0; x < count_mat.cols; ++x)
+    {
+      if (count_mat.at<int>(y, x) == 0)
+        registered_depth_data_->at(x, y).getArray3fMap() = Eigen::Vector3f(nan, nan, nan);
+      else
+        registered_depth_data_->at(x, y).getArray3fMap() /= count_mat.at<int>(y, x);
+    }
+  }
+*/
 }
 
 } /* namespace calibration */

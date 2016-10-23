@@ -67,7 +67,7 @@ template <typename ScalarT_, typename PCLPointT_>
 #pragma omp parallel for
       for (int u = 0; u < (int)cloud->width; ++u)
       {
-        cv::Point2d rect_uv = camera_model.rectifyPoint(cv::Point2d(u, v));
+        cv::Point2d rect_uv = cv::Point2d(u, v);//camera_model.rectifyPoint(cv::Point2d(u, v));
         PCLPointT_ & pt = cloud->points[u + v * cloud->width];
         ScalarT_ depth = depth_row[u];
 

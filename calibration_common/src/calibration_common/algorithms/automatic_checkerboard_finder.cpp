@@ -41,8 +41,8 @@ bool AutomaticCheckerboardFinder::find(const Checkerboard & checkerboard,
 
   if (pattern_found)
   {
-    cv::cornerSubPix(gray_, corners, cv::Size(2, 2), cv::Size(-1, -1),
-                     cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 100, 0.01));
+    cv::cornerSubPix(gray_, corners, cv::Size(3, 3), cv::Size(-1, -1),
+                     cv::TermCriteria(CV_TERMCRIT_EPS + CV_TERMCRIT_ITER, 1000, 0.01));
   }
 
   return pattern_found;

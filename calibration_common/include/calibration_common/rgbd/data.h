@@ -139,6 +139,11 @@ public:
    */
   PCLCloudRGB::Ptr fusedData() const;
 
+  inline const PCLCloud3::Ptr & registeredDepthData () const
+  {
+    return registered_depth_data_;
+  }
+
   /**
    * @brief colorSensor
    * @return
@@ -184,6 +189,7 @@ private:
 
   DepthSensor::ConstPtr depth_sensor_;
   PCLCloud3::Ptr depth_data_;
+  PCLCloud3::Ptr registered_depth_data_;
 
   PCLCloudRGB::Ptr fused_data_;
 

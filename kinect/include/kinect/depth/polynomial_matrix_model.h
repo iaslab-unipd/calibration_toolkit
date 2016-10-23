@@ -359,9 +359,13 @@ template <typename PolynomialT_>
                            Scalar & depth) const
     {
       Scalar tmp_depth = 0.0;
+      Scalar weight_sum = 0.0;
       for (Size1 i = 0; i < lt_data.size(); ++i)
+      {
+        weight_sum += lt_data[i].weight_;
         tmp_depth += lt_data[i].weight_ * PolynomialT::evaluate(Base::polynomial(lt_data[i].index_), depth);
-      depth = tmp_depth;
+      }
+      depth = tmp_depth / weight_sum;
     }
 
   protected:

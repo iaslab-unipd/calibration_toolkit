@@ -78,9 +78,22 @@ Transform PlaneToPlaneCalibration::estimateTransform(const std::vector<PlanePair
   Eigen::JacobiSVD<Eigen::Matrix<Scalar, 3, 3> > svd;
   svd.compute(USV, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
+//  Eigen::JacobiSVD<Eigen::Matrix<Scalar, 3, Eigen::Dynamic> > tmp_svd;
+//  tmp_svd.compute(normals_1, Eigen::ComputeFullU | Eigen::ComputeFullV);
+
+//  Eigen::VectorXd v = tmp_svd.singularValues();
+//  std::cout << "C: " << (v.maxCoeff() / v.minCoeff()) << std::endl;
+
+  Eigen::ColPivHouseholderQR<Eigen::Matrix<Scalar, Eigen::Dynamic, 3> > qr(normals_1.transpose().rows(), normals_1.transpose().cols());
+  qr.compute(normals_1.transpose());
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 3> R = qr.matrixR().template triangularView<Eigen::Upper>();
+
   Pose pose;
-  pose.translation() = (normals_1 * normals_1.transpose()).inverse() * normals_1 * (distances_1 - distances_2);
+  //pose.translation() = (normals_1 * normals_1.transpose()).inverse() * normals_1 * (distances_1 - distances_2);
+  pose.translation() = (qr.colsPermutation() * R.transpose() * R * qr.colsPermutation().transpose()).inverse() * normals_1 * (distances_1 - distances_2);
   pose.linear() = svd.matrixV() * svd.matrixU().transpose();
+
+//  std::cout << "A: "<< pose.translation().transpose() << std::endl;
 
   //  // Point-Plane Constraints
   //
