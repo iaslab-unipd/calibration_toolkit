@@ -113,6 +113,37 @@ template <typename Scalar>
   }
 
 template <typename Scalar>
+  inline typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel2(const typename Types<Scalar>::Cloud3 & world_points) const
+  {
+    typename Types<Scalar>::Cloud2 pixel_points(world_points.size());
+    project3dToPixel2<Scalar>(world_points, pixel_points);
+    return pixel_points;
+  }
+
+template <typename Scalar>
+  typename Types<Scalar>::Point2 PinholeCameraModel::project3dToPixel2 (const typename Types<Scalar>::Point3 & point) const
+  {
+    typename Types<Scalar>::Point2 K_f_;
+    typename Types<Scalar>::Point2 K_c_;
+
+    K_f_ << Scalar(K_(0, 0)), Scalar(K_(1, 1));
+    K_c_ << Scalar(K_(0, 2)), Scalar(K_(1, 2));
+
+    typename Types<Scalar>::Point2 p = point.template head<2>() / point[2];
+    p = K_f_.asDiagonal() * distort2d_<Scalar>(p) + K_c_;
+    return p;
+  }
+
+template <typename Scalar>
+  void PinholeCameraModel::project3dToPixel2(const typename Types<Scalar>::Cloud3 & world_points,
+                                             typename Types<Scalar>::Cloud2 & pixel_points) const
+  {
+    pixel_points = typename Types<Scalar>::Cloud2(world_points.size());
+    for (Size1 i = 0; i < world_points.elements(); ++i)
+      pixel_points[i] = project3dToPixel2<Scalar>(world_points[i]);
+  }
+
+template <typename Scalar>
   typename Types<Scalar>::Pose PinholeCameraModel::estimatePose(const typename Types<Scalar>::Cloud2 & points_image,
                                                                 const typename Types<Scalar>::Cloud3 & points_object) const
   {
@@ -136,6 +167,55 @@ template <typename Scalar>
 
     return translation * rotation;
   }
+
+template <typename Scalar>
+typename Types<Scalar>::Point2
+PinholeCameraModel::distort2d_ (const typename Types<Scalar>::Point2 & normalized_point_rect_2d) const
+{
+  typename Types<Scalar>::Vector2 p_ = Types<Scalar>::Vector2::Zero();
+  if (D_.rows >= 4)
+  {
+    p_[0] = Scalar(D_.at<double>(2, 0));
+    p_[1] = Scalar(D_.at<double>(3, 0));
+  }
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 1> k_;
+
+  if (D_.rows <= 5)
+    k_ = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(3);
+  else
+    k_ = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(6);
+
+  if (D_.rows >= 2)
+  {
+    k_.template head<2>() << Scalar(D_.at<double>(0, 0)), Scalar(D_.at<double>(1, 0));
+  }
+  if (D_.rows >= 5)
+  {
+    k_[2] = Scalar(D_.at<double>(4, 0));
+  }
+  if (D_.rows == 8)
+  {
+    k_.template tail<3>() << Scalar(D_.at<double>(5, 0)), Scalar(D_.at<double>(6, 0)), Scalar(D_.at<double>(7, 0));
+  }
+
+ const typename Types<Scalar>::Point2 & xyp = normalized_point_rect_2d;
+ typename Types<Scalar>::Point2 xyp2 = normalized_point_rect_2d.cwiseAbs2();
+ typename Types<Scalar>::Point3 r;
+ r[0] = xyp2.sum();
+ r[1] = r[0] * r[0];
+ r[2] = r[1] * r[0];
+
+ Scalar barrel_correction = Scalar(1.0) + k_.template head<3>().dot(r);
+ if (k_.rows() == 6)
+   barrel_correction /= Scalar(1.0) + k_.template tail<3>().dot(r);
+
+ Eigen::Matrix<Scalar, 2, 2> a;
+ a(0, 0) = a(1, 1) = Scalar(2.0) * xyp.prod();
+ a(0, 1) = r[0] + Scalar(2.0) * xyp2[0];
+ a(1, 0) = r[0] + Scalar(2.0) * xyp2[1];
+
+ return typename Types<Scalar>::Point2(xyp * barrel_correction + a * p_);
+}
 
 } /* namespace calibration */
 

@@ -103,10 +103,23 @@ void PinholeCameraModel::project3dToPixel(const Cloud3 & world_points,
 
 }
 
+void PinholeCameraModel::project3dToPixel2(const Cloud3 & world_points,
+                                           Cloud2 & pixel_points) const
+{
+  project3dToPixel2<double>(world_points, pixel_points);
+}
+
 Cloud2 PinholeCameraModel::project3dToPixel(const Cloud3 & world_points) const
 {
   Cloud2 pixel_points(world_points.size());
   project3dToPixel(world_points, pixel_points);
+  return pixel_points;
+}
+
+Cloud2 PinholeCameraModel::project3dToPixel2(const Cloud3 & world_points) const
+{
+  Cloud2 pixel_points(world_points.size());
+  project3dToPixel2(world_points, pixel_points);
   return pixel_points;
 }
 

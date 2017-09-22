@@ -80,8 +80,8 @@ void RGBDData::fuseData() const
 //  pcl::PointCloud<pcl::PointXYZ> depth_data_tmp(*depth_data_);
 //  depth_sensor_->undistortion()->undistort(depth_data_tmp);
 
-  cv::Mat rectified;
-  color_sensor_->cameraModel()->rectifyImage(color_data_, rectified);
+  //cv::Mat rectified;
+  //color_sensor_->cameraModel()->rectifyImage(color_data_, rectified);
 
   cv::Mat_<int> count_mat = cv::Mat_<int>(depth_data_->height, depth_data_->width, 0);
 
@@ -96,15 +96,15 @@ void RGBDData::fuseData() const
     point_rgb.z = point_eigen.z();
 
     point_eigen = t * point_eigen;
-    Point2 point_image = color_sensor_->cameraModel()->project3dToPixel(point_eigen);
+    Point2 point_image = color_sensor_->cameraModel()->project3dToPixel2<double>(point_eigen);
 
     int x = static_cast<int>(point_image[0]);
     int y = static_cast<int>(point_image[1]);
 
-    if (x >= 0 and x < rectified.cols and y >= 0 and y < rectified.rows)
+    if (x >= 0 and x < color_data_.cols and y >= 0 and y < color_data_.rows)
     {
       cv::Point p(x, y);
-      const cv::Vec3b & image_data = rectified.at<cv::Vec3b>(p);
+      const cv::Vec3b & image_data = color_data_.at<cv::Vec3b>(p);
       point_rgb.b = image_data[0];
       point_rgb.g = image_data[1];
       point_rgb.r = image_data[2];
