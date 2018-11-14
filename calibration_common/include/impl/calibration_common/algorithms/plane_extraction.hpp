@@ -257,17 +257,39 @@ template <typename PointT_>
     model->setAxis(Eigen::Vector3f(coefficients[0], coefficients[1], coefficients[2]));
     model->setEpsAngle(10.0);
     pcl::RandomSampleConsensus<PointT_> ransac(model);
-    ransac.setDistanceThreshold(std::max(0.1, 10 * plane_info.std_dev_));
+    ransac.setDistanceThreshold(/*std::max(0.15, */10 * plane_info.std_dev_/*)*/);
     ransac.computeModel();
     ransac.getModelCoefficients(coefficients);
     ransac.getInliers(*plane_info.indices_);
 
-    model->setNormalDistanceWeight(1.0);
+    model->setIndices(plane_info.indices_);
+    distances.clear();
+    model->getDistancesToModel(coefficients, distances);
+
+    Eigen::Map<Eigen::VectorXd> v2 = Eigen::Map<Eigen::VectorXd>(&distances[0], distances.size());
+    double v2_mean = v2.mean();
+    plane_info.std_dev_ = std::sqrt(v2.cwiseAbs2().mean() - v2_mean * v2_mean);
+
+    model->setIndices(all_indices);
+    //model->setAxis(Eigen::Vector3f(coefficients[0], coefficients[1], coefficients[2]));
+    //model->setEpsAngle(10.0);
+
+    //std::cout << "plane_info.std_dev_: " << plane_info.std_dev_ << std::endl;
+
+    ransac = pcl::RandomSampleConsensus<PointT_>(model);
+    ransac.setDistanceThreshold(/*std::max(0.15, */6 * plane_info.std_dev_/*)*/);
+    ransac.computeModel();
+    ransac.getModelCoefficients(coefficients);
+    ransac.getInliers(*plane_info.indices_);
+
+    //std::cout << "plane_info.std_dev_: " << plane_info.std_dev_ << std::endl;
+
+    /*model->setNormalDistanceWeight(1.0);
     model->setIndices(plane_info.indices_);
     ransac.setDistanceThreshold(model->getNormalDistanceWeight() * 45.0 * M_PI / 180.0);
     ransac.computeModel();
     ransac.getModelCoefficients(coefficients);
-    ransac.getInliers(*plane_info.indices_);
+    ransac.getInliers(*plane_info.indices_);*/
 
 
 //    int indices_size = plane_info.indices_->size();

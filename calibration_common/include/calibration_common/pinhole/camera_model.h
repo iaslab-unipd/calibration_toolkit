@@ -77,21 +77,21 @@ public:
     // Do nothing
   }
 
-  virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const;
+  //virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const;
 
-  virtual Point2 project3dToPixel(const Point3 & world_point) const;
+  //virtual Point2 project3dToPixel(const Point3 & world_point) const;
 
-  virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
-                                   Cloud3 & world_points) const;
+  //virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
+  //                                 Cloud3 & world_points) const;
 
-  virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const;
+  //virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const;
 
-  virtual void project3dToPixel(const Cloud3 & world_points,
-                                Cloud2 & pixel_points) const;
+  //virtual void project3dToPixel(const Cloud3 & world_points,
+  //                              Cloud2 & pixel_points) const;
   virtual void project3dToPixel2(const Cloud3 & world_points,
                                  Cloud2 & pixel_points) const;
 
-  virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const;
+  //virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const;
   virtual Cloud2 project3dToPixel2(const Cloud3 & world_points) const;
 
   virtual Pose estimatePose(const Cloud2 & points_image,
@@ -102,16 +102,28 @@ public:
    * @param pixel_point
    * @return
    */
+  //template <typename Scalar>
+  //  typename Types<Scalar>::Point3 projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const;
+
   template <typename Scalar>
-    typename Types<Scalar>::Point3 projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const;
+    typename Types<Scalar>::Point3 projectPixelTo3dRay2 (const typename Types<Scalar>::Point2 & pixel) const
+  {
+    return typename Types<Scalar>::Point3(undistort2d_<Scalar>(normalizePixel2d_<Scalar>(pixel)).homogeneous());
+  }
+
+  template <typename Scalar>
+    typename Types<Scalar>::Point2 normalizePixel2d_ (const typename Types<Scalar>::Point2 & pixel) const
+    {
+      return typename Types<Scalar>::Point2((pixel.x() - K_(0, 2)) / K_(0, 0), (pixel.y() - K_(1, 2)) / K_(1, 1));
+    }
 
   /**
    * @brief project3dToPixel
    * @param world_point
    * @return
    */
-  template <typename Scalar>
-    typename Types<Scalar>::Point2 project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const;
+  //template <typename Scalar>
+  //  typename Types<Scalar>::Point2 project3dToPixel(const typename Types<Scalar>::Point3 & world_point) const;
 
   template <typename Scalar>
     typename Types<Scalar>::Point2 project3dToPixel2(const typename Types<Scalar>::Point3 & world_point) const;
@@ -121,26 +133,26 @@ public:
    * @param pixel_points
    * @param world_points
    */
-  template <typename Scalar>
-    void projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
-                             typename Types<Scalar>::Cloud3 & world_points) const;
+  //template <typename Scalar>
+  //  void projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points,
+  //                           typename Types<Scalar>::Cloud3 & world_points) const;
 
   /**
    * @brief projectPixelTo3dRay
    * @param pixel_points
    * @return
    */
-  template <typename Scalar>
-    typename Types<Scalar>::Cloud3 projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const;
+  //template <typename Scalar>
+  //  typename Types<Scalar>::Cloud3 projectPixelTo3dRay(const typename Types<Scalar>::Cloud2 & pixel_points) const;
 
   /**
    * @brief project3dToPixel
    * @param world_points
    * @param pixel_points
    */
-  template <typename Scalar>
-    void project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
-                          typename Types<Scalar>::Cloud2 & pixel_points) const;
+  //template <typename Scalar>
+  //  void project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points,
+  //                        typename Types<Scalar>::Cloud2 & pixel_points) const;
 
   template <typename Scalar>
     void project3dToPixel2(const typename Types<Scalar>::Cloud3 & world_points,
@@ -151,8 +163,8 @@ public:
    * @param world_points
    * @return
    */
-  template <typename Scalar>
-    typename Types<Scalar>::Cloud2 project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const;
+  //template <typename Scalar>
+  //  typename Types<Scalar>::Cloud2 project3dToPixel(const typename Types<Scalar>::Cloud3 & world_points) const;
 
   template <typename Scalar>
     typename Types<Scalar>::Cloud2 project3dToPixel2(const typename Types<Scalar>::Cloud3 & world_points) const;
@@ -169,6 +181,9 @@ public:
 
   template <typename Scalar>
     typename Types<Scalar>::Point2 distort2d_ (const typename Types<Scalar>::Point2 & normalized_point_rect_2d) const;
+
+  template <typename Scalar>
+    typename Types<Scalar>::Point2 undistort2d_ (const typename Types<Scalar>::Point2 & normalized_point_2d) const;
 
 };
 

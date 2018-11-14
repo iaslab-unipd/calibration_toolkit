@@ -35,7 +35,7 @@
 namespace calibration
 {
 
-template <typename Scalar>
+/*template <typename Scalar>
   typename Types<Scalar>::Point3 PinholeCameraModel::projectPixelTo3dRay(const typename Types<Scalar>::Point2 & pixel_point) const
   {
     assert(initialized());
@@ -110,7 +110,7 @@ template <typename Scalar>
     typename Types<Scalar>::Cloud2 pixel_points(world_points.size());
     project3dToPixel<Scalar>(world_points, pixel_points);
     return pixel_points;
-  }
+  }*/
 
 template <typename Scalar>
   inline typename Types<Scalar>::Cloud2 PinholeCameraModel::project3dToPixel2(const typename Types<Scalar>::Cloud3 & world_points) const
@@ -215,6 +215,61 @@ PinholeCameraModel::distort2d_ (const typename Types<Scalar>::Point2 & normalize
  a(1, 0) = r[0] + Scalar(2.0) * xyp2[1];
 
  return typename Types<Scalar>::Point2(xyp * barrel_correction + a * p_);
+}
+
+template <typename Scalar>
+typename Types<Scalar>::Point2
+PinholeCameraModel::undistort2d_ (const typename Types<Scalar>::Point2 & normalized_point_2d) const
+{
+  typename Types<Scalar>::Vector2 p_ = Types<Scalar>::Vector2::Zero();
+  if (D_.rows >= 4)
+  {
+    p_[0] = Scalar(D_.at<double>(2, 0));
+    p_[1] = Scalar(D_.at<double>(3, 0));
+  }
+  Eigen::Matrix<Scalar, Eigen::Dynamic, 1> k_;
+
+  if (D_.rows <= 5)
+    k_ = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(3);
+  else
+    k_ = Eigen::Matrix<Scalar, Eigen::Dynamic, 1>::Zero(6);
+
+  if (D_.rows >= 2)
+  {
+    k_.template head<2>() << Scalar(D_.at<double>(0, 0)), Scalar(D_.at<double>(1, 0));
+  }
+  if (D_.rows >= 5)
+  {
+    k_[2] = Scalar(D_.at<double>(4, 0));
+  }
+  if (D_.rows == 8)
+  {
+    k_.template tail<3>() << Scalar(D_.at<double>(5, 0)), Scalar(D_.at<double>(6, 0)), Scalar(D_.at<double>(7, 0));
+  }
+
+  typename Types<Scalar>::Point2 p = normalized_point_2d;
+
+ // Compensate distortion iteratively
+  for (int i = 0; i < 10; ++i)
+  {
+    typename Types<Scalar>::Vector3 r;
+    r[0] = p.cwiseAbs2().sum();
+    r[1] = r[0] * r[0];
+    r[2] = r[1] * r[0];
+
+    Scalar ic_dist = static_cast<Scalar>(1.0) / (static_cast<Scalar>(1.0) + k_.template head<3>().dot(r));
+    if (k_.rows() == 6)
+     ic_dist *= static_cast<Scalar>(1.0) + k_.template tail<3>().dot(r);
+
+    Eigen::Matrix<Scalar, 2, 2> a;
+    a(0, 0) = a(1, 1) = 2 * p.prod();
+    a(0, 1) = r[0] + 2 * p[0] * p[0];
+    a(1, 0) = r[0] + 2 * p[1] * p[1];
+
+    p = (normalized_point_2d - a * p_) * ic_dist;
+  }
+
+ return p;
 }
 
 } /* namespace calibration */

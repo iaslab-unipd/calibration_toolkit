@@ -65,44 +65,44 @@ template <typename ScalarT_>
      * @param pixel_point
      * @return
      */
-    virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const = 0;
+    //virtual Point3 projectPixelTo3dRay(const Point2 & pixel_point) const = 0;
 
     /**
      * @brief project3dToPixel
      * @param world_point
      * @return
      */
-    virtual Point2 project3dToPixel(const Point3 & world_point) const = 0;
+    //virtual Point2 project3dToPixel(const Point3 & world_point) const = 0;
 
     /**
      * @brief projectPixelTo3dRay
      * @param pixel_points
      * @param world_points
      */
-    virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
-                                     Cloud3 & world_points) const = 0;
+    //virtual void projectPixelTo3dRay(const Cloud2 & pixel_points,
+    //                                 Cloud3 & world_points) const = 0;
 
     /**
      * @brief projectPixelTo3dRay
      * @param pixel_points
      * @return
      */
-    virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const = 0;
+    //virtual Cloud3 projectPixelTo3dRay(const Cloud2 & pixel_points) const = 0;
 
     /**
      * @brief project3dToPixel
      * @param world_points
      * @param pixel_points
      */
-    virtual void project3dToPixel(const Cloud3 & world_points,
-                                  Cloud2 & pixel_points) const = 0;
+    //virtual void project3dToPixel(const Cloud3 & world_points,
+    //                              Cloud2 & pixel_points) const = 0;
 
     /**
      * @brief project3dToPixel
      * @param world_points
      * @return
      */
-    virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const = 0;
+    //virtual Cloud2 project3dToPixel(const Cloud3 & world_points) const = 0;
 
     /**
      * @brief estimatePose

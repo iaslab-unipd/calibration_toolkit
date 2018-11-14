@@ -17,7 +17,7 @@ find_package(catkin REQUIRED
 # find_package(Boost REQUIRED COMPONENTS system)
 #set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 find_package(Boost REQUIRED)
-find_package(Eigen REQUIRED)
+find_package(Eigen3 REQUIRED)
 find_package(PCL 1.7 REQUIRED)
 find_package(OpenCV REQUIRED)
 FIND_PACKAGE(Ceres REQUIRED)
@@ -100,7 +100,7 @@ set(INCLUDE_FILES
   include/calibration_common/objects/base_object.h
   include/calibration_common/objects/view.h
   include/calibration_common/objects/objects.h
-  
+
   include/calibration_common/ceres/polynomial_fit.h
   include/calibration_common/ceres/plane_fit.h
   include/calibration_common/ceres/math.h

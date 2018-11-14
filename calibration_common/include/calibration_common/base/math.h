@@ -240,9 +240,10 @@ template <typename ScalarT_, int Degree_, int MinDegree_>
      */
     inline static const Coefficients IdentityCoefficients()
     {
-      EIGEN_STATIC_ASSERT(MinDegree_ <= 1 and Degree_ >= 1, INVALID_MATRIX_TEMPLATE_PARAMETERS);
+      EIGEN_STATIC_ASSERT(MinDegree_ <= 1 and Degree_ >= MinDegree_, INVALID_MATRIX_TEMPLATE_PARAMETERS);
       Coefficients coeffs(Coefficients::Zero());
-      coeffs[1 - MinDegree_] = Scalar(1);
+      if (Degree_ >= 1)
+        coeffs[1 - MinDegree_] = Scalar(1);
       return coeffs;
     }
 
