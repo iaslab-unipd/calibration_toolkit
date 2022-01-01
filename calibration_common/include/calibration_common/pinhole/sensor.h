@@ -78,6 +78,7 @@ public:
    * @param points_object
    * @return
    */
+   //返回的是变换
   inline Pose estimatePose(const Cloud2 & points_image,
                            const Cloud3 & points_object) const
   {

@@ -84,6 +84,7 @@ public:
    */
   inline void setPlane(const Plane & plane)
   {
+      //设置两个平面之间的仿射变换,该变换可将一点从from的平面转换到to的平面
     BaseObject::setPose(Util::plane3dTransform(PLANE_XY, plane));
     plane_ = plane;
   }

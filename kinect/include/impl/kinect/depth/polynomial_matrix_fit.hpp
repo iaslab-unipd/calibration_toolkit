@@ -62,6 +62,7 @@ template <typename PolynomialT_>
     assert(model());
 
 #pragma omp parallel for
+    //x_index和y_index为map的bin
     for (Size1 y_index = 0; y_index < data_bins_.size().y(); ++y_index)
     {
       for (Size1 x_index = 0; x_index < data_bins_.size().x(); ++x_index)
@@ -73,6 +74,7 @@ template <typename PolynomialT_>
           continue;
 
         ceres::Problem problem;
+        //每个bin内的测量构造优化框架
         for (Size1 i = 0; i < bin_size; ++i)
         {
           PolynomialResidual<PolynomialT_> * residual = new PolynomialResidual<PolynomialT_>(distorsion_bin[i].first,
@@ -99,6 +101,7 @@ template <typename PolynomialT_, typename ScalarT_>
                                                                              const Point & point,
                                                                              const Plane & plane)
   {
+      //这里的x_index和y_index都是0
     assert(Base::model());
     if (point.hasNaN())
       return;

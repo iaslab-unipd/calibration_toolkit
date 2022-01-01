@@ -37,8 +37,10 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
                                          bool try_automatically)
 {
   std::vector<cv::Point2d> cv_corners;
+  std::cout<<"before manu"<<std::endl;
   bool pattern_found = find(checkerboard, cv_corners, try_automatically);
-  OpenCVConversion<Scalar>::toPointMatrix(cv_corners, corners);
+    std::cout<<"mannul find corner success?  "<<pattern_found<<std::endl;
+    OpenCVConversion<Scalar>::toPointMatrix(cv_corners, corners);
   return pattern_found;
 }
 
@@ -48,24 +50,25 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
 {
   cv::Size pattern_size(checkerboard.cols(), checkerboard.rows());
 
-  //ROS_INFO_STREAM("Select the checkerboard (" << checkerboard.rows() << "x" << checkerboard.cols() << ") in the image.");
+//  ROS_INFO_STREAM("Select the checkerboard (" << checkerboard.rows() << "x" << checkerboard.cols() << ") in the image.");
 
   cv::imshow("SELECT CHECKERBOARD", image_);
   cv::setMouseCallback("SELECT CHECKERBOARD", &InteractiveCheckerboardFinder::selectSubImageCallback, this);
 
   bool pattern_found = false;
 
-  if (try_automatically)
+  if (try_automatically)//默认为true
   {
     cv::Mat gray;
     cv::cvtColor(image_, gray, CV_BGR2GRAY);
     pattern_found = findChessboardCorners(gray, pattern_size, corners_float_);
   }
+  std::cout<<"interactive_checkerboard_finder.cpp  line 66  has pattern found? "<<pattern_found<<std::endl;
   if (pattern_found)
   {
-    /*cv::drawChessboardCorners(image_, pattern_size, cv::Mat(corners_float_), pattern_found);
+    cv::drawChessboardCorners(image_, pattern_size, cv::Mat(corners_float_), pattern_found);
     cv::imshow("SELECT CHECKERBOARD", image_);
-    cv::waitKey(500);*/
+    cv::waitKey(500);
   }
   else
   {
@@ -74,7 +77,7 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
 
   bool automatic = true;
 
-  while (/*ros::ok() and */not pattern_found)
+  while (/*ros::ok() and */not pattern_found) //pattern_found为false
   {
     for (int i = 1; /*ros::ok() and*/ not pattern_found and i <= 1; ++i)
     {
@@ -121,8 +124,8 @@ bool InteractiveCheckerboardFinder::find(const Checkerboard & checkerboard,
     if (not pattern_found)
     {
       automatic = false;
-      //ROS_WARN("Pattern not found!!");
-      //ROS_INFO("Select corners manually.");
+      std::cout<<"Pattern not found!!"<<std::endl;
+      std::cout<<"Select corners manually."<<std::endl;
     }
   }
 
