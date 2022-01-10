@@ -86,7 +86,7 @@ public:
 
     {
       setParent(view.sensor());
-      setPlane(view.object()->plane());
+      setPlane(view.object()->plane()); //设置目标平面的参数，当前平面到相机的仿射变换
 
       std::stringstream ss;
       ss << view.object()->frameId() << "_" << view.id();
@@ -300,7 +300,7 @@ private:
   Scalar cell_width_;
   Scalar cell_height_;
 
-  Cloud3 corners_;
+  Cloud3 corners_; //前两个为x,y坐标，第3个为0
 
 };
 

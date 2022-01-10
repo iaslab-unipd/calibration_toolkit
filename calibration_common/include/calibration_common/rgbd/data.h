@@ -191,7 +191,7 @@ private:
   PCLCloud3::Ptr depth_data_;
   PCLCloud3::Ptr registered_depth_data_;
 
-  PCLCloudRGB::Ptr fused_data_;
+  PCLCloudRGB::Ptr fused_data_;//带颜色的降采样后的点云
 
 };
 

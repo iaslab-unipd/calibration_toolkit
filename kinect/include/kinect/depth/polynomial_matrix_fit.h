@@ -168,7 +168,7 @@ template <typename PolynomialT_>
 
   protected:
 
-    Matrix<DataBin> data_bins_;
+    Matrix<DataBin> data_bins_; //x:标定板角点的z,       y:标定板角点射线射到点云平面上的z
     Matrix<AccumulationBin> accumulation_bins_;
 
     typename ModelT::Ptr model_;
@@ -363,9 +363,9 @@ template <typename PolynomialT_>
     struct Data
     {
       Data(Scalar x, Scalar y, Scalar weight) : x_(x), y_(y), weight_(weight) {}
-      Scalar x_;
-      Scalar y_;
-      Scalar weight_;
+      Scalar x_;//原始的深度z
+      Scalar y_;//平面修正后的深度z
+      Scalar weight_;//权重
     };
     typedef std::vector<Data> DataBin;
 
@@ -432,7 +432,7 @@ template <typename PolynomialT_>
 
   protected:
 
-    Matrix<DataBin> data_bins_;
+    Matrix<DataBin> data_bins_;//里面的每一个bin包含3个数,点云的深度z，线穿过平面的深度z(GT),和不确定度
     Matrix<AccumulationBin> accumulation_bins_;
 
     typename ModelT::Ptr model_;
@@ -583,7 +583,7 @@ template <typename PolynomialT_, typename ScalarT_, typename PCLPointT_>
       for (Size1 i = 0; i < indices.size(); ++i)
         accumulatePoint(indices[i] % cloud.width, indices[i] / cloud.width, cloud.points[indices[i]]);
     }
-
+    //针对与提取出平面所对应点云中的每一个点在深度图片中的x,y序号
     inline virtual void accumulatePoint(Size1 x_index,
                                         Size1 y_index,
                                         const Point & point)
@@ -597,6 +597,7 @@ template <typename PolynomialT_, typename ScalarT_, typename PCLPointT_>
 //      Base::accumulation_bins_.at(index) += typename Types<Scalar>::Point3(point.x, point.y, point.z);
       typename Types<Scalar>::Point3 eigen_point(point.x, point.y, point.z);
       for (Size1 i = 0; i < lt_data.size(); ++i)
+          //将该点和该点所对应的权重放进所对应的bin中
         Base::accumulation_bins_.at(lt_data[i].index_).push_back(AccumulationBinData(eigen_point, lt_data[i].weight_));
     }
 

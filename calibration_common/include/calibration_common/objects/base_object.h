@@ -160,8 +160,8 @@ public:
 
 private:
 
-  Pose pose_;
-  std::string frame_id_;
+  Pose pose_;//仿射变换
+  std::string frame_id_;//所在坐标系的ID 如“/world”
   ConstPtr parent_;
 
 };

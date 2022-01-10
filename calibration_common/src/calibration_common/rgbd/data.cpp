@@ -74,7 +74,7 @@ void RGBDData::fuseData() const
   assert(depth_sensor_ and color_sensor_);
   fused_data_->header.stamp = depth_data_->header.stamp;
   //registered_depth_data_->header.frame_id = color_sensor_->frameId();
-
+  //得到转换矩阵T_{c}_{d} = T_{d}_{c}.inverse()
   Transform t = color_sensor_->pose().inverse();
 
 //  pcl::PointCloud<pcl::PointXYZ> depth_data_tmp(*depth_data_);
@@ -94,13 +94,13 @@ void RGBDData::fuseData() const
     point_rgb.x = point_eigen.x();
     point_rgb.y = point_eigen.y();
     point_rgb.z = point_eigen.z();
-
+    //将深度相机中的点转换到相机坐标系下
     point_eigen = t * point_eigen;
     Point2 point_image = color_sensor_->cameraModel()->project3dToPixel2<double>(point_eigen);
 
     int x = static_cast<int>(point_image[0]);
     int y = static_cast<int>(point_image[1]);
-
+    //将该处的点云与对应的相机坐标系中颜色对齐
     if (x >= 0 and x < color_data_.cols and y >= 0 and y < color_data_.rows)
     {
       cv::Point p(x, y);

@@ -119,6 +119,7 @@ typedef boost::shared_ptr<const Indices> IndicesConstPtr;
 
 /* ******************************************************************* */
 
+//x,y平面上的平面，法向量为z轴
 const Plane PLANE_XY = Plane(Vector3::UnitZ(), 0);  ///< The $x-y$ plane.
 
 // TODO move to another file?
@@ -134,12 +135,15 @@ struct Util
    * @param [in] to The target plane.
    * @return The affine transformation that transform a point in @c from to a point in @c to.
    */
+   //返回两个平面之间的仿射变换,该变换可将一点从from的平面转换到to的平面
   inline static Transform plane3dTransform(const Plane & from,
                                            const Plane & to)
   {
     Quaternion rotation;
     rotation.setFromTwoVectors(from.normal(), to.normal());
+    //这里得到的是光心到
     Translation3 translation(-to.normal() * to.offset());
+    //返回的是仿射变换
     return translation * rotation;
   }
 };
